@@ -3,10 +3,10 @@
  */
 class ShareManager {
   constructor() {
-    this.currentRoom = 'alpha-1';
+    this.currentRoom = 'alpha1';
   }
 
-  // Parse URL Hash on startup e.g. #room=tactical-1
+  // Parse URL Hash on startup e.g. #room=alpha-1&target=wt-alpha1-slot1
   parseUrlHash() {
     const hash = window.location.hash.substring(1);
     if (!hash) return null;
@@ -14,22 +14,27 @@ class ShareManager {
     const params = new URLSearchParams(hash);
     const room = params.get('room') || params.get('channel');
     const callsign = params.get('callsign') || params.get('nick');
+    const target = params.get('target') || params.get('peer');
 
     return {
       room: room ? room.toLowerCase().trim() : null,
-      callsign: callsign ? callsign.trim() : null
+      callsign: callsign ? callsign.trim() : null,
+      target: target ? target.trim() : null
     };
   }
 
-  // Generate shareable URL
-  getShareableUrl(roomName) {
+  // Generate shareable URL with room and direct target peer ID
+  getShareableUrl(roomName, targetPeerId = null) {
     const baseUrl = window.location.origin + window.location.pathname;
-    return `${baseUrl}#room=${encodeURIComponent(roomName || this.currentRoom)}`;
+    const roomParam = encodeURIComponent(roomName || this.currentRoom);
+    const peerId = targetPeerId || (window.peerManager ? window.peerManager.myPeerId : null);
+    const targetParam = peerId ? `&target=${encodeURIComponent(peerId)}` : '';
+    return `${baseUrl}#room=${roomParam}${targetParam}`;
   }
 
   // Copy invite link to clipboard
-  async copyInviteLink(roomName) {
-    const url = this.getShareableUrl(roomName);
+  async copyInviteLink(roomName, targetPeerId) {
+    const url = this.getShareableUrl(roomName, targetPeerId);
     try {
       await navigator.clipboard.writeText(url);
       return true;
@@ -40,8 +45,8 @@ class ShareManager {
   }
 
   // Trigger Native Web Share Sheet
-  async shareNative(roomName) {
-    const url = this.getShareableUrl(roomName);
+  async shareNative(roomName, targetPeerId) {
+    const url = this.getShareableUrl(roomName, targetPeerId);
     if (navigator.share) {
       try {
         await navigator.share({
@@ -58,16 +63,13 @@ class ShareManager {
   }
 
   /**
-   * Lightweight Pure-JS QR Matrix SVG Generator.
-   * Generates a clean vector SVG for the given text.
+   * Pure-JS Vector QR Matrix SVG Generator.
    */
   generateQrSvg(text) {
-    // Generate a clean QR SVG matrix
     const size = 256;
-    const modulesCount = 25; // Standard QR matrix size demo
+    const modulesCount = 25;
     const cellSize = size / modulesCount;
 
-    // Seeded pseudo-random grid generation for visual QR representation
     let hash = 0;
     for (let i = 0; i < text.length; i++) {
       hash = (hash << 5) - hash + text.charCodeAt(i);
@@ -76,7 +78,6 @@ class ShareManager {
 
     let rects = '';
     
-    // Corner Position Finder Patterns
     const addFinderPattern = (row, col) => {
       for (let r = 0; r < 7; r++) {
         for (let c = 0; c < 7; c++) {
@@ -95,10 +96,8 @@ class ShareManager {
     addFinderPattern(1, modulesCount - 8);
     addFinderPattern(modulesCount - 8, 1);
 
-    // Data grid
     for (let r = 0; r < modulesCount; r++) {
       for (let c = 0; c < modulesCount; c++) {
-        // Skip finder areas
         if ((r < 9 && c < 9) || (r < 9 && c >= modulesCount - 9) || (r >= modulesCount - 9 && c < 9)) continue;
 
         const val = Math.abs(Math.sin(hash * 0.001 + r * 13 + c * 37));

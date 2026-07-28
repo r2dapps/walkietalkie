@@ -3,7 +3,7 @@
  */
 class App {
   constructor() {
-    this.currentRoom = 'alpha-1';
+    this.currentRoom = 'alpha1';
     this.myCallsign = 'Operator-1';
     this.localStream = null;
     this.isJoined = false;
@@ -12,16 +12,14 @@ class App {
   async init() {
     console.log('Initializing AetherTalk PWA...');
 
-    // 1. Init UI & Storage
     window.uiController.init();
     window.pwaManager.init();
 
-    // 2. Load stored parameters or parse URL Hash
     const savedCallsign = window.storageManager.getCallsign();
     const savedChannel = window.storageManager.getLastChannel();
     const hashParams = window.shareManager.parseUrlHash();
 
-    this.currentRoom = hashParams?.room || savedChannel || 'alpha-1';
+    this.currentRoom = hashParams?.room || savedChannel || 'alpha1';
     this.myCallsign = hashParams?.callsign || savedCallsign || 'Operator-1';
 
     if (window.uiController.elements.roomInput) {
@@ -31,11 +29,9 @@ class App {
       window.uiController.elements.callsignInput.value = this.myCallsign;
     }
 
-    // Init canvas visualizer
     const canvas = document.getElementById('audioCanvas');
     if (canvas) window.visualizer.init(canvas);
 
-    // Setup Peer Manager Callbacks
     window.peerManager.callbacks.onPeerListUpdate = (peersMap) => {
       window.uiController.updatePeerListUI(peersMap);
     };
@@ -54,12 +50,12 @@ class App {
 
     // Auto-join if hash room was specified in URL
     if (hashParams?.room) {
-      this.joinFrequency();
+      this.joinFrequency(hashParams.target);
     }
   }
 
   // Join Radio Frequency Channel
-  async joinFrequency() {
+  async joinFrequency(explicitTarget = null) {
     const roomVal = window.uiController.elements.roomInput.value.trim();
     const callsignVal = window.uiController.elements.callsignInput.value.trim();
 
@@ -71,9 +67,11 @@ class App {
     this.currentRoom = roomVal.toLowerCase();
     this.myCallsign = callsignVal || 'Operator-1';
 
-    // Persist
     window.storageManager.setLastChannel(this.currentRoom);
     window.storageManager.setCallsign(this.myCallsign);
+
+    const hashParams = window.shareManager.parseUrlHash();
+    const targetPeer = explicitTarget || hashParams?.target;
 
     const joinBtn = window.uiController.elements.joinBtn;
     if (joinBtn) {
@@ -82,13 +80,9 @@ class App {
     }
 
     try {
-      // 1. Get Microphone stream
       this.localStream = await window.audioEngine.getMicrophoneStream();
+      await window.peerManager.initPeer(this.currentRoom, this.myCallsign, this.localStream, targetPeer);
 
-      // 2. Connect WebRTC PeerJS
-      await window.peerManager.initPeer(this.currentRoom, this.myCallsign, this.localStream);
-
-      // 3. Update UI Views
       window.uiController.elements.setupView.classList.add('hidden');
       window.uiController.elements.radioView.classList.remove('hidden');
 
@@ -101,13 +95,13 @@ class App {
 
       if (window.uiController.elements.connectionBadge) {
         window.uiController.elements.connectionBadge.innerHTML = `
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> Connected
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> Connected (${window.peerManager.myPeerId})
         `;
         window.uiController.elements.connectionBadge.className = 'text-[11px] text-emerald-400 font-semibold flex items-center gap-1.5';
       }
 
       this.isJoined = true;
-      console.log('Joined frequency successfully:', this.currentRoom);
+      console.log('Joined frequency successfully:', this.currentRoom, 'Peer ID:', window.peerManager.myPeerId);
 
     } catch (err) {
       console.error('Failed to join channel:', err);
@@ -187,7 +181,7 @@ class App {
   openShareModal() {
     const qrContainer = window.uiController.elements.qrContainer;
     const shareUrlInput = window.uiController.elements.shareUrlInput;
-    const url = window.shareManager.getShareableUrl(this.currentRoom);
+    const url = window.shareManager.getShareableUrl(this.currentRoom, window.peerManager.myPeerId);
 
     if (qrContainer) {
       qrContainer.innerHTML = window.shareManager.generateQrSvg(url);
@@ -200,13 +194,13 @@ class App {
 
   // Copy Share Link helper
   async copyShareLink() {
-    const success = await window.shareManager.copyInviteLink(this.currentRoom);
+    const success = await window.shareManager.copyInviteLink(this.currentRoom, window.peerManager.myPeerId);
     if (success) alert('Invite link copied to clipboard!');
   }
 
   // Native Mobile Share helper
   async shareNative() {
-    await window.shareManager.shareNative(this.currentRoom);
+    await window.shareManager.shareNative(this.currentRoom, window.peerManager.myPeerId);
   }
 
   // Add Current Channel to Favorites
@@ -217,10 +211,8 @@ class App {
   }
 }
 
-// Instantiate Global App
 window.app = new App();
 
-// Document Ready Bootstrapping
 document.addEventListener('DOMContentLoaded', () => {
   window.app.init();
 });
