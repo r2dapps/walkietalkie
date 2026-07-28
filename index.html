@@ -436,6 +436,29 @@
                 </div>
             </div>
 
+            <!-- Tactical Squad / Friends Roster -->
+            <div class="pt-3 border-t border-slate-800 space-y-2">
+                <div class="flex justify-between items-center">
+                    <label class="font-semibold text-slate-400 text-xs flex items-center gap-1.5">
+                        <i class="fa-solid fa-users text-cyan-400"></i> Tactical Squad (Friends)
+                    </label>
+                    <button onclick="window.uiController.requestNotificationPermission()" class="text-[10px] text-cyan-400 hover:underline font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-bell"></i> Enable Web Push
+                    </button>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <input type="text" id="addFriendInput" placeholder="Enter friend callsign..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none">
+                    <button onclick="window.uiController.handleAddFriend()" class="px-3 py-2 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs rounded-xl transition">
+                        Add
+                    </button>
+                </div>
+
+                <div id="friendsListContainer" class="space-y-1.5 text-xs pt-1">
+                    <div class="text-slate-500 text-[11px]">No friends added yet. Type a callsign above to add them!</div>
+                </div>
+            </div>
+
             <!-- PIN Lock Change Box -->
             <div class="pt-3 border-t border-slate-800 space-y-2">
                 <label class="font-semibold text-slate-400 text-xs block">Security PIN Management (Default: 0000)</label>

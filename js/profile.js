@@ -31,9 +31,61 @@ class ProfileManager {
   saveProfile(updated) {
     this.profile = { ...this.profile, ...updated };
     localStorage.setItem('aethertalk_profile', JSON.stringify(this.profile));
-    if (window.storageManager) {
-      window.storageManager.setCallsign(this.profile.callsign);
+    
+    // Sync callsign across all app views & storage
+    if (updated.callsign) {
+      if (window.storageManager) window.storageManager.setCallsign(updated.callsign);
+      if (window.app) window.app.myCallsign = updated.callsign;
+      
+      const setupCallsign = document.getElementById('callsignInput');
+      const profileCallsign = document.getElementById('profileCallsignInput');
+      if (setupCallsign && setupCallsign.value !== updated.callsign) setupCallsign.value = updated.callsign;
+      if (profileCallsign && profileCallsign.value !== updated.callsign) profileCallsign.value = updated.callsign;
     }
+  }
+
+  // Friends & Tactical Squad Management
+  loadFriends() {
+    const saved = localStorage.getItem('aethertalk_friends');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return {}; // callsign -> { callsign, peerId, addedAt }
+  }
+
+  addFriend(callsign, peerId = '') {
+    const cleanCallsign = (callsign || '').trim();
+    if (!cleanCallsign) return;
+
+    this.friends = this.loadFriends();
+    this.friends[cleanCallsign] = {
+      callsign: cleanCallsign,
+      peerId: peerId,
+      addedAt: Date.now()
+    };
+    localStorage.setItem('aethertalk_friends', JSON.stringify(this.friends));
+
+    if (window.uiController && window.uiController.showToast) {
+      window.uiController.showToast(`Added ${cleanCallsign} to Tactical Squad!`, 'success');
+    }
+    if (window.uiController) window.uiController.renderFriendsList();
+  }
+
+  removeFriend(callsign) {
+    this.friends = this.loadFriends();
+    if (this.friends[callsign]) {
+      delete this.friends[callsign];
+      localStorage.setItem('aethertalk_friends', JSON.stringify(this.friends));
+      if (window.uiController && window.uiController.showToast) {
+        window.uiController.showToast(`Removed ${callsign} from squad`, 'info');
+      }
+      if (window.uiController) window.uiController.renderFriendsList();
+    }
+  }
+
+  isFriend(callsign) {
+    this.friends = this.loadFriends();
+    return !!this.friends[callsign];
   }
 
   // Peer Blocking Management

@@ -89,6 +89,68 @@ class FirebaseSignaling {
       const remotePeerId = snapshot.key;
       console.log(`[FirebaseSignaling] Peer left #${safeRoom}:`, remotePeerId);
     });
+
+    // 5. Start listening for incoming pings to our callsign
+    this.listenForInvitePings(callsign);
+  }
+
+  /**
+   * Send an instant invite ping to a friend by callsign via Firebase RTDB.
+   */
+  sendInvitePing(targetCallsign, roomName, senderCallsign) {
+    if (!this.init()) return;
+    const safeTarget = (targetCallsign || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (!safeTarget) return;
+
+    const inviteRef = this.db.ref(`invites/${safeTarget}`).push();
+    inviteRef.set({
+      fromCallsign: senderCallsign || 'AetherTalk Operator',
+      room: roomName || 'alpha1',
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
+
+    console.log(`[FirebaseSignaling] Sent invite ping to ${targetCallsign} for room #${roomName}`);
+    if (window.uiController && window.uiController.showToast) {
+      window.uiController.showToast(`Pinged ${targetCallsign} to join #${roomName}!`, 'success');
+    }
+  }
+
+  /**
+   * Listen for incoming invite pings to our callsign in Firebase RTDB.
+   */
+  listenForInvitePings(myCallsign) {
+    if (!this.init()) return;
+    const safeCallsign = (myCallsign || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (!safeCallsign) return;
+
+    const myInvitesRef = this.db.ref(`invites/${safeCallsign}`);
+    myInvitesRef.on('child_added', (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+
+      console.log('[FirebaseSignaling] Received invite ping:', data);
+
+      // Play chime audio if available
+      if (window.audioEngine) {
+        window.audioEngine.playRogerBeep('quindar');
+      }
+
+      // Show Toast Notification
+      if (window.uiController && window.uiController.showToast) {
+        window.uiController.showToast(`📡 ${data.fromCallsign} invited you to #${data.room}!`, 'info', 6000);
+      }
+
+      // Trigger Web Push Notification if granted and page is in background
+      if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
+        new Notification(`Radio Call from ${data.fromCallsign}`, {
+          body: `Join channel #${data.room} now on AetherTalk`,
+          icon: './assets/icon.svg'
+        });
+      }
+
+      // Clean up processed invite
+      snapshot.ref.remove();
+    });
   }
 
   /**

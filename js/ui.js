@@ -108,6 +108,25 @@ class UIController {
       ptt.addEventListener('touchend', handleRelease);
     }
 
+    // Live Callsign Syncing across Setup view and Profile view
+    const setupCallsign = this.elements.callsignInput;
+    const profileCallsign = document.getElementById('profileCallsignInput');
+    
+    if (setupCallsign) {
+      setupCallsign.addEventListener('input', (e) => {
+        const val = e.target.value;
+        if (profileCallsign && profileCallsign.value !== val) profileCallsign.value = val;
+        if (window.profileManager) window.profileManager.saveProfile({ callsign: val });
+      });
+    }
+    if (profileCallsign) {
+      profileCallsign.addEventListener('input', (e) => {
+        const val = e.target.value;
+        if (setupCallsign && setupCallsign.value !== val) setupCallsign.value = val;
+        if (window.profileManager) window.profileManager.saveProfile({ callsign: val });
+      });
+    }
+
     // Keyboard Spacebar PTT shortcut
     window.addEventListener('keydown', (e) => {
       if (e.code === 'Space' && !e.repeat && document.activeElement.tagName !== 'INPUT') {
@@ -460,7 +479,73 @@ class UIController {
         if (callsignInput) callsignInput.value = p.callsign;
       }
       this.renderAvatarGrid();
+      this.renderFriendsList();
       this.renderBlockedPeersList();
+    }
+  }
+
+  // Render Tactical Squad / Friends Roster
+  renderFriendsList() {
+    const container = document.getElementById('friendsListContainer');
+    if (!container || !window.profileManager) return;
+
+    const friends = window.profileManager.loadFriends();
+    const keys = Object.keys(friends);
+
+    if (keys.length === 0) {
+      container.innerHTML = `<div class="text-slate-500 text-[11px]">No friends added yet. Type a callsign above to add them!</div>`;
+      return;
+    }
+
+    container.innerHTML = keys.map(callsign => `
+      <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-user-shield"></i>
+          </div>
+          <div>
+            <span class="font-bold text-slate-200">${callsign}</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button onclick="window.uiController.sendPingToFriend('${callsign}')" class="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] rounded-lg transition flex items-center gap-1">
+            <i class="fa-solid fa-bell"></i> Ping
+          </button>
+          <button onclick="window.profileManager.removeFriend('${callsign}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-rose-400 font-bold text-[10px] rounded-lg border border-slate-700">
+            Remove
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  handleAddFriend() {
+    const input = document.getElementById('addFriendInput');
+    if (!input || !input.value.trim() || !window.profileManager) return;
+
+    window.profileManager.addFriend(input.value.trim());
+    input.value = '';
+  }
+
+  sendPingToFriend(targetCallsign) {
+    const currentRoom = window.app ? window.app.currentRoom : 'alpha1';
+    const myCallsign = window.app ? window.app.myCallsign : 'Operator';
+    if (window.firebaseSignaling) {
+      window.firebaseSignaling.sendInvitePing(targetCallsign, currentRoom, myCallsign);
+    }
+  }
+
+  // Request Web Push Notification Permission
+  async requestNotificationPermission() {
+    if (!('Notification' in window)) {
+      this.showToast('Push notifications not supported on this browser', 'warning');
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      this.showToast('Web Push Notifications enabled! 🔔', 'success');
+    } else {
+      this.showToast('Notification permission denied', 'warning');
     }
   }
 
