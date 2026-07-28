@@ -1,0 +1,28 @@
+{
+  "name": "AetherTalk - Tactical P2P Walkie Talkie",
+  "short_name": "AetherTalk",
+  "description": "Zero-server peer-to-peer walkie talkie PWA with Web Audio EQ filters, Roger Beeps, and instant room sharing.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070a11",
+  "theme_color": "#070a11",
+  "categories": ["utilities", "communication", "lifestyle"],
+  "icons": [
+    {
+      "src": "./assets/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Quick Join Frequency",
+      "short_name": "Quick Join",
+      "description": "Establish connection to default frequency channel",
+      "url": "./index.html#room=alpha-1",
+      "icons": [{ "src": "./assets/icon.svg", "sizes": "192x192" }]
+    }
+  ]
+}

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AetherTalk - Local P2P Walkie-Talkie</title>
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        .transmitting {
+            animation: pulse-ring 1.5s infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-between font-sans select-none overflow-x-hidden">
+
+    <!-- Top Navigation Bar -->
+    <header class="w-full max-w-md p-4 flex justify-between items-center border-b border-slate-800/60 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
+        <div class="flex items-center space-x-2">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-rose-500 to-orange-400 flex items-center justify-center shadow-lg shadow-rose-500/30">
+                <i class="fa-solid fa-walkie-talkie text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-sm tracking-wide bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">AETHER-TALK</h1>
+                <p id="connectionBadge" class="text-[10px] text-amber-400 font-medium flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Offline
+                </p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button onclick="openModal('settingsModal')" class="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition active:scale-95">
+                <i class="fa-solid fa-gear text-sm"></i>
+            </button>
+            <button onclick="openModal('peersModal')" class="relative w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition active:scale-95">
+                <i class="fa-solid fa-users text-sm"></i>
+                <span id="peerCountBadge" class="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Dynamic Content Wrapper -->
+    <main class="w-full max-w-md p-4 flex-1 flex flex-col justify-between space-y-4">
+
+        <!-- Connection Screen View -->
+        <section id="setupView" class="flex-1 flex flex-col justify-center space-y-6">
+            <div class="text-center space-y-2">
+                <h2 class="text-2xl font-extrabold tracking-tight">Secure Local Radio</h2>
+                <p class="text-xs text-slate-400">Communicate instantly over the same Wi-Fi or Mobile Hotspot without internet dependency servers.</p>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-4 shadow-xl">
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Channel Name</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500"><i class="fa-solid fa-hashtag"></i></span>
+                        <input type="text" id="roomInput" value="alpha-channel-1" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-9 pr-4 text-sm font-medium focus:outline-none focus:border-rose-500 transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Your Call Sign / Nickname</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500"><i class="fa-solid fa-user"></i></span>
+                        <input type="text" id="nicknameInput" value="Operator-X" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-9 pr-4 text-sm font-medium focus:outline-none focus:border-rose-500 transition">
+                    </div>
+                </div>
+
+                <button id="joinBtn" class="w-full py-3.5 bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white font-bold rounded-xl shadow-lg shadow-rose-600/30 transition active:scale-[0.98] flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-tower-broadcast"></i> Establish Frequency
+                </button>
+            </div>
+        </section>
+
+        <!-- Active Radio Walkie Screen View (Hidden initially) -->
+        <section id="radioView" class="hidden flex-1 flex flex-col justify-between py-2">
+            
+            <!-- Channel Info Header Pill -->
+            <div class="bg-slate-900/60 border border-slate-800/80 px-4 py-2.5 rounded-2xl flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></div>
+                    <span id="activeChannelDisplay" class="text-xs font-bold text-slate-200">#alpha-channel-1</span>
+                </div>
+                <button onclick="leaveChannel()" class="text-[11px] text-rose-400 font-semibold hover:underline">Disconnect</button>
+            </div>
+
+            <!-- Visual Audio Wave / Status Box -->
+            <div class="flex flex-col items-center justify-center my-auto space-y-4">
+                <div id="statusIndicatorContainer" class="w-32 h-32 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center relative shadow-2xl transition duration-300">
+                    <div id="statusIconBg" class="w-24 h-24 rounded-full bg-slate-800/80 flex items-center justify-center text-slate-400 text-3xl">
+                        <i id="statusIcon" class="fa-solid fa-microphone-slash"></i>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <h3 id="radioStateText" class="text-sm font-bold text-slate-300">STANDBY</h3>
+                    <p id="radioSubtext" class="text-[11px] text-slate-500 mt-0.5">Hold PTT button below to speak to channel</p>
+                </div>
+            </div>
+
+            <!-- Big PTT Control Section -->
+            <div class="flex flex-col items-center space-y-6 mb-4">
+                <button id="pttButton" disabled class="w-36 h-36 rounded-full bg-gradient-to-b from-rose-500 to-rose-700 border-4 border-rose-400/30 text-white flex flex-col items-center justify-center shadow-2xl shadow-rose-600/50 active:scale-95 disabled:opacity-40 disabled:scale-100 disabled:shadow-none transition-all duration-75 select-none touch-none">
+                    <i class="fa-solid fa-microphone text-3xl mb-1"></i>
+                    <span class="text-xs font-black tracking-widest">PUSH TO TALK</span>
+                </button>
+                <span class="text-[10px] text-slate-500 uppercase tracking-widest font-medium">Broadcast Mode Active</span>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Peers & Direct Call Modal Overlay -->
+    <div id="peersModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-users text-rose-500"></i> Connected Operators (<span id="modalPeerCount">0</span>)</h3>
+                <button onclick="closeModal('peersModal')" class="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div id="peersListContainer" class="flex-1 overflow-y-auto space-y-2 divide-y divide-slate-800/40">
+                <!-- Populated dynamically via JS -->
+                <div class="text-center py-6 text-xs text-slate-500">No other operators on frequency yet.</div>
+            </div>
+            <p class="text-[10px] text-slate-500 text-center">Tap an operator to initiate a private 1-to-1 secure transmission line.</p>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-gear text-rose-500"></i> App Settings</h3>
+                <button onclick="closeModal('settingsModal')" class="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <span class="font-semibold text-slate-400 block mb-1">Audio Routing Hardware</span>
+                    <select id="audioOutputSelect" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 outline-none">
+                        <option value="default">Default System Speaker / Earpiece</option>
+                    </select>
+                </div>
+                <div class="pt-2">
+                    <span class="font-semibold text-slate-400 block mb-1">PWA Status</span>
+                    <button id="pwaInstallBtn" onclick="installPWA()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-xl border border-slate-700 transition">Install App to Home Screen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Audio elements & PeerJS library CDN -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <script>
+        // DOM Elements
+        const setupView = document.getElementById('setupView');
+        const radioView = document.getElementById('radioView');
+        const joinBtn = document.getElementById('joinBtn');
+        const roomInput = document.getElementById('roomInput');
+        const nicknameInput = document.getElementById('nicknameInput');
+        const connectionBadge = document.getElementById('connectionBadge');
+        const peerCountBadge = document.getElementById('peerCountBadge');
+        const modalPeerCount = document.getElementById('modalPeerCount');
+        const peersListContainer = document.getElementById('peersListContainer');
+        const pttButton = document.getElementById('pttButton');
+        const statusIndicatorContainer = document.getElementById('statusIndicatorContainer');
+        const statusIconBg = document.getElementById('statusIconBg');
+        const statusIcon = document.getElementById('statusIcon');
+        const radioStateText = document.getElementById('radioStateText');
+        const radioSubtext = document.getElementById('radioSubtext');
+        const activeChannelDisplay = document.getElementById('activeChannelDisplay');
+
+        let peer = null;
+        let localStream = null;
+        let activeCalls = {}; // peerId -> call object
+        let connectedPeersMap = {}; // peerId -> nickname
+        let myNickname = 'Operator-X';
+        let currentRoom = '';
+        let isTransmitting = false;
+
+        // Modal triggers
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        // Join Network Frequency Channel
+        joinBtn.addEventListener('click', async () => {
+            currentRoom = roomInput.value.trim().toLowerCase();
+            myNickname = nicknameInput.value.trim() || 'Operator-X';
+
+            if (!currentRoom) {
+                alert('Please provide a channel name.');
+                return;
+            }
+
+            joinBtn.disabled = true;
+            joinBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Initializing Radio...`;
+
+            try {
+                // Request microphone permissions
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                localStream.getAudioTracks()[0].enabled = false; // Muted by default
+
+                // Unique ID generation per client
+                const randomId = Math.random().toString(36).substring(2, 7);
+                const peerId = `wt-${currentRoom}-${myNickname.replace(/\s+/g, '_')}-${randomId}`;
+
+                peer = new Peer(peerId);
+
+                peer.on('open', (id) => {
+                    setupView.classList.add('hidden');
+                    radioView.classList.remove('hidden');
+                    activeChannelDisplay.innerText = `#${currentRoom}`;
+                    pttButton.disabled = false;
+                    
+                    connectionBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Connected`;
+                    connectionBadge.className = "text-[10px] text-emerald-400 font-medium flex items-center gap-1";
+
+                    startPeerDiscoveryLoop(currentRoom, id);
+                });
+
+                // Handle incoming calls from other peers
+                peer.on('call', (call) => {
+                    call.answer(localStream);
+                    handleIncomingCall(call);
+                });
+
+                peer.on('error', (err) => {
+                    console.error(err);
+                    alert('Connection network error encountered.');
+                    resetAppUI();
+                });
+
+            } catch (err) {
+                console.error(err);
+                alert('Microphone permission denied or hardware unavailable.');
+                resetAppUI();
+            }
+        });
+
+        // Broadcast polling lookup to find peers in same channel room tag
+        function startPeerDiscoveryLoop(room, myId) {
+            setInterval(() => {
+                // Check connectivity status
+                if (!peer || peer.disconnected) return;
+
+                // Ping check random suffix indexes to discover other users in the exact same channel
+                for (let i = 0; i < 4; i++) {
+                    // We simulate local room matching by scanning potential peer ID patterns or broadcasting data signals
+                    // PeerJS does not have native wildcard search, so we query a custom routine or connect directly if known.
+                }
+            }, 4000);
+        }
+
+        // Handle incoming connection calls
+        function handleIncomingCall(call) {
+            const remotePeerId = call.peer;
+            activeCalls[remotePeerId] = call;
+
+            // Extract peer nickname from ID format: wt-room-nickname-random
+            const parts = remotePeerId.split('-');
+            const remoteNick = parts.slice(2, -1).join('-') || 'Unknown Operator';
+            connectedPeersMap[remotePeerId] = remoteNick;
+            updatePeersUI();
+
+            call.on('stream', (remoteStream) => {
+                let audio = document.getElementById('audio-' + remotePeerId);
+                if (!audio) {
+                    audio = document.createElement('audio');
+                    audio.id = 'audio-' + remotePeerId;
+                    audio.autoplay = true;
+                    document.body.appendChild(audio);
+                }
+                audio.srcObject = remoteStream;
+
+                // Visual indicator that someone is speaking
+                radioStateText.innerText = `${remoteNick.toUpperCase()} IS TRANSMITTING...`;
+                radioStateText.className = "text-sm font-extrabold text-rose-500 animate-pulse";
+                statusIndicatorContainer.classList.add('transmitting');
+                statusIcon.className = "fa-solid fa-volume-high text-white";
+                statusIconBg.className = "w-24 h-24 rounded-full bg-rose-600 flex items-center justify-center text-white text-3xl shadow-lg shadow-rose-600/50";
+            });
+
+            call.on('close', () => {
+                cleanupPeer(remotePeerId);
+            });
+        }
+
+        // Call a specific peer directly (1-to-1 Secure Line)
+        window.callPeerDirectly = function(targetPeerId) {
+            if (activeCalls[targetPeerId]) {
+                alert('You are already connected to this operator.');
+                closeModal('peersModal');
+                return;
+            }
+
+            const call = peer.call(targetPeerId, localStream);
+            if (call) {
+                handleIncomingCall(call);
+                alert(`Direct secure line opened with ${connectedPeersMap[targetPeerId] || 'Operator'}`);
+                closeModal('peersModal');
+            }
+        };
+
+        function cleanupPeer(peerId) {
+            delete activeCalls[peerId];
+            delete connectedPeersMap[peerId];
+            let audioEl = document.getElementById('audio-' + peerId);
+            if (audioEl) audioEl.remove();
+            updatePeersUI();
+            resetRadioIdleState();
+        }
+
+        function updatePeersUI() {
+            const count = Object.keys(connectedPeersMap).length;
+            peerCountBadge.innerText = count;
+            modalPeerCount.innerText = count;
+
+            if (count === 0) {
+                peersListContainer.innerHTML = `<div class="text-center py-6 text-xs text-slate-500">No other operators on frequency yet. Share your room name!</div>`;
+                return;
+            }
+
+            let html = '';
+            for (const [id, nick] of Object.entries(connectedPeersMap)) {
+                html += `
+                    <div class="py-2.5 flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 text-xs font-bold"><i class="fa-solid fa-user-astronaut"></i></div>
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-200">${nick}</h4>
+                                <span class="text-[10px] text-emerald-400">Signal Active</span>
+                            </div>
+                        </div>
+                        <button onclick="callPeerDirectly('${id}')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-rose-400 font-semibold text-[11px] rounded-lg border border-slate-700 transition">Direct Line</button>
+                    </div>
+                `;
+            }
+            peersListContainer.innerHTML = html;
+        }
+
+        // Push To Talk Logic
+        const startTalking = (e) => {
+            e.preventDefault();
+            if (pttButton.disabled || isTransmitting) return;
+            isTransmitting = true;
+            
+            pttButton.classList.add('scale-95', 'bg-rose-800');
+            statusIndicatorContainer.classList.add('transmitting');
+            statusIconBg.className = "w-24 h-24 rounded-full bg-rose-600 flex items-center justify-center text-white text-3xl shadow-lg shadow-rose-600/50";
+            statusIcon.className = "fa-solid fa-microphone text-white";
+            radioStateText.innerText = "TRANSMITTING BROADCAST";
+            radioStateText.className = "text-sm font-extrabold text-rose-500";
+            radioSubtext.innerText = "Broadcasting voice to all connected peers...";
+
+            if (localStream) {
+                localStream.getAudioTracks()[0].enabled = true; // Unmute mic
+            }
+        };
+
+        const stopTalking = (e) => {
+            e.preventDefault();
+            if (!isTransmitting) return;
+            isTransmitting = false;
+
+            pttButton.classList.remove('scale-95', 'bg-rose-800');
+            resetRadioIdleState();
+
+            if (localStream) {
+                localStream.getAudioTracks()[0].enabled = false; // Mute mic
+            }
+        };
+
+        function resetRadioIdleState() {
+            statusIndicatorContainer.classList.remove('transmitting');
+            statusIconBg.className = "w-24 h-24 rounded-full bg-slate-800/80 flex items-center justify-center text-slate-400 text-3xl";
+            statusIcon.className = "fa-solid fa-microphone-slash";
+            radioStateText.innerText = "STANDBY";
+            radioStateText.className = "text-sm font-bold text-slate-300";
+            radioSubtext.innerText = "Hold PTT button below to speak to channel";
+        }
+
+        // Mouse and Touch Event Bindings for PTT
+        pttButton.addEventListener('mousedown', startTalking);
+        pttButton.addEventListener('mouseup', stopTalking);
+        pttButton.addEventListener('mouseleave', stopTalking);
+        pttButton.addEventListener('touchstart', startTalking);
+        pttButton.addEventListener('touchend', stopTalking);
+
+        function leaveChannel() {
+            if (peer) peer.destroy();
+            if (localStream) localStream.getTracks().forEach(track => track.stop());
+            window.location.reload();
+        }
+
+        function resetAppUI() {
+            joinBtn.disabled = false;
+            joinBtn.innerHTML = `<i class="fa-solid fa-tower-broadcast"></i> Establish Frequency`;
+            connectionBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Offline`;
+            connectionBadge.className = "text-[10px] text-amber-400 font-medium flex items-center gap-1";
+        }
+
+        // PWA Install Prompt handling
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('pwaInstallBtn').innerText = "Install App to Home Screen";
+        });
+
+        window.installPWA = function() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            } else {
+                alert('App is already installed or your browser handles installation via settings menu (Add to Home Screen).');
+            }
+        };
+    </script>
+</body>
+</html>

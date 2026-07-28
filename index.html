@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Primary SEO Meta Tags -->
+    <title>AetherTalk - Tactical P2P Walkie Talkie PWA</title>
+    <meta name="title" content="AetherTalk - Tactical P2P Walkie Talkie PWA">
+    <meta name="description" content="Instant zero-server peer-to-peer walkie talkie web application. Features authentic radio EQ DSP, Roger Beep synthesizers, QR code channel pairing, tactical P2P text chat, and full PWA offline support.">
+    <meta name="keywords" content="walkie talkie, peer to peer, PWA, web app, WebRTC, radio EQ, roger beep, tactical comms, local radio">
+    <meta name="author" content="AetherTalk">
+    <meta name="theme-color" content="#070a11">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://r2dapps.github.io/walkietalkie/">
+    <meta property="og:title" content="AetherTalk - Tactical P2P Walkie Talkie PWA">
+    <meta property="og:description" content="Instant zero-server voice & text radio comms. Hardware DSP EQ, Roger Beep, and QR frequency sharing.">
+    <meta property="og:image" content="./assets/icon.svg">
+
+    <!-- Twitter Cards -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://r2dapps.github.io/walkietalkie/">
+    <meta property="twitter:title" content="AetherTalk - Tactical P2P Walkie Talkie PWA">
+    <meta property="twitter:description" content="Instant zero-server voice & text radio comms. Hardware DSP EQ, Roger Beep, and QR frequency sharing.">
+    <meta property="twitter:image" content="./assets/icon.svg">
+
+    <!-- Mobile Web App Capable -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AetherTalk">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="./assets/icon.svg">
+    <link rel="shortcut icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📻</text></svg>">
+    <link rel="manifest" href="./manifest.json">
+
+    <!-- Stylesheets & CDN Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body class="bg-[#070a11] text-slate-100 min-h-screen flex flex-col items-center justify-between font-sans select-none overflow-x-hidden">
+
+    <!-- Offline Network Banner -->
+    <div id="networkBanner" class="w-full bg-amber-500/20 border-b border-amber-500/40 text-amber-300 text-xs py-1.5 px-4 text-center font-medium hidden">
+        <i class="fa-solid fa-wifi"></i> Offline Mode - Waiting for network reconnection...
+    </div>
+
+    <!-- Header Navigation Bar -->
+    <header class="w-full max-w-md p-3.5 flex justify-between items-center border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
+        <div class="flex items-center space-x-2.5">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-rose-600 to-orange-500 flex items-center justify-center shadow-lg shadow-rose-600/30">
+                <i class="fa-solid fa-walkie-talkie text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-black text-sm tracking-widest bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">AETHERTALK</h1>
+                <p id="connectionBadge" class="text-[10px] text-amber-400 font-medium flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Offline
+                </p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-1.5">
+            <!-- Share QR Modal Toggle -->
+            <button onclick="window.app.openShareModal()" class="w-8 h-8 rounded-xl bg-slate-800/90 border border-slate-700/80 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition active:scale-95" title="Share Frequency / QR">
+                <i class="fa-solid fa-qrcode text-xs"></i>
+            </button>
+            <!-- Chat Drawer Toggle -->
+            <button onclick="window.uiController.openModal('chatModal')" class="relative w-8 h-8 rounded-xl bg-slate-800/90 border border-slate-700/80 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition active:scale-95" title="Tactical Channel Chat">
+                <i class="fa-solid fa-comments text-xs"></i>
+                <span id="unreadChatBadge" class="absolute -top-1 -right-1 bg-cyan-500 text-slate-950 text-[9px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+            </button>
+            <!-- Peers Modal Toggle -->
+            <button onclick="window.uiController.openModal('peersModal')" class="relative w-8 h-8 rounded-xl bg-slate-800/90 border border-slate-700/80 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition active:scale-95" title="Operators">
+                <i class="fa-solid fa-users text-xs"></i>
+                <span id="peerCountBadge" class="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+            </button>
+            <!-- NATO Helper Toggle -->
+            <button onclick="window.uiController.openModal('natoModal')" class="w-8 h-8 rounded-xl bg-slate-800/90 border border-slate-700/80 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition active:scale-95" title="NATO Alphabet">
+                <i class="fa-solid fa-book-bookmark text-xs"></i>
+            </button>
+            <!-- Diagnostics Panel Toggle -->
+            <button onclick="window.uiController.openModal('diagnosticsModal')" class="w-8 h-8 rounded-xl bg-slate-800/90 border border-slate-700/80 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition active:scale-95" title="Diagnostics Panel">
+                <i class="fa-solid fa-microchip text-xs"></i>
+            </button>
+            <!-- Settings Toggle -->
+            <button onclick="window.uiController.openModal('settingsModal')" class="w-8 h-8 rounded-xl bg-slate-800/90 border border-slate-700/80 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition active:scale-95" title="Settings">
+                <i class="fa-solid fa-gear text-xs"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="w-full max-w-md p-4 flex-1 flex flex-col justify-between space-y-4">
+
+        <!-- Setup Connection Screen -->
+        <section id="setupView" class="flex-1 flex flex-col justify-center space-y-5 py-4">
+            <div class="text-center space-y-1.5">
+                <h2 class="text-2xl font-black tracking-tight bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">Tactical Comms Radio</h2>
+                <p class="text-xs text-slate-400 max-w-xs mx-auto">Zero-server encrypted voice & text channels over WebRTC peer-to-peer mesh network.</p>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-4 shadow-2xl backdrop-blur-sm">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Frequency Channel</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500"><i class="fa-solid fa-hashtag"></i></span>
+                        <input type="text" id="roomInput" value="alpha-1" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-sm font-semibold text-slate-100 focus:outline-none focus:border-rose-500 transition">
+                    </div>
+                </div>
+
+                <!-- Presets Pill Bar -->
+                <div>
+                    <label class="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Quick Presets</label>
+                    <div class="flex flex-wrap gap-1.5">
+                        <button type="button" data-channel="alpha-1" class="channel-preset-btn px-2.5 py-1 bg-slate-950 border border-slate-800 hover:border-slate-700 text-[11px] font-medium text-slate-300 rounded-lg transition">⭐ Alpha-1</button>
+                        <button type="button" data-channel="bravo-2" class="channel-preset-btn px-2.5 py-1 bg-slate-950 border border-slate-800 hover:border-slate-700 text-[11px] font-medium text-slate-300 rounded-lg transition">⭐ Bravo-2</button>
+                        <button type="button" data-channel="charlie-3" class="channel-preset-btn px-2.5 py-1 bg-slate-950 border border-slate-800 hover:border-slate-700 text-[11px] font-medium text-slate-300 rounded-lg transition">⭐ Charlie-3</button>
+                        <button type="button" data-channel="tactical-9" class="channel-preset-btn px-2.5 py-1 bg-slate-950 border border-slate-800 hover:border-slate-700 text-[11px] font-medium text-slate-300 rounded-lg transition">⭐ Tactical-9</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Call Sign / Nickname</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500"><i class="fa-solid fa-user-shield"></i></span>
+                        <input type="text" id="callsignInput" value="Operator-1" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-sm font-semibold text-slate-100 focus:outline-none focus:border-rose-500 transition">
+                    </div>
+                </div>
+
+                <!-- Favorite Channels Section -->
+                <div>
+                    <label class="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Saved Frequencies</label>
+                    <div id="favoritesList" class="flex flex-wrap gap-1.5">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <button id="joinBtn" onclick="window.app.joinFrequency()" class="w-full py-3.5 bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white font-extrabold text-sm rounded-xl shadow-lg shadow-rose-600/30 transition active:scale-[0.98] flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-tower-broadcast"></i> Establish Frequency
+                </button>
+            </div>
+        </section>
+
+        <!-- Active Radio Walkie Screen -->
+        <section id="radioView" class="hidden flex-1 flex flex-col justify-between py-2 space-y-4">
+            
+            <!-- Channel Info Header Pill -->
+            <div class="bg-slate-900/70 border border-slate-800 px-4 py-2.5 rounded-2xl flex items-center justify-between shadow-lg">
+                <div class="flex items-center space-x-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></div>
+                    <span id="activeChannelDisplay" class="text-xs font-black text-slate-200">#alpha-1</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="window.app.addCurrentToFavorites()" class="text-amber-400 hover:text-amber-300 text-xs px-2 py-1 bg-slate-950 rounded-lg border border-slate-800" title="Bookmark Frequency">
+                        <i class="fa-solid fa-star"></i>
+                    </button>
+                    <button onclick="window.app.leaveFrequency()" class="text-xs text-rose-400 font-bold hover:underline px-2 py-1">Disconnect</button>
+                </div>
+            </div>
+
+            <!-- Tactical Audio Visualizer Box & CRT Display Screen -->
+            <div class="flex flex-col items-center justify-center my-auto space-y-4">
+                
+                <!-- Display Screen -->
+                <div class="w-full tactical-screen rounded-2xl p-3 flex flex-col justify-between text-emerald-400 font-mono-tactical text-xs">
+                    <div class="flex justify-between items-center mb-1 text-[10px]">
+                        <span id="channelFreqDisplay">FREQ: 146.520 (ALPHA-1)</span>
+                        <span>DSP: BANDPASS</span>
+                    </div>
+
+                    <!-- LEDs Row -->
+                    <div class="flex items-center justify-around py-1.5 border-t border-b border-emerald-900/60 my-1">
+                        <div class="flex items-center gap-1.5">
+                            <div id="ledTx" class="led-indicator led-off"></div>
+                            <span class="text-[9px] text-slate-400 font-sans font-bold">TX</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <div id="ledRx" class="led-indicator led-off"></div>
+                            <span class="text-[9px] text-slate-400 font-sans font-bold">RX</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <div id="ledBat" class="led-indicator led-standby"></div>
+                            <span class="text-[9px] text-slate-400 font-sans font-bold">PWR</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Big Central Waveform Ring Container -->
+                <div class="relative w-48 h-48 rounded-full flex items-center justify-center">
+                    <!-- Canvas Visualizer Overlay -->
+                    <canvas id="audioCanvas" class="absolute inset-0 w-full h-full rounded-full pointer-events-none z-10"></canvas>
+                    
+                    <!-- PTT Button -->
+                    <button id="pttButton" class="w-36 h-36 rounded-full bg-gradient-to-b from-rose-600 to-rose-800 border-4 border-rose-400/40 text-white flex flex-col items-center justify-center shadow-2xl shadow-rose-600/40 active:scale-95 transition-all duration-75 select-none touch-none z-20">
+                        <i class="fa-solid fa-microphone text-3xl mb-1"></i>
+                        <span class="text-[11px] font-black tracking-widest">PUSH TO TALK</span>
+                    </button>
+                </div>
+
+                <!-- State Text -->
+                <div class="text-center">
+                    <h3 id="radioStateTitle" class="text-sm font-bold text-slate-300">STANDBY</h3>
+                    <p id="radioSubtext" class="text-[11px] text-slate-500 mt-0.5">Hold PTT button or use Spacebar to speak</p>
+                </div>
+            </div>
+
+            <!-- Bottom Radio Controls -->
+            <div class="flex items-center justify-between px-2 pt-2 border-t border-slate-800/80 text-xs">
+                <button onclick="window.app.openShareModal()" class="px-3 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 rounded-xl text-slate-300 font-medium flex items-center gap-1.5">
+                    <i class="fa-solid fa-qrcode text-rose-400"></i> Share Link & QR
+                </button>
+                <button onclick="window.uiController.openModal('chatModal')" class="px-3 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 rounded-xl text-cyan-400 font-medium flex items-center gap-1.5">
+                    <i class="fa-solid fa-comments"></i> Channel Log
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Peers & Direct Line Modal -->
+    <div id="peersModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 max-h-[80vh] flex flex-col shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-users text-rose-500"></i> Connected Operators (<span id="modalPeerCount">0</span>)</h3>
+                <button onclick="window.uiController.closeModal('peersModal')" class="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="peersListContainer" class="flex-1 overflow-y-auto space-y-1 divide-y divide-slate-800/40">
+                <div class="text-center py-6 text-xs text-slate-500">No other operators on frequency yet.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tactical Chat Modal -->
+    <div id="chatModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-3 h-[75vh] flex flex-col shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-comments text-cyan-500"></i> Tactical Channel Log</h3>
+                <button onclick="window.uiController.closeModal('chatModal')" class="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="chatMessagesContainer" class="flex-1 overflow-y-auto space-y-2.5 pr-1 text-xs">
+                <div class="text-center py-4 text-slate-500 text-[11px]">Frequency encrypted message board initialized.</div>
+            </div>
+            <div class="flex items-center space-x-2 pt-2 border-t border-slate-800">
+                <input type="text" id="chatInput" onkeydown="if(event.key==='Enter') window.app.sendChat()" placeholder="Broadcast message or NATO phrase..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+                <button onclick="window.app.sendChat()" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl transition text-xs flex items-center gap-1">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Frequency / QR Modal -->
+    <div id="shareModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-qrcode text-rose-500"></i> Share Channel Frequency</h3>
+                <button onclick="window.uiController.closeModal('shareModal')" class="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="flex flex-col items-center justify-center space-y-3 py-2">
+                <div id="qrContainer" class="w-48 h-48 flex items-center justify-center"></div>
+                <p class="text-xs text-slate-400 text-center">Scan QR code or copy invite link to join frequency instantly</p>
+            </div>
+            <div class="space-y-2">
+                <input type="text" id="shareUrlInput" readonly class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs font-mono text-slate-300 outline-none select-all">
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="window.app.copyShareLink()" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs rounded-xl border border-slate-700 transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-copy"></i> Copy Link
+                    </button>
+                    <button onclick="window.app.shareNative()" class="py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs rounded-xl transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-share-nodes"></i> Native Share
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NATO Phonetic Alphabet Helper Drawer Modal -->
+    <div id="natoModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-3 max-h-[80vh] flex flex-col shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-amber-400"></i> NATO Phonetic Reference</h3>
+                <button onclick="window.uiController.closeModal('natoModal')" class="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-[11px] text-slate-400">Tap any phonetic code to insert directly into chat log.</p>
+            <div id="natoContainer" class="grid grid-cols-2 gap-1.5 overflow-y-auto flex-1 pr-1"></div>
+        </div>
+    </div>
+
+    <!-- Diagnostics Panel Modal -->
+    <div id="diagnosticsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-microchip text-emerald-400"></i> WebRTC Diagnostics</h3>
+                <button onclick="window.uiController.closeModal('diagnosticsModal')" class="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-2 text-xs font-mono">
+                <div class="flex justify-between py-1.5 border-b border-slate-800/60">
+                    <span class="text-slate-400">Estimated Latency RTT:</span>
+                    <span id="diagRtt" class="text-emerald-400 font-bold">-- ms</span>
+                </div>
+                <div class="flex justify-between py-1.5 border-b border-slate-800/60">
+                    <span class="text-slate-400">ICE Connection State:</span>
+                    <span id="diagIce" class="text-cyan-400 font-bold">idle</span>
+                </div>
+                <div class="flex justify-between py-1.5 border-b border-slate-800/60">
+                    <span class="text-slate-400">Audio Codec:</span>
+                    <span id="diagCodec" class="text-slate-200">Opus 48kHz</span>
+                </div>
+                <div class="flex justify-between py-1.5 border-b border-slate-800/60">
+                    <span class="text-slate-400">AudioContext State:</span>
+                    <span id="diagAudioCtx" class="text-amber-400 font-bold">uninitialized</span>
+                </div>
+                <div class="flex justify-between py-1.5 border-b border-slate-800/60">
+                    <span class="text-slate-400">Packets Transmitted:</span>
+                    <span id="diagPackets" class="text-slate-200">0 sent</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-gear text-rose-500"></i> Audio Hardware & Settings</h3>
+                <button onclick="window.uiController.closeModal('settingsModal')" class="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3.5 text-xs">
+                <div>
+                    <label class="font-semibold text-slate-400 block mb-1">Radio DSP EQ Preset</label>
+                    <select id="eqSelect" onchange="window.audioEngine.applyEqPreset(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 outline-none">
+                        <option value="military" selected>Military Tactical Bandpass (300Hz - 3200Hz)</option>
+                        <option value="analog_fm">Analog FM Radio</option>
+                        <option value="cb_radio">CB Radio Distortion</option>
+                        <option value="vintage">Vintage Walkie Talkie</option>
+                        <option value="clean">Clean Wideband Audio</option>
+                    </select>
+                </div>
+
+                <div class="pt-2 border-t border-slate-800 space-y-2">
+                    <button id="pwaInstallBtn" onclick="window.pwaManager.promptInstall()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl border border-slate-700 transition">Install App to Home Screen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- External Library Scripts & Modules -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <script src="./js/storage.js"></script>
+    <script src="./js/audio.js"></script>
+    <script src="./js/visualizer.js"></script>
+    <script src="./js/share.js"></script>
+    <script src="./js/pwa.js"></script>
+    <script src="./js/peer.js"></script>
+    <script src="./js/ui.js"></script>
+    <script src="./js/app.js"></script>
+</body>
+</html>
