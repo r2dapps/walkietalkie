@@ -128,14 +128,33 @@ class App {
     }
   }
 
-  // PTT Trigger
-  startPTT() {
+  // PTT Trigger (with Firebase RTDB Atomic Lock to prevent double-talk)
+  async startPTT() {
     if (!this.isJoined || !this.localStream) return;
+
+    if (window.firebaseSignaling) {
+      const lockAcquired = await window.firebaseSignaling.requestPttLock(this.myCallsign);
+      if (!lockAcquired) {
+        if (window.uiController && window.uiController.showToast) {
+          window.uiController.showToast('⚠️ Channel Busy! Another operator is transmitting.', 'warning', 3000);
+        }
+        if (window.audioEngine) {
+          window.audioEngine.playSquelch(0.2);
+        }
+        return;
+      }
+    }
+
     window.peerManager.startTransmission(this.localStream);
   }
 
   stopPTT() {
     if (!this.isJoined) return;
+    
+    if (window.firebaseSignaling) {
+      window.firebaseSignaling.releasePttLock(this.myCallsign);
+    }
+
     window.peerManager.stopTransmission();
   }
 

@@ -190,11 +190,16 @@ class FirebaseSignaling {
       if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.ready.then((registration) => {
+            const baseUrl = window.location.origin + window.location.pathname;
+            const roomParam = `#room=${encodeURIComponent(data.room)}`;
+            const keyParam = data.key ? `&key=${encodeURIComponent(data.key)}` : '';
+            const targetUrl = `${baseUrl}${roomParam}${keyParam}`;
+
             registration.showNotification(`Radio Call from ${data.fromCallsign}`, {
               body: `Join channel #${data.room} now on AetherTalk`,
               icon: './assets/icon.svg',
               data: {
-                url: `/#room=${data.room}`
+                url: targetUrl
               }
             });
           });
@@ -207,11 +212,71 @@ class FirebaseSignaling {
   }
 
   /**
+   * Request PTT Lock (Atomic Firebase Transaction to prevent double-talk)
+   */
+  async requestPttLock(callsign) {
+    if (!this.init() || !this.currentRoom) return true;
+    const lockRef = this.db.ref(`rooms/${this.currentRoom}/ptt_lock`);
+    
+    try {
+      const result = await lockRef.transaction((currentLock) => {
+        // If channel is un-locked or locked by us, acquire lock
+        if (currentLock === null || currentLock.callsign === callsign) {
+          return { callsign: callsign, timestamp: firebase.database.ServerValue.TIMESTAMP };
+        } else {
+          // Locked by another operator! Abort transaction.
+          return;
+        }
+      });
+      return result.committed;
+    } catch (err) {
+      console.warn('[FirebaseSignaling] PTT Lock transaction error:', err);
+      return true; // Fallback to local transmission if Firebase transaction fails
+    }
+  }
+
+  /**
+   * Release PTT Lock
+   */
+  releasePttLock(callsign) {
+    if (!this.init() || !this.currentRoom) return;
+    const lockRef = this.db.ref(`rooms/${this.currentRoom}/ptt_lock`);
+    lockRef.transaction((currentLock) => {
+      if (currentLock && currentLock.callsign === callsign) {
+        return null; // Release channel lock
+      }
+      return currentLock;
+    });
+  }
+
+  /**
+   * Listen for PTT Channel Lock changes (updates UI lock badge)
+   */
+  listenForPttLock(onLockChanged) {
+    if (!this.init() || !this.currentRoom) return;
+    const lockRef = this.db.ref(`rooms/${this.currentRoom}/ptt_lock`);
+    this.pttLockRef = lockRef;
+
+    lockRef.on('value', (snapshot) => {
+      const lockData = snapshot.val();
+      if (onLockChanged) {
+        onLockChanged(lockData);
+      }
+    });
+  }
+
+  /**
    * Remove local presence when disconnecting or switching channels.
    */
   leaveRoom() {
     if (this.roomRef) {
       this.roomRef.off();
+    }
+    if (this.chatsRef) {
+      this.chatsRef.off();
+    }
+    if (this.pttLockRef) {
+      this.pttLockRef.off();
     }
     if (this.myPeerRef) {
       this.myPeerRef.remove();

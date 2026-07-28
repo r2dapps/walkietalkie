@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aethertalk-v1.0.2';
+const CACHE_NAME = 'aethertalk-v1.0.3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -59,6 +59,33 @@ self.addEventListener('fetch', (event) => {
         return networkResponse;
       });
     })
+  );
+});
+
+// Handle Background Push Notifications (Web Push / FCM) when app is 100% closed
+self.addEventListener('push', (event) => {
+  let data = {};
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data = { title: 'AetherTalk Radio Call', body: event.data.text() };
+    }
+  }
+
+  const title = data.title || data.notification?.title || 'Radio Call incoming on AetherTalk';
+  const options = {
+    body: data.body || data.notification?.body || 'An operator is calling your frequency.',
+    icon: './assets/icon.svg',
+    badge: './assets/icon.svg',
+    vibrate: [200, 100, 200, 100, 200],
+    data: {
+      url: data.data?.url || data.url || '/'
+    }
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(title, options)
   );
 });
 
