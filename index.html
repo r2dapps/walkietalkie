@@ -319,50 +319,63 @@
         </div>
     </div>
 
-    <!-- Settings Modal -->
+    <!-- Unified Settings & Operator Profile Modal -->
     <div id="settingsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-gear text-rose-500"></i> Audio Hardware & Settings</h3>
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-user-gear text-emerald-400"></i> Settings & Operator Profile</h3>
                 <button onclick="window.uiController.closeModal('settingsModal')" class="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="space-y-3.5 text-xs">
+
+            <div class="flex-1 overflow-y-auto space-y-4 text-xs pr-1">
                 <!-- Operator Profile Card -->
-                <div class="p-3 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-between shadow-inner">
+                <div class="p-3.5 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-between shadow-inner">
                     <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-base font-bold">
+                        <div class="w-11 h-11 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-lg font-bold">
                             <i id="settingsProfileAvatar" class="fa-solid fa-walkie-talkie"></i>
                         </div>
                         <div>
                             <span class="text-[9px] text-slate-400 font-bold block uppercase tracking-wider">Active Operator Nickname</span>
-                            <h4 id="settingsProfileCallsign" class="text-xs font-black text-slate-100">Operator-1</h4>
+                            <h4 id="settingsProfileCallsign" class="text-sm font-black text-slate-100">Operator-1</h4>
                         </div>
                     </div>
-                    <button type="button" onclick="if(window.app && window.app.myCallsign) window.uiController.copyToClipboard(window.app.myCallsign)" class="px-2.5 py-1.5 bg-slate-900 border border-slate-800 hover:border-slate-700 text-cyan-400 font-bold text-[10px] rounded-xl transition flex items-center gap-1">
+                    <button type="button" onclick="if(window.app && window.app.myCallsign) window.uiController.copyToClipboard(window.app.myCallsign)" class="px-3 py-1.5 bg-slate-900 border border-slate-800 hover:border-slate-700 text-cyan-400 font-bold text-[10px] rounded-xl transition flex items-center gap-1.5 shadow">
                         <i class="fa-regular fa-copy"></i> Copy Name
                     </button>
                 </div>
 
+                <!-- Callsign Edit Input -->
                 <div>
-                    <label class="font-semibold text-slate-400 block mb-1">Radio DSP EQ Preset</label>
-                    <select id="eqSelect" onchange="window.audioEngine.applyEqPreset(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 outline-none">
-                        <option value="military" selected>Military Tactical Bandpass (300Hz - 3200Hz)</option>
-                        <option value="analog_fm">Analog FM Radio</option>
-                        <option value="cb_radio">CB Radio Distortion</option>
-                        <option value="vintage">Vintage Walkie Talkie</option>
-                        <option value="clean">Clean Wideband Audio (No Radio Distortion)</option>
-                    </select>
+                    <label class="font-semibold text-slate-400 block mb-1">Tactical Nickname / Callsign</label>
+                    <input type="text" id="profileCallsignInput" onchange="window.profileManager.saveProfile({ callsign: this.value })" placeholder="e.g. Dad, Mom, Operator-1" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 font-bold outline-none focus:border-emerald-500">
                 </div>
 
-                <div class="flex items-center justify-between p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                <!-- Avatar Selection Grid -->
+                <div>
+                    <label class="font-semibold text-slate-400 block mb-1.5">Tactical Avatar Icon</label>
+                    <div id="avatarGrid" class="grid grid-cols-4 sm:grid-cols-6 gap-2"></div>
+                </div>
+
+                <!-- Web Push Notification Toggle -->
+                <div class="flex items-center justify-between p-3 bg-slate-950 border border-slate-800 rounded-2xl">
                     <div>
-                        <span class="font-bold text-slate-200 block">Clean Audio Mode</span>
-                        <span class="text-[10px] text-slate-400 block mt-0.5">Bypasses radio distortion. Enable if experiencing echoing or feedback on speakers.</span>
+                        <span class="font-bold text-slate-200 block">Phone Notifications</span>
+                        <span class="text-[10px] text-slate-400 block mt-0.5">Rings & vibrates phone screen when family calls.</span>
                     </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="cleanAudioToggle" onchange="window.audioEngine.applyEqPreset(this.checked ? 'clean' : 'military'); const sel = document.getElementById('eqSelect'); if(sel) sel.value = this.checked ? 'clean' : 'military';" class="sr-only peer">
-                        <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
-                    </label>
+                    <button type="button" onclick="Notification.requestPermission().then(p => { if(window.uiController) window.uiController.showToast(p === 'granted' ? 'Notifications Enabled!' : 'Permission ' + p, p === 'granted' ? 'success' : 'warning'); })" class="px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 font-bold text-[10px] rounded-xl border border-rose-500/40 transition">
+                        Enable Push
+                    </button>
+                </div>
+
+                <!-- UI Color Theme Selector -->
+                <div>
+                    <label class="font-semibold text-slate-400 block mb-1">UI Color Theme</label>
+                    <select id="themeSelect" onchange="window.uiController.setTheme(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 outline-none">
+                        <option value="tactical-dark" selected>Tactical Dark (Default)</option>
+                        <option value="cyber-neon">Cyber Neon (Cyan & Violet)</option>
+                        <option value="desert-camo">Desert Camo (Amber & Gold)</option>
+                        <option value="stealth-black">Stealth Black (OLED Pitch Black)</option>
+                    </select>
                 </div>
 
                 <!-- Bluetooth / Audio Input Hardware -->
@@ -386,6 +399,31 @@
                     </select>
                 </div>
 
+                <!-- Radio DSP EQ Preset -->
+                <div>
+                    <label class="font-semibold text-slate-400 block mb-1">Radio DSP EQ Preset</label>
+                    <select id="eqSelect" onchange="window.audioEngine.applyEqPreset(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 outline-none">
+                        <option value="military" selected>Military Tactical Bandpass (300Hz - 3200Hz)</option>
+                        <option value="analog_fm">Analog FM Radio</option>
+                        <option value="cb_radio">CB Radio Distortion</option>
+                        <option value="vintage">Vintage Walkie Talkie</option>
+                        <option value="clean">Clean Wideband Audio (No Radio Distortion)</option>
+                    </select>
+                </div>
+
+                <!-- Clean Audio Toggle -->
+                <div class="flex items-center justify-between p-3 bg-slate-950 border border-slate-800 rounded-2xl">
+                    <div>
+                        <span class="font-bold text-slate-200 block">Clean Audio Mode</span>
+                        <span class="text-[10px] text-slate-400 block mt-0.5">Bypasses radio distortion. Enable if experiencing echoing or feedback.</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="cleanAudioToggle" onchange="window.audioEngine.applyEqPreset(this.checked ? 'clean' : 'military'); const sel = document.getElementById('eqSelect'); if(sel) sel.value = this.checked ? 'clean' : 'military';" class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                    </label>
+                </div>
+
+                <!-- PWA Install & Security PIN -->
                 <div class="pt-2 border-t border-slate-800 space-y-2">
                     <button id="pwaInstallBtn" onclick="window.pwaManager.promptInstall()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl border border-slate-700 transition">Install App to Home Screen</button>
                 </div>
@@ -522,8 +560,8 @@
             <div>
                 <div class="flex justify-between items-center mb-1">
                     <label class="font-semibold text-slate-400 text-xs">Tactical Callsign</label>
-                    <button type="button" onclick="if(window.peerManager && window.peerManager.myPeerId) window.uiController.copyToClipboard(window.peerManager.myPeerId)" class="text-[10px] text-cyan-400 font-bold hover:underline flex items-center gap-1">
-                        <i class="fa-regular fa-copy"></i> Copy My Peer ID
+                    <button type="button" onclick="if(window.app && window.app.myCallsign) window.uiController.copyToClipboard(window.app.myCallsign)" class="text-[10px] text-cyan-400 font-bold hover:underline flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i> Copy My Nickname
                     </button>
                 </div>
                 <input type="text" id="profileCallsignInput" onchange="window.profileManager.saveProfile({ callsign: this.value })" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 font-bold outline-none focus:border-emerald-500">

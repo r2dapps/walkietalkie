@@ -30,6 +30,10 @@ class App {
       window.uiController.elements.callsignInput.value = this.myCallsign;
     }
 
+    if (window.firebaseSignaling) {
+      window.firebaseSignaling.listenForInvitePings(this.myCallsign);
+    }
+
     const canvas = document.getElementById('audioCanvas');
     if (canvas) window.visualizer.init(canvas);
 

@@ -158,11 +158,16 @@ class UIController {
       } else if (modalId === 'settingsModal') {
         const profileCallsign = document.getElementById('settingsProfileCallsign');
         const profileAvatar = document.getElementById('settingsProfileAvatar');
-        if (window.profileManager && profileCallsign && profileAvatar) {
-          profileCallsign.innerText = window.profileManager.profile.callsign || 'Operator-1';
-          const iconClass = window.profileManager.getAvatarIconClass(window.profileManager.profile.avatar || 'radio');
-          profileAvatar.className = `fa-solid ${iconClass}`;
+        const callsignInput = document.getElementById('profileCallsignInput');
+        if (window.profileManager) {
+          if (profileCallsign) profileCallsign.innerText = window.profileManager.profile.callsign || 'Operator-1';
+          if (callsignInput) callsignInput.value = window.profileManager.profile.callsign || 'Operator-1';
+          if (profileAvatar) {
+            const iconClass = window.profileManager.getAvatarIconClass(window.profileManager.profile.avatar || 'radio');
+            profileAvatar.className = `fa-solid ${iconClass}`;
+          }
         }
+        this.renderAvatarGrid();
       } else if (modalId === 'diagnosticsModal') {
         this.updateDiagnosticsUI();
       }
@@ -628,20 +633,7 @@ class UIController {
       this.openModal('peersModal');
 
     } else if (tabName === 'profile') {
-      this.elements.setupView.classList.add('hidden');
-      this.elements.radioView.classList.add('hidden');
-      if (squadView) squadView.classList.add('hidden');
-      if (profileView) profileView.classList.remove('hidden');
-
-      // Populate current profile data into inputs
-      if (window.profileManager) {
-        const p = window.profileManager.profile;
-        const callsignInput = document.getElementById('profileCallsignInput');
-        if (callsignInput) callsignInput.value = p.callsign;
-      }
-      this.renderAvatarGrid();
-      this.renderFriendsList();
-      this.renderBlockedPeersList();
+      this.openModal('settingsModal');
     }
   }
 
