@@ -348,6 +348,27 @@
                     </label>
                 </div>
 
+                <!-- Bluetooth / Audio Input Hardware -->
+                <div>
+                    <label class="font-semibold text-slate-400 block mb-1 flex items-center justify-between">
+                        <span><i class="fa-solid fa-microphone text-rose-400"></i> Microphone Input (Mic / Bluetooth)</span>
+                        <button onclick="window.audioEngine.populateAudioDeviceSelectors()" class="text-[10px] text-cyan-400 hover:underline"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+                    </label>
+                    <select id="audioInputSelect" onchange="window.audioEngine.selectAudioInputDevice(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 outline-none">
+                        <option value="">Default Microphone</option>
+                    </select>
+                </div>
+
+                <!-- Bluetooth / Audio Output Hardware -->
+                <div>
+                    <label class="font-semibold text-slate-400 block mb-1 flex items-center justify-between">
+                        <span><i class="fa-brands fa-bluetooth-b text-cyan-400"></i> Audio Output (Headset / Bluetooth / Speaker)</span>
+                    </label>
+                    <select id="audioOutputSelect" onchange="window.audioEngine.selectAudioOutputDevice(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 outline-none">
+                        <option value="">Default Output Speaker</option>
+                    </select>
+                </div>
+
                 <div class="pt-2 border-t border-slate-800 space-y-2">
                     <button id="pwaInstallBtn" onclick="window.pwaManager.promptInstall()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl border border-slate-700 transition">Install App to Home Screen</button>
                 </div>
@@ -479,21 +500,44 @@
                 <i class="fa-solid fa-id-card text-emerald-400"></i> Operator Profile
             </h3>
 
-            <!-- Callsign Input -->
+            <!-- Callsign Input & Copy My Peer ID -->
             <div>
-                <label class="font-semibold text-slate-400 text-xs block mb-1">Tactical Callsign</label>
+                <div class="flex justify-between items-center mb-1">
+                    <label class="font-semibold text-slate-400 text-xs">Tactical Callsign</label>
+                    <button type="button" onclick="if(window.peerManager && window.peerManager.myPeerId) window.uiController.copyToClipboard(window.peerManager.myPeerId)" class="text-[10px] text-cyan-400 font-bold hover:underline flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i> Copy My Peer ID
+                    </button>
+                </div>
                 <input type="text" id="profileCallsignInput" onchange="window.profileManager.saveProfile({ callsign: this.value })" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 font-bold outline-none focus:border-emerald-500">
             </div>
 
-            <!-- Avatar Selection Grid -->
+            <!-- Color Theme Selector -->
+            <div>
+                <label class="font-semibold text-slate-400 text-xs block mb-1">UI Color Theme</label>
+                <select id="themeSelect" onchange="window.uiController.setTheme(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 outline-none">
+                    <option value="tactical-dark" selected>Tactical Dark (Default)</option>
+                    <option value="cyber-neon">Cyber Neon (Cyan & Violet)</option>
+                    <option value="desert-camo">Desert Camo (Amber & Gold)</option>
+                    <option value="stealth-black">Stealth Black (OLED Pitch Black)</option>
+                </select>
+            </div>
+
+            <!-- Avatar Selection Grid (12 Tactical Icons) -->
             <div>
                 <label class="font-semibold text-slate-400 text-xs block mb-2">Tactical Avatar Icon</label>
-                <div class="grid grid-cols-5 gap-2" id="avatarPresetGrid">
-                    <button onclick="window.uiController.selectAvatar('radio')" class="p-3 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center"><i class="fa-solid fa-walkie-talkie"></i></button>
-                    <button onclick="window.uiController.selectAvatar('user-ninja')" class="p-3 rounded-2xl bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 flex items-center justify-center"><i class="fa-solid fa-user-ninja"></i></button>
-                    <button onclick="window.uiController.selectAvatar('shield')" class="p-3 rounded-2xl bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 flex items-center justify-center"><i class="fa-solid fa-shield-halved"></i></button>
-                    <button onclick="window.uiController.selectAvatar('tower-cell')" class="p-3 rounded-2xl bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 flex items-center justify-center"><i class="fa-solid fa-tower-cell"></i></button>
-                    <button onclick="window.uiController.selectAvatar('headset')" class="p-3 rounded-2xl bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 flex items-center justify-center"><i class="fa-solid fa-headset"></i></button>
+                <div class="grid grid-cols-6 gap-2" id="avatarPresetGrid">
+                    <button onclick="window.uiController.selectAvatar('walkie-talkie')" class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center text-sm" title="Walkie Talkie"><i class="fa-solid fa-walkie-talkie"></i></button>
+                    <button onclick="window.uiController.selectAvatar('user-ninja')" class="p-2.5 rounded-xl bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-sm" title="Operator"><i class="fa-solid fa-user-ninja"></i></button>
+                    <button onclick="window.uiController.selectAvatar('shield-halved')" class="p-2.5 rounded-xl bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-sm" title="Sentinel"><i class="fa-solid fa-shield-halved"></i></button>
+                    <button onclick="window.uiController.selectAvatar('tower-cell')" class="p-2.5 rounded-xl bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-sm" title="Comms Tower"><i class="fa-solid fa-tower-cell"></i></button>
+                    <button onclick="window.uiController.selectAvatar('headset')" class="p-2.5 rounded-xl bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-sm" title="Dispatcher"><i class="fa-solid fa-headset"></i></button>
+                    <button onclick="window.uiController.selectAvatar('ghost')" class="p-2.5 rounded-xl bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-sm" title="Ghost"><i class="fa-solid fa-ghost"></i></button>
+                    <button onclick="window.uiController.selectAvatar('bolt')" class="p-2.5 rounded-xl bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-sm" title="Apex"><i class="fa-solid fa-bolt"></i></button>
+                    <button onclick="window.uiController.selectAvatar('fire')" class="p-2.5 rounded-xl bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-sm" title="Phoenix"><i class="fa-solid fa-fire"></i></button>
+                    <button onclick="window.uiController.selectAvatar('crosshairs')" class="p-2.5 rounded-xl bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-sm" title="Sniper"><i class="fa-solid fa-crosshairs"></i></button>
+                    <button onclick="window.uiController.selectAvatar('robot')" class="p-2.5 rounded-xl bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-sm" title="Mech"><i class="fa-solid fa-robot"></i></button>
+                    <button onclick="window.uiController.selectAvatar('crown')" class="p-2.5 rounded-xl bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-sm" title="Commander"><i class="fa-solid fa-crown"></i></button>
+                    <button onclick="window.uiController.selectAvatar('cat')" class="p-2.5 rounded-xl bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-sm" title="Shadow Cat"><i class="fa-solid fa-cat"></i></button>
                 </div>
             </div>
 

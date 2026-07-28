@@ -74,3 +74,19 @@ To make the app foolproof for non-technical users, we plan to remove or hide the
 - **Bluetooth:** *No.* Standard web browsers (Safari, Chrome) do not support sending WebRTC audio directly over Bluetooth. The Web Bluetooth API only supports small sensor data (like heart rate monitors), not high-bandwidth streaming audio. 
 
 **Offline Verdict:** We can support "No-Internet Wi-Fi" strictly via QR code handshakes in the future, but true Bluetooth peer-to-peer audio requires a native iOS/Android app, not a browser PWA.
+
+---
+
+## 7. 📋 Pending Tasks & Roadmap Backlog
+
+### Task 1: 🔐 Firebase Email-Based Authentication & Security Rules
+- **Status:** Planned ([`FIREBASE_AUTH_SECURITY_PLAN.md`](file:///e:/Github/walkietalkie/docs/FIREBASE_AUTH_SECURITY_PLAN.md))
+- **Objective:** Upgrade from Security Passcode hashing (`#room_key`) to true Firebase Auth + Security Rules. Users log in with email/passcode to prevent room spoofing and unauthorized packet sniffing.
+
+### Task 2: 📲 Server-Side FCM Push Trigger for 100% Closed Apps
+- **Status:** Pending Backend Setup
+- **Objective:** Deploy a Firebase Cloud Function trigger (`invites/{callsign}`) that dispatches VAPID Web Push payloads directly to Google FCM / Apple APNs push gateways. Wakes up recipient devices even when the app tab is completely closed.
+
+### Task 3: 📶 Pure Offline Wi-Fi Hotspot LAN Signaling (QR Code Handshake)
+- **Status:** Planned Offline Architecture
+- **Objective:** Allow local P2P audio streaming over a mobile Wi-Fi Hotspot without any cellular or internet connection by exchanging SDP tokens locally via QR code scanning.

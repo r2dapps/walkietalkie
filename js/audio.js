@@ -30,6 +30,119 @@ class AudioEngine {
     this.isVoxActive = false;
     this.voxCallback = null;
     this.voxCheckTimer = null;
+    this.selectedMicId = null;
+    this.selectedSpeakerId = null;
+
+    this.setupDeviceChangeListener();
+  }
+
+  // Listen for Bluetooth / Audio device connections & disconnections
+  setupDeviceChangeListener() {
+    if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
+      navigator.mediaDevices.addEventListener('devicechange', async () => {
+        console.log('[AudioEngine] Audio hardware device change detected (Bluetooth/Headset plug-in/out).');
+        await this.populateAudioDeviceSelectors();
+      });
+    }
+  }
+
+  /**
+   * Enumerate available microphones and speakers (Bluetooth, Headset, Speakers)
+   */
+  async enumerateAudioDevices() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return { inputs: [], outputs: [] };
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const inputs = devices.filter(d => d.kind === 'audioinput');
+      const outputs = devices.filter(d => d.kind === 'audiooutput');
+      return { inputs, outputs };
+    } catch (err) {
+      console.warn('[AudioEngine] Failed to enumerate audio devices:', err);
+      return { inputs: [], outputs: [] };
+    }
+  }
+
+  /**
+   * Populate UI dropdowns for audio inputs & outputs
+   */
+  async populateAudioDeviceSelectors() {
+    const { inputs, outputs } = await this.enumerateAudioDevices();
+    const micSelect = document.getElementById('audioInputSelect');
+    const speakerSelect = document.getElementById('audioOutputSelect');
+
+    if (micSelect) {
+      micSelect.innerHTML = inputs.map((d, i) => 
+        `<option value="${d.deviceId}" ${this.selectedMicId === d.deviceId ? 'selected' : ''}>${d.label || 'Microphone ' + (i + 1)}</option>`
+      ).join('');
+    }
+
+    if (speakerSelect) {
+      if ('setSinkId' in HTMLAudioElement.prototype) {
+        speakerSelect.innerHTML = outputs.map((d, i) => 
+          `<option value="${d.deviceId}" ${this.selectedSpeakerId === d.deviceId ? 'selected' : ''}>${d.label || 'Speaker/Headset ' + (i + 1)}</option>`
+        ).join('');
+      } else {
+        speakerSelect.innerHTML = `<option value="">Default Speaker (browser setSinkId un-supported)</option>`;
+        speakerSelect.disabled = true;
+      }
+    }
+  }
+
+  /**
+   * Switch active microphone input device (e.g., to Bluetooth headset)
+   */
+  async selectAudioInputDevice(deviceId) {
+    if (!deviceId) return;
+    this.selectedMicId = deviceId;
+    console.log('[AudioEngine] Switching microphone input to:', deviceId);
+
+    try {
+      if (this.micStream) {
+        this.micStream.getTracks().forEach(t => t.stop());
+      }
+      this.micStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          deviceId: { exact: deviceId },
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        },
+        video: false
+      });
+
+      if (this.ctx && this.processedStream) {
+        this.setupAudioProcessingChain();
+      }
+      if (window.uiController && window.uiController.showToast) {
+        window.uiController.showToast('🎧 Switched microphone input to selected device', 'info');
+      }
+    } catch (err) {
+      console.warn('[AudioEngine] Failed to switch microphone:', err);
+    }
+  }
+
+  /**
+   * Switch audio output device for all incoming peer streams (e.g., to Bluetooth headphones)
+   */
+  async selectAudioOutputDevice(deviceId) {
+    this.selectedSpeakerId = deviceId;
+    console.log('[AudioEngine] Switching audio output to:', deviceId);
+
+    if ('setSinkId' in HTMLAudioElement.prototype && window.peerManager) {
+      Object.keys(window.peerManager.audioElements).forEach(async (peerId) => {
+        const audio = window.peerManager.audioElements[peerId];
+        if (audio && audio.setSinkId) {
+          try {
+            await audio.setSinkId(deviceId);
+          } catch (err) {
+            console.warn('[AudioEngine] Failed to setSinkId for peer:', peerId, err);
+          }
+        }
+      });
+      if (window.uiController && window.uiController.showToast) {
+        window.uiController.showToast('🔊 Switched audio output to selected headset/speaker', 'info');
+      }
+    }
   }
 
   // Ensure AudioContext is running (call on user gesture)
@@ -55,18 +168,24 @@ class AudioEngine {
     if (this.processedStream) return this.processedStream;
 
     try {
+      const audioConstraints = {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        channelCount: 1,
+        sampleRate: 48000
+      };
+      if (this.selectedMicId) {
+        audioConstraints.deviceId = { exact: this.selectedMicId };
+      }
+
       this.micStream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          channelCount: 1,
-          sampleRate: 48000
-        },
+        audio: audioConstraints,
         video: false
       });
 
       this.setupAudioProcessingChain();
+      this.populateAudioDeviceSelectors();
       return this.processedStream;
 
     } catch (err) {

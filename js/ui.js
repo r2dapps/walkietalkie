@@ -247,6 +247,9 @@ class UIController {
             </div>
           </div>
           <div class="flex items-center gap-1.5">
+            <button onclick="window.uiController.copyToClipboard('${id}')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-400 text-[10px] font-bold rounded-xl border border-slate-700 transition flex items-center gap-1">
+              <i class="fa-regular fa-copy"></i> Copy ID
+            </button>
             ${isBlocked ? `
               <button onclick="window.profileManager.unblockPeer('${id}')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-400 text-[10px] font-bold rounded-xl border border-slate-700 transition">
                 Unblock
@@ -793,6 +796,44 @@ class UIController {
         </button>
       `;
     }).join('');
+  /**
+   * Copy any text to device clipboard with toast feedback
+   */
+  copyToClipboard(text) {
+    if (!text) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        this.showToast('📋 Copied ID to clipboard!', 'success');
+      }).catch(() => {
+        this.fallbackCopyText(text);
+      });
+    } else {
+      this.fallbackCopyText(text);
+    }
+  }
+
+  fallbackCopyText(text) {
+    const el = document.createElement('textarea');
+    el.value = text;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    this.showToast('📋 Copied ID to clipboard!', 'success');
+  }
+
+  /**
+   * Set UI color theme (tactical-dark, cyber-neon, desert-camo, stealth-black)
+   */
+  setTheme(themeName) {
+    if (!themeName) return;
+    document.body.setAttribute('data-theme', themeName);
+    if (window.storageManager) {
+      window.storageManager.saveAppSettings({ theme: themeName });
+    }
+    const themeSelect = document.getElementById('themeSelect');
+    if (themeSelect) themeSelect.value = themeName;
+    console.log('[UI] Applied color theme:', themeName);
   }
 }
 
