@@ -34,6 +34,7 @@ class AppLock {
     const lockEl = document.getElementById('app-lock-screen');
     if (lockEl) {
       lockEl.classList.remove('hidden');
+      lockEl.style.display = 'flex';
       this.updatePinDots();
     }
   }
@@ -42,6 +43,7 @@ class AppLock {
     const lockEl = document.getElementById('app-lock-screen');
     if (lockEl) {
       lockEl.classList.add('hidden');
+      lockEl.style.display = 'none';
     }
   }
 

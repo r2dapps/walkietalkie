@@ -459,6 +459,7 @@ class UIController {
         const callsignInput = document.getElementById('profileCallsignInput');
         if (callsignInput) callsignInput.value = p.callsign;
       }
+      this.renderAvatarGrid();
       this.renderBlockedPeersList();
     }
   }
@@ -507,10 +508,30 @@ class UIController {
   selectAvatar(avatarId) {
     if (window.profileManager) {
       window.profileManager.saveProfile({ avatar: avatarId });
-      this.showToast('Tactical avatar updated!', 'success');
+      this.renderAvatarGrid();
+      this.showToast(`Tactical avatar set to ${avatarId}!`, 'success');
     }
+  }
+
+  renderAvatarGrid() {
+    const grid = document.getElementById('avatarPresetGrid');
+    if (!grid || !window.profileManager) return;
+
+    const current = window.profileManager.profile.avatar || 'radio';
+    const presets = window.profileManager.avatarPresets;
+
+    grid.innerHTML = presets.map(p => {
+      const isSelected = p.id === current;
+      const borderClass = isSelected ? 'bg-emerald-500/20 text-emerald-400 border-2 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.4)]' : 'bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700';
+      return `
+        <button onclick="window.uiController.selectAvatar('${p.id}')" class="p-3.5 rounded-2xl flex flex-col items-center justify-center transition active:scale-95 ${borderClass}">
+          <i class="fa-solid ${p.icon} text-base"></i>
+        </button>
+      `;
+    }).join('');
   }
 }
 
 window.uiController = new UIController();
+
 

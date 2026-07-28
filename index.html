@@ -50,9 +50,9 @@
 
     <!-- Header Navigation Bar -->
     <header class="w-full max-w-md p-3.5 flex justify-between items-center border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
-        <div class="flex items-center space-x-2.5">
+        <div class="flex items-center space-x-3">
             <!-- Hamburger Menu Button -->
-            <button onclick="window.uiController.toggleSideDrawer(true)" class="w-9 h-9 rounded-xl bg-slate-800/90 border border-slate-700/80 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition active:scale-95" title="Menu">
+            <button onclick="window.uiController.toggleSideDrawer(true)" class="w-9 h-9 rounded-xl bg-slate-800/90 border border-slate-700/80 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition active:scale-95 shadow" title="Menu">
                 <i class="fa-solid fa-bars text-sm"></i>
             </button>
 
@@ -67,32 +67,11 @@
             </div>
         </div>
 
-        <div class="flex items-center space-x-1.5">
-            <!-- Share QR Modal Toggle -->
-            <button onclick="window.app.openShareModal()" class="w-8 h-8 rounded-xl bg-slate-800/90 border border-slate-700/80 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition active:scale-95" title="Share Frequency / QR">
-                <i class="fa-solid fa-qrcode text-xs"></i>
-            </button>
-            <!-- Chat Drawer Toggle -->
-            <button onclick="window.uiController.openModal('chatModal')" class="relative w-8 h-8 rounded-xl bg-slate-800/90 border border-slate-700/80 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition active:scale-95" title="Tactical Channel Chat">
-                <i class="fa-solid fa-comments text-xs"></i>
-                <span id="unreadChatBadge" class="absolute -top-1 -right-1 bg-cyan-500 text-slate-950 text-[9px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
-            </button>
-            <!-- Peers Modal Toggle -->
-            <button onclick="window.uiController.openModal('peersModal')" class="relative w-8 h-8 rounded-xl bg-slate-800/90 border border-slate-700/80 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition active:scale-95" title="Operators">
-                <i class="fa-solid fa-users text-xs"></i>
-                <span id="peerCountBadge" class="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
-            </button>
-            <!-- NATO Helper Toggle -->
-            <button onclick="window.uiController.openModal('natoModal')" class="w-8 h-8 rounded-xl bg-slate-800/90 border border-slate-700/80 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition active:scale-95" title="NATO Alphabet">
-                <i class="fa-solid fa-book-bookmark text-xs"></i>
-            </button>
-            <!-- Diagnostics Panel Toggle -->
-            <button onclick="window.uiController.openModal('diagnosticsModal')" class="w-8 h-8 rounded-xl bg-slate-800/90 border border-slate-700/80 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition active:scale-95" title="Diagnostics Panel">
-                <i class="fa-solid fa-microchip text-xs"></i>
-            </button>
-            <!-- Settings Toggle -->
-            <button onclick="window.uiController.openModal('settingsModal')" class="w-8 h-8 rounded-xl bg-slate-800/90 border border-slate-700/80 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition active:scale-95" title="Settings">
-                <i class="fa-solid fa-gear text-xs"></i>
+        <div class="flex items-center space-x-2">
+            <!-- Operators Badge Indicator -->
+            <button onclick="window.uiController.openModal('peersModal')" class="relative px-2.5 py-1 rounded-xl bg-slate-800/90 border border-slate-700/80 flex items-center gap-1.5 text-xs text-slate-300 hover:bg-slate-700 transition" title="Connected Operators">
+                <i class="fa-solid fa-users text-rose-400 text-xs"></i>
+                <span id="peerCountBadge" class="font-mono font-bold text-xs text-slate-200">0</span>
             </button>
         </div>
     </header>
@@ -372,19 +351,32 @@
 
                 <!-- Navigation List -->
                 <nav class="space-y-1.5 text-xs font-semibold">
-                    <button onclick="window.uiController.switchNavTab('radio'); window.uiController.toggleSideDrawer(false)" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-200 transition">
+                    <button onclick="window.uiController.switchNavTab('radio'); window.uiController.toggleSideDrawer(false)" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-800 text-slate-200 transition">
                         <i class="fa-solid fa-walkie-talkie text-rose-500 w-5"></i> Tactical Radio
                     </button>
-                    <button onclick="window.uiController.switchNavTab('chat'); window.uiController.toggleSideDrawer(false)" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">
-                        <i class="fa-solid fa-comments text-cyan-400 w-5"></i> Comms & Messages
+                    <button onclick="window.uiController.switchNavTab('chat'); window.uiController.toggleSideDrawer(false)" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-800 text-slate-300 transition">
+                        <i class="fa-solid fa-comments text-cyan-400 w-5"></i> Channel Text Chat
                     </button>
-                    <button onclick="window.uiController.switchNavTab('channels'); window.uiController.toggleSideDrawer(false)" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">
+                    <button onclick="window.uiController.switchNavTab('channels'); window.uiController.toggleSideDrawer(false)" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-800 text-slate-300 transition">
                         <i class="fa-solid fa-tower-cell text-amber-400 w-5"></i> Frequencies & Channels
                     </button>
-                    <button onclick="window.uiController.switchNavTab('profile'); window.uiController.toggleSideDrawer(false)" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">
+                    <button onclick="window.uiController.switchNavTab('profile'); window.uiController.toggleSideDrawer(false)" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-800 text-slate-300 transition">
                         <i class="fa-solid fa-user-gear text-emerald-400 w-5"></i> Operator Profile
                     </button>
-                    <button onclick="window.uiController.openModal('instructionsModal'); window.uiController.toggleSideDrawer(false)" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">
+                    <div class="my-2 border-t border-slate-800/80"></div>
+                    <button onclick="window.app.openShareModal(); window.uiController.toggleSideDrawer(false)" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-800 text-slate-300 transition">
+                        <i class="fa-solid fa-qrcode text-rose-400 w-5"></i> Share Frequency / QR
+                    </button>
+                    <button onclick="window.uiController.openModal('natoModal'); window.uiController.toggleSideDrawer(false)" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-800 text-slate-300 transition">
+                        <i class="fa-solid fa-book-bookmark text-amber-400 w-5"></i> NATO Phonetic Guide
+                    </button>
+                    <button onclick="window.uiController.openModal('diagnosticsModal'); window.uiController.toggleSideDrawer(false)" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-800 text-slate-300 transition">
+                        <i class="fa-solid fa-microchip text-cyan-400 w-5"></i> Hardware Diagnostics
+                    </button>
+                    <button onclick="window.uiController.openModal('settingsModal'); window.uiController.toggleSideDrawer(false)" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-800 text-slate-300 transition">
+                        <i class="fa-solid fa-gear text-slate-400 w-5"></i> Radio Settings
+                    </button>
+                    <button onclick="window.uiController.openModal('instructionsModal'); window.uiController.toggleSideDrawer(false)" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-800 text-slate-300 transition">
                         <i class="fa-solid fa-circle-question text-indigo-400 w-5"></i> How to Use Guide
                     </button>
                 </nav>
