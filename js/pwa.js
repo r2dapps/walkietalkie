@@ -14,15 +14,61 @@ class PWAManager {
     this.setupNetworkListeners();
   }
 
-  // Register Service Worker for offline capability
+  // Register Service Worker for offline capability & auto-updates
   registerServiceWorker() {
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('SW Registered:', reg.scope))
+          .then(reg => {
+            console.log('SW Registered:', reg.scope);
+
+            // Listen for service worker updates
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    if (window.uiController && window.uiController.showToast) {
+                      window.uiController.showToast('🚀 New AetherTalk update ready! Tap "Force Update" in Settings.', 'info', 8000);
+                    }
+                  }
+                });
+              }
+            });
+          })
           .catch(err => console.warn('SW Register Error:', err));
       });
     }
+  }
+
+  // Force Update / Hard Refresh App for Mobile
+  async forceUpdateApp() {
+    if (window.uiController && window.uiController.showToast) {
+      window.uiController.showToast('Checking for updates & clearing cache...', 'info', 2000);
+    }
+
+    try {
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          await registration.unregister();
+        }
+      }
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        for (const key of keys) {
+          await caches.delete(key);
+        }
+      }
+    } catch (e) {
+      console.warn('Cache clearing notice:', e);
+    }
+
+    // Force reload with cache buster timestamp
+    setTimeout(() => {
+      const cleanUrl = window.location.origin + window.location.pathname + '?v=' + Date.now();
+      window.location.href = cleanUrl;
+    }, 500);
   }
 
   // Check if running as Installed PWA / Standalone mode

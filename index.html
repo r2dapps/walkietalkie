@@ -398,6 +398,9 @@
 
             <!-- Drawer Bottom Actions -->
             <div class="space-y-2 pt-4 border-t border-slate-800">
+                <button onclick="window.pwaManager.forceUpdateApp()" class="w-full py-2.5 bg-slate-950 border border-slate-800 hover:border-slate-700 text-cyan-400 font-semibold text-xs rounded-xl transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-arrows-rotate"></i> Check Update & Refresh
+                </button>
                 <button onclick="window.appLock.lock(); window.uiController.toggleSideDrawer(false)" class="w-full py-2.5 bg-slate-950 border border-slate-800 hover:border-slate-700 text-amber-400 font-semibold text-xs rounded-xl transition flex items-center justify-center gap-2">
                     <i class="fa-solid fa-lock"></i> Lock Radio App (PIN)
                 </button>
