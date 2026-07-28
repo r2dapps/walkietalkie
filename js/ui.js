@@ -168,6 +168,8 @@ class UIController {
           }
         }
         this.renderAvatarGrid();
+        this.renderFriendsList();
+        this.renderBlockedPeersList();
       } else if (modalId === 'diagnosticsModal') {
         this.updateDiagnosticsUI();
       }

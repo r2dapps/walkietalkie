@@ -350,7 +350,7 @@
                     <input type="text" id="profileCallsignInput" onchange="window.profileManager.saveProfile({ callsign: this.value })" placeholder="e.g. Dad, Mom, Operator-1" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 font-bold outline-none focus:border-emerald-500">
                 </div>
 
-                <!-- Avatar Selection Grid -->
+                <!-- Avatar Selection Grid (12 Tactical Icons) -->
                 <div>
                     <label class="font-semibold text-slate-400 block mb-1.5">Tactical Avatar Icon</label>
                     <div id="avatarGrid" class="grid grid-cols-4 sm:grid-cols-6 gap-2"></div>
@@ -362,7 +362,7 @@
                         <span class="font-bold text-slate-200 block">Phone Notifications</span>
                         <span class="text-[10px] text-slate-400 block mt-0.5">Rings & vibrates phone screen when family calls.</span>
                     </div>
-                    <button type="button" onclick="Notification.requestPermission().then(p => { if(window.uiController) window.uiController.showToast(p === 'granted' ? 'Notifications Enabled!' : 'Permission ' + p, p === 'granted' ? 'success' : 'warning'); })" class="px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 font-bold text-[10px] rounded-xl border border-rose-500/40 transition">
+                    <button type="button" onclick="window.uiController.requestNotificationPermission()" class="px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 font-bold text-[10px] rounded-xl border border-rose-500/40 transition">
                         Enable Push
                     </button>
                 </div>
@@ -384,7 +384,7 @@
                         <span><i class="fa-solid fa-microphone text-rose-400"></i> Microphone Input (Mic / Bluetooth)</span>
                         <button onclick="window.audioEngine.populateAudioDeviceSelectors()" class="text-[10px] text-cyan-400 hover:underline"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
                     </label>
-                    <select id="audioInputSelect" onchange="window.audioEngine.selectAudioInputDevice(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 outline-none">
+                    <select id="audioInputSelect" onchange="window.audioEngine.selectAudioInputDevice(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 outline-none">
                         <option value="">Default Microphone</option>
                     </select>
                 </div>
@@ -423,7 +423,45 @@
                     </label>
                 </div>
 
-                <!-- PWA Install & Security PIN -->
+                <!-- Tactical Squad / Friends Roster -->
+                <div class="pt-3 border-t border-slate-800 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label class="font-semibold text-slate-400 text-xs flex items-center gap-1.5">
+                            <i class="fa-solid fa-users text-cyan-400"></i> Tactical Squad (Friends)
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="addFriendInput" placeholder="Enter friend callsign..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none">
+                        <button onclick="window.uiController.handleAddFriend()" class="px-3 py-2 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs rounded-xl transition">
+                            Add
+                        </button>
+                    </div>
+
+                    <div id="friendsListContainer" class="space-y-1.5 text-xs pt-1">
+                        <div class="text-slate-500 text-[11px]">No friends added yet. Type a callsign above to add them!</div>
+                    </div>
+                </div>
+
+                <!-- PIN Lock Change Box -->
+                <div class="pt-3 border-t border-slate-800 space-y-2">
+                    <label class="font-semibold text-slate-400 text-xs block">Security PIN Management (Default: 0000)</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="password" id="currentPinInput" maxlength="4" placeholder="Current PIN" class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 outline-none">
+                        <input type="password" id="newPinInput" maxlength="4" placeholder="New 4-Digit PIN" class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 outline-none">
+                    </div>
+                    <button onclick="window.uiController.handlePinChange()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-400 font-semibold text-xs rounded-xl border border-slate-700 transition">Update Security PIN</button>
+                </div>
+
+                <!-- Blocked Operators List -->
+                <div class="pt-3 border-t border-slate-800 space-y-2">
+                    <label class="font-semibold text-slate-400 text-xs block">Blocked Operators</label>
+                    <div id="blockedPeersContainer" class="space-y-1 text-xs">
+                        <div class="text-slate-500 text-[11px]">No blocked operators.</div>
+                    </div>
+                </div>
+
+                <!-- PWA Install Button -->
                 <div class="pt-2 border-t border-slate-800 space-y-2">
                     <button id="pwaInstallBtn" onclick="window.pwaManager.promptInstall()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl border border-slate-700 transition">Install App to Home Screen</button>
                 </div>
