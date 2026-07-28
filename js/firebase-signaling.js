@@ -191,8 +191,8 @@ class FirebaseSignaling {
         window.uiController.showToast(`📡 ${data.fromCallsign} invited you to #${data.room}!`, 'info', 6000);
       }
 
-      // Trigger Web Push Notification if granted and page is in background
-      if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
+      // Trigger Native OS Notification Banner on phone screen if permission granted
+      if ('Notification' in window && Notification.permission === 'granted') {
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.ready.then((registration) => {
             const baseUrl = window.location.origin + window.location.pathname;
@@ -200,9 +200,13 @@ class FirebaseSignaling {
             const keyParam = data.key ? `&key=${encodeURIComponent(data.key)}` : '';
             const targetUrl = `${baseUrl}${roomParam}${keyParam}`;
 
-            registration.showNotification(`Radio Call from ${data.fromCallsign}`, {
-              body: `Join channel #${data.room} now on AetherTalk`,
+            registration.showNotification(`📡 Radio Call from ${data.fromCallsign}`, {
+              body: `Tap to join channel #${data.room} now on AetherTalk`,
               icon: './assets/icon.svg',
+              badge: './assets/icon.svg',
+              vibrate: [200, 100, 200, 100, 200],
+              tag: 'invite-' + data.room,
+              renotify: true,
               data: {
                 url: targetUrl
               }

@@ -150,7 +150,19 @@ class UIController {
       modal.classList.remove('hidden');
       if (modalId === 'chatModal') {
         this.unreadMessagesCount = 0;
+        const radioBadge = document.getElementById('radioChatBadge');
+        const navBadge = document.getElementById('navChatBadge');
+        if (radioBadge) radioBadge.classList.add('hidden');
+        if (navBadge) navBadge.classList.add('hidden');
         if (this.elements.unreadChatBadge) this.elements.unreadChatBadge.classList.add('hidden');
+      } else if (modalId === 'settingsModal') {
+        const profileCallsign = document.getElementById('settingsProfileCallsign');
+        const profileAvatar = document.getElementById('settingsProfileAvatar');
+        if (window.profileManager && profileCallsign && profileAvatar) {
+          profileCallsign.innerText = window.profileManager.profile.callsign || 'Operator-1';
+          const iconClass = window.profileManager.getAvatarIconClass(window.profileManager.profile.avatar || 'radio');
+          profileAvatar.className = `fa-solid ${iconClass}`;
+        }
       } else if (modalId === 'diagnosticsModal') {
         this.updateDiagnosticsUI();
       }
@@ -249,8 +261,8 @@ class UIController {
             </div>
           </div>
           <div class="flex items-center gap-1.5">
-            <button onclick="window.uiController.copyToClipboard('${id}')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-400 text-[10px] font-bold rounded-xl border border-slate-700 transition flex items-center gap-1">
-              <i class="fa-regular fa-copy"></i> Copy ID
+            <button onclick="window.uiController.copyToClipboard('${peerData.callsign}')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-400 text-[10px] font-bold rounded-xl border border-slate-700 transition flex items-center gap-1">
+              <i class="fa-regular fa-copy"></i> Copy Name
             </button>
             ${isBlocked ? `
               <button onclick="window.profileManager.unblockPeer('${id}')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-400 text-[10px] font-bold rounded-xl border border-slate-700 transition">
@@ -292,6 +304,10 @@ class UIController {
 
     if (!isSelf && document.getElementById('chatModal').classList.contains('hidden')) {
       this.unreadMessagesCount++;
+      const radioBadge = document.getElementById('radioChatBadge');
+      const navBadge = document.getElementById('navChatBadge');
+      if (radioBadge) radioBadge.classList.remove('hidden');
+      if (navBadge) navBadge.classList.remove('hidden');
       if (this.elements.unreadChatBadge) {
         this.elements.unreadChatBadge.innerText = this.unreadMessagesCount;
         this.elements.unreadChatBadge.classList.remove('hidden');
