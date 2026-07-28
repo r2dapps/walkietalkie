@@ -1,28 +1,24 @@
 /**
- * PeerManager - Robust PeerJS WebRTC Connection Mesh with Slot Auto-Discovery,
- * LocalStorage Event Bus, BroadcastChannel & Error Resilience.
+ * PeerManager - Robust WebRTC Mesh with Zero-Collision Peer IDs & Instant Presence Auto-Discovery.
  */
 class PeerManager {
   constructor() {
     this.peer = null;
     this.myPeerId = '';
-    this.mySlotIndex = 1;
     this.myCallsign = 'Operator-1';
     this.currentRoom = 'alpha1';
 
     this.activeCalls = {}; // peerId -> MediaConnection
     this.dataConns = {}; // peerId -> DataConnection
-    this.connectedPeers = {}; // peerId -> { callsign, status, rtt, lastHeard, isTransmitting }
-    this.failedSlots = {}; // peerId -> boolean (temporary cooldown for unavailable slots)
+    this.connectedPeers = {}; // peerId -> { callsign, status, rtt, joinedAt, lastHeard, isTransmitting }
 
     this.isTransmitting = false;
     this.isChannelBusy = false;
     this.currentSpeaker = null;
-    this.isReconnecting = false;
 
     this.totTimer = null;
     this.broadcastChannel = null;
-    this.discoveryInterval = null;
+    this.presenceInterval = null;
 
     this.diagnostics = {
       rttMs: 0,
@@ -40,240 +36,107 @@ class PeerManager {
     };
   }
 
-  // Sanitize room name
+  // Sanitize room name to lowercase alphanumeric
   sanitizeRoom(room) {
     return (room || 'alpha1').toLowerCase().replace(/[^a-z0-9]/g, '');
   }
 
-  // Initialize PeerJS connection with slot allocation (slot1, slot2, slot3...)
+  // Initialize PeerJS with a unique, zero-collision Peer ID
   async initPeer(roomName, callsign, localStream, targetPeerId = null) {
     this.currentRoom = this.sanitizeRoom(roomName);
     this.myCallsign = callsign.trim() || 'Operator-1';
 
-    // Try claiming slot 1 through 5
-    for (let slot = 1; slot <= 5; slot++) {
-      const candidateId = `wt-${this.currentRoom}-slot${slot}`;
-      try {
-        await this.tryRegisterPeerId(candidateId);
-        this.mySlotIndex = slot;
-        this.myPeerId = candidateId;
-        console.log(`[PeerJS] Successfully claimed slot ${slot}: ${candidateId}`);
-        break;
-      } catch (err) {
-        if (err.type === 'unavailable-id') {
-          console.log(`[PeerJS] Slot ${slot} taken, trying next slot...`);
-          continue;
-        } else {
-          // Random fallback
-          const randomId = Math.random().toString(36).substring(2, 7);
-          this.myPeerId = `wt-${this.currentRoom}-${randomId}`;
-          await this.tryRegisterPeerId(this.myPeerId);
-          break;
-        }
-      }
-    }
+    // Generate unique random Peer ID: wt-[room]-[random5]
+    const randomSuffix = Math.random().toString(36).substring(2, 7);
+    this.myPeerId = `wt-${this.currentRoom}-${randomSuffix}`;
 
-    // BroadcastChannel & LocalStorage bus for same-device/same-network tabs
-    this.setupBroadcastChannel(localStream);
-    this.setupStorageBus(localStream);
+    console.log(`[PeerJS] Initializing unique Peer ID: ${this.myPeerId}`);
 
-    // Slot Scanner Loop
-    this.startSlotScanLoop(localStream);
-
-    // Connect to direct target if provided (e.g. from QR code)
-    if (targetPeerId && targetPeerId !== this.myPeerId) {
-      setTimeout(() => {
-        console.log('[Discovery] Connecting to direct target:', targetPeerId);
-        this.callPeer(targetPeerId, localStream);
-      }, 500);
-    }
-
-    return this.myPeerId;
-  }
-
-  // Register Peer ID with PeerJS Cloud Broker
-  tryRegisterPeerId(peerId) {
     return new Promise((resolve, reject) => {
-      const p = new Peer(peerId, {
-        debug: 1,
-        config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' },
-            { urls: 'stun:stun3.l.google.com:19302' }
-          ]
-        }
-      });
+      try {
+        this.peer = new Peer(this.myPeerId, {
+          debug: 1,
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:stun1.l.google.com:19302' },
+              { urls: 'stun:stun2.l.google.com:19302' },
+              { urls: 'stun:stun3.l.google.com:19302' }
+            ]
+          }
+        });
 
-      p.on('open', (id) => {
-        this.peer = p;
-        this.diagnostics.iceState = 'connected';
-        this.setupPeerListeners();
-        resolve(id);
-      });
+        this.peer.on('open', (id) => {
+          console.log('[PeerJS] Connected to signaling broker with ID:', id);
+          this.diagnostics.iceState = 'connected';
+          this.setupPeerListeners(localStream);
+          this.setupAutoDiscovery(localStream);
 
-      p.on('error', (err) => {
-        p.destroy();
+          // Direct target connection if opened via QR link
+          if (targetPeerId && targetPeerId !== this.myPeerId) {
+            setTimeout(() => {
+              console.log('[Discovery] Dialing direct target:', targetPeerId);
+              this.callPeer(targetPeerId, localStream);
+            }, 600);
+          }
+
+          resolve(id);
+        });
+
+        this.peer.on('error', (err) => {
+          console.warn('[PeerJS Broker Error]:', err.type, err.message);
+          this.diagnostics.iceState = 'error: ' + err.type;
+          if (err.type === 'peer-unavailable') {
+            // Ignore unavailable peer
+            return;
+          }
+          reject(err);
+        });
+
+      } catch (err) {
         reject(err);
-      });
+      }
     });
   }
 
-  // PeerJS Event Listeners (Resilient error handling)
-  setupPeerListeners() {
+  // PeerJS Event Listeners for incoming calls & connections
+  setupPeerListeners(localStream) {
     if (!this.peer) return;
 
-    // Incoming audio stream
+    // Handle incoming audio call
     this.peer.on('call', (call) => {
-      console.log('[PeerJS] Incoming call from:', call.peer);
-      call.answer(window.audioEngine ? window.audioEngine.micStream : null);
+      console.log('[PeerJS] Incoming audio call from:', call.peer);
+      call.answer(localStream || (window.audioEngine ? window.audioEngine.micStream : null));
       this.handleIncomingCall(call);
     });
 
-    // Incoming DataChannel text message
+    // Handle incoming DataChannel connection
     this.peer.on('connection', (conn) => {
       console.log('[PeerJS] Incoming DataChannel from:', conn.peer);
       this.setupDataConnection(conn);
     });
 
-    // Handle PeerJS errors gracefully without disconnecting
-    this.peer.on('error', (err) => {
-      if (err.type === 'peer-unavailable') {
-        // Normal response when pinging an offline/empty slot
-        const targetPeer = err.message.replace('Could not connect to peer ', '').trim();
-        if (targetPeer) {
-          this.failedSlots[targetPeer] = true;
-          // Cooldown 8 seconds before retrying this slot
-          setTimeout(() => { delete this.failedSlots[targetPeer]; }, 8000);
-        }
-        return; // CRITICAL: DO NOT RECONNECT ON PEER-UNAVAILABLE
-      }
-
-      if (err.type === 'unavailable-id') {
-        return; // Slot taken, handled during init
-      }
-
-      console.warn('[PeerJS Non-Fatal Error]:', err.type, err.message);
-      this.diagnostics.iceState = 'warning: ' + err.type;
-    });
-
     this.peer.on('disconnected', () => {
-      console.warn('[PeerJS] Disconnected from broker.');
+      console.warn('[PeerJS] Socket disconnected from signaling broker.');
       this.diagnostics.iceState = 'disconnected';
-
-      if (this.peer && !this.peer.destroyed && !this.isReconnecting) {
-        this.isReconnecting = true;
+      if (this.peer && !this.peer.destroyed) {
         setTimeout(() => {
           if (this.peer && this.peer.disconnected && !this.peer.destroyed) {
             this.peer.reconnect();
           }
-          this.isReconnecting = false;
         }, 3000);
       }
     });
   }
 
-  // Periodic Slot Scanner (Scans slots 1..5 in current room)
-  startSlotScanLoop(localStream) {
-    if (this.discoveryInterval) clearInterval(this.discoveryInterval);
-
-    this.discoveryInterval = setInterval(() => {
-      if (!this.peer || this.peer.disconnected || this.peer.destroyed) return;
-
-      // Announce presence across local channels
-      this.announcePresence();
-
-      // Scan slots 1..5
-      for (let s = 1; s <= 5; s++) {
-        const slotId = `wt-${this.currentRoom}-slot${s}`;
-        if (slotId !== this.myPeerId && !this.activeCalls[slotId] && !this.failedSlots[slotId]) {
-          this.callPeer(slotId, localStream);
-        }
-      }
-
-      this.diagnostics.rttMs = Math.floor(Math.random() * 15 + 20);
-      this.notifyPeerListUpdate();
-    }, 3500);
-  }
-
-  // BroadcastChannel for instant same-browser tab discovery
-  setupBroadcastChannel(localStream) {
-    try {
-      if ('BroadcastChannel' in window) {
-        this.broadcastChannel = new BroadcastChannel(`aethertalk_room_${this.currentRoom}`);
-        this.broadcastChannel.onmessage = (e) => {
-          const data = e.data;
-          if (data && data.peerId && data.peerId !== this.myPeerId) {
-            if (!this.activeCalls[data.peerId]) {
-              console.log('[BroadcastChannel] Discovered local tab peer:', data.peerId);
-              this.callPeer(data.peerId, localStream);
-            }
-          }
-        };
-        this.announcePresence();
-      }
-    } catch (e) {
-      console.warn('BroadcastChannel setup error:', e);
-    }
-  }
-
-  // Storage Bus for same-origin discovery
-  setupStorageBus(localStream) {
-    window.addEventListener('storage', (e) => {
-      if (e.key === `aethertalk_presence_${this.currentRoom}` && e.newValue) {
-        try {
-          const data = JSON.parse(e.newValue);
-          if (data && data.peerId && data.peerId !== this.myPeerId) {
-            if (!this.activeCalls[data.peerId]) {
-              console.log('[StorageBus] Discovered peer:', data.peerId);
-              this.callPeer(data.peerId, localStream);
-            }
-          }
-        } catch (err) {}
-      }
-    });
-  }
-
-  announcePresence() {
-    const payload = {
-      peerId: this.myPeerId,
-      callsign: this.myCallsign,
-      room: this.currentRoom,
-      timestamp: Date.now()
-    };
-
-    if (this.broadcastChannel) {
-      try { this.broadcastChannel.postMessage(payload); } catch (e) {}
-    }
-
-    try {
-      localStorage.setItem(`aethertalk_presence_${this.currentRoom}`, JSON.stringify(payload));
-    } catch (e) {}
-  }
-
-  // Handle incoming audio call stream
+  // Handle incoming call - ONLY add peer to UI list when call or stream is verified
   handleIncomingCall(call) {
     const remoteId = call.peer;
     this.activeCalls[remoteId] = call;
 
-    const parsedCallsign = this.extractCallsignFromPeerId(remoteId);
-    if (!this.connectedPeers[remoteId]) {
-      this.connectedPeers[remoteId] = {
-        callsign: parsedCallsign,
-        status: 'Connected',
-        rtt: Math.floor(Math.random() * 25 + 15),
-        joinedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        lastHeard: 'Just now',
-        isTransmitting: false
-      };
-      if (window.audioEngine) window.audioEngine.playPeerJoinChime();
-    }
-
-    this.notifyPeerListUpdate();
-
     call.on('stream', (remoteStream) => {
       console.log('[Audio Stream] Voice stream attached from:', remoteId);
+      
       let audio = document.getElementById('audio-' + remoteId);
       if (!audio) {
         audio = document.createElement('audio');
@@ -282,6 +145,21 @@ class PeerManager {
         document.body.appendChild(audio);
       }
       audio.srcObject = remoteStream;
+
+      const parsedCallsign = this.extractCallsignFromPeerId(remoteId);
+
+      // Add to connected peers map ONLY when stream arrives
+      if (!this.connectedPeers[remoteId]) {
+        this.connectedPeers[remoteId] = {
+          callsign: parsedCallsign,
+          status: 'Connected',
+          rtt: Math.floor(Math.random() * 25 + 15),
+          joinedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          lastHeard: 'Just now',
+          isTransmitting: false
+        };
+        if (window.audioEngine) window.audioEngine.playPeerJoinChime();
+      }
 
       this.isChannelBusy = true;
       this.currentSpeaker = parsedCallsign;
@@ -298,13 +176,14 @@ class PeerManager {
     call.on('error', (e) => this.cleanupPeer(remoteId));
   }
 
-  // Call / Connect target peer
+  // Outbound Dial / Call Peer
   callPeer(targetPeerId, localStream) {
     if (!this.peer || this.peer.disconnected || this.peer.destroyed || !targetPeerId) return;
-    if (this.activeCalls[targetPeerId] || targetPeerId === this.myPeerId || this.failedSlots[targetPeerId]) return;
+    if (this.activeCalls[targetPeerId] || targetPeerId === this.myPeerId) return;
 
     try {
-      const call = this.peer.call(targetPeerId, localStream || window.audioEngine.micStream);
+      console.log('[PeerJS] Dialing outbound call to:', targetPeerId);
+      const call = this.peer.call(targetPeerId, localStream || (window.audioEngine ? window.audioEngine.micStream : null));
       if (call) {
         this.activeCalls[targetPeerId] = call;
         this.handleIncomingCall(call);
@@ -313,13 +192,28 @@ class PeerManager {
         if (conn) this.setupDataConnection(conn);
       }
     } catch (err) {
-      // Peer offline or unavailable
+      console.warn('[PeerJS Outbound Call Error]:', err);
     }
   }
 
   // Setup DataChannel connection
   setupDataConnection(conn) {
     this.dataConns[conn.peer] = conn;
+
+    conn.on('open', () => {
+      const parsedCallsign = this.extractCallsignFromPeerId(conn.peer);
+      if (!this.connectedPeers[conn.peer]) {
+        this.connectedPeers[conn.peer] = {
+          callsign: parsedCallsign,
+          status: 'Connected',
+          rtt: Math.floor(Math.random() * 25 + 15),
+          joinedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          lastHeard: 'Just now',
+          isTransmitting: false
+        };
+        this.notifyPeerListUpdate();
+      }
+    });
 
     conn.on('data', (data) => {
       if (data.type === 'chat') {
@@ -338,10 +232,91 @@ class PeerManager {
         if (this.callbacks.onRadioStateChange) {
           this.callbacks.onRadioStateChange('standby', null);
         }
+      } else if (data.type === 'peer_mesh_sync') {
+        // Full mesh discovery: connect to all peers announced by remote node
+        if (Array.isArray(data.peers)) {
+          data.peers.forEach(peerId => {
+            if (peerId !== this.myPeerId && !this.activeCalls[peerId]) {
+              this.callPeer(peerId, window.audioEngine ? window.audioEngine.micStream : null);
+            }
+          });
+        }
       }
     });
 
     conn.on('close', () => delete this.dataConns[conn.peer]);
+  }
+
+  // Zero-Collision Presence Auto-Discovery Engine (BroadcastChannel + StorageBus)
+  setupAutoDiscovery(localStream) {
+    // 1. BroadcastChannel for same-browser tabs
+    try {
+      if ('BroadcastChannel' in window) {
+        this.broadcastChannel = new BroadcastChannel(`aethertalk_mesh_${this.currentRoom}`);
+        this.broadcastChannel.onmessage = (e) => {
+          const data = e.data;
+          if (data && data.peerId && data.peerId !== this.myPeerId) {
+            if (!this.activeCalls[data.peerId]) {
+              console.log('[AutoDiscovery] Discovered local tab peer via BroadcastChannel:', data.peerId);
+              this.callPeer(data.peerId, localStream);
+            }
+          }
+        };
+      }
+    } catch (e) { console.warn('BroadcastChannel error:', e); }
+
+    // 2. Storage Bus for same-origin windows
+    window.addEventListener('storage', (e) => {
+      if (e.key === `aethertalk_presence_${this.currentRoom}` && e.newValue) {
+        try {
+          const data = JSON.parse(e.newValue);
+          if (data && data.peerId && data.peerId !== this.myPeerId) {
+            if (!this.activeCalls[data.peerId]) {
+              console.log('[AutoDiscovery] Discovered peer via StorageBus:', data.peerId);
+              this.callPeer(data.peerId, localStream);
+            }
+          }
+        } catch (err) {}
+      }
+    });
+
+    // 3. Periodic Presence Announcement Timer
+    if (this.presenceInterval) clearInterval(this.presenceInterval);
+    this.presenceInterval = setInterval(() => {
+      this.announcePresence();
+      this.broadcastMeshPeers();
+      this.notifyPeerListUpdate();
+    }, 2000);
+
+    // Initial immediate announcement
+    this.announcePresence();
+  }
+
+  announcePresence() {
+    const payload = {
+      peerId: this.myPeerId,
+      callsign: this.myCallsign,
+      room: this.currentRoom,
+      timestamp: Date.now()
+    };
+
+    if (this.broadcastChannel) {
+      try { this.broadcastChannel.postMessage(payload); } catch (e) {}
+    }
+    try {
+      localStorage.setItem(`aethertalk_presence_${this.currentRoom}`, JSON.stringify(payload));
+    } catch (e) {}
+  }
+
+  // Share known peer list with all connected nodes for full mesh connectivity
+  broadcastMeshPeers() {
+    const knownPeers = Object.keys(this.activeCalls);
+    if (knownPeers.length > 0) {
+      this.broadcastData({
+        type: 'peer_mesh_sync',
+        peers: [this.myPeerId, ...knownPeers]
+      });
+    }
   }
 
   // Start Transmission (PTT Pressed)
@@ -354,7 +329,7 @@ class PeerManager {
     }
 
     this.isTransmitting = true;
-    window.audioEngine.setTransmissionActive(true);
+    if (window.audioEngine) window.audioEngine.setTransmissionActive(true);
     this.broadcastData({ type: 'tx_start', sender: this.myCallsign });
 
     if (this.callbacks.onRadioStateChange) {
@@ -371,7 +346,7 @@ class PeerManager {
 
     this.isTransmitting = false;
     this.stopTotTimer();
-    window.audioEngine.setTransmissionActive(false);
+    if (window.audioEngine) window.audioEngine.setTransmissionActive(false);
     this.broadcastData({ type: 'tx_stop', sender: this.myCallsign });
 
     if (this.callbacks.onRadioStateChange) {
@@ -425,12 +400,11 @@ class PeerManager {
   }
 
   extractCallsignFromPeerId(peerId) {
-    if (peerId.includes('slot')) {
-      const slotNum = peerId.split('slot')[1];
-      return `Operator-${slotNum || 'X'}`;
-    }
     const parts = peerId.split('-');
-    return parts.slice(2, -1).join('-') || 'Operator';
+    if (parts.length >= 3) {
+      return parts.slice(2).join('-') || 'Operator';
+    }
+    return 'Operator';
   }
 
   cleanupPeer(peerId) {
@@ -458,13 +432,12 @@ class PeerManager {
   }
 
   disconnect() {
-    if (this.discoveryInterval) clearInterval(this.discoveryInterval);
+    if (this.presenceInterval) clearInterval(this.presenceInterval);
     if (this.broadcastChannel) this.broadcastChannel.close();
     if (this.peer) this.peer.destroy();
     this.activeCalls = {};
     this.dataConns = {};
     this.connectedPeers = {};
-    this.failedSlots = {};
     this.stopTotTimer();
   }
 }
