@@ -89,9 +89,10 @@ class PeerManager {
   }
 
   // Initialize PeerJS with unique ID that encodes room + callsign
-  async initPeer(roomName, callsign, localStream, targetPeerId = null) {
+  async initPeer(roomName, callsign, localStream, targetPeerId = null, passcode = '') {
     this.currentRoom = this.sanitizeRoom(roomName);
     this.myCallsign = callsign.trim() || 'Operator-1';
+    this.passcode = passcode;
 
     const randomSuffix = Math.random().toString(36).substring(2, 7);
     const safeCallsign = this.sanitizeCallsign(this.myCallsign);
@@ -124,13 +125,13 @@ class PeerManager {
           this.setupPeerListeners(localStream);
           this.setupAutoDiscovery(localStream);
 
-          // Real-time Firebase Room Discovery
+          // Real-time Firebase Room Discovery (with optional Security Passcode)
           if (window.firebaseSignaling) {
             window.firebaseSignaling.joinRoom(this.currentRoom, id, this.myCallsign, (discoveredPeerId) => {
               if (discoveredPeerId && discoveredPeerId !== this.myPeerId) {
                 this.dialPeer(discoveredPeerId, localStream);
               }
-            });
+            }, this.passcode);
           }
 
           // Direct target connection if provided (e.g. from QR link)

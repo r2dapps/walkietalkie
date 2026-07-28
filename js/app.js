@@ -64,6 +64,8 @@ class App {
   async joinFrequency(explicitTarget = null) {
     const roomVal = window.uiController.elements.roomInput.value.trim();
     const callsignVal = window.uiController.elements.callsignInput.value.trim();
+    const passInput = document.getElementById('channelPasscodeInput');
+    const passcodeVal = passInput ? passInput.value.trim() : '';
 
     if (!roomVal) {
       alert('Please enter a valid channel frequency.');
@@ -72,6 +74,7 @@ class App {
 
     this.currentRoom = roomVal;
     this.myCallsign = callsignVal || 'Operator-1';
+    this.passcode = passcodeVal;
 
     window.storageManager.setLastChannel(this.currentRoom);
     window.storageManager.setCallsign(this.myCallsign);
@@ -89,7 +92,7 @@ class App {
       // getMicrophoneStream() returns the DSP-processed stream (for WebRTC transmission)
       this.localStream = await window.audioEngine.getMicrophoneStream();
       console.log('[App] Got processed stream, tracks:', this.localStream ? this.localStream.getTracks().length : 0);
-      await window.peerManager.initPeer(this.currentRoom, this.myCallsign, this.localStream, targetPeer);
+      await window.peerManager.initPeer(this.currentRoom, this.myCallsign, this.localStream, targetPeer, this.passcode);
 
       window.uiController.elements.setupView.classList.add('hidden');
       window.uiController.elements.radioView.classList.remove('hidden');

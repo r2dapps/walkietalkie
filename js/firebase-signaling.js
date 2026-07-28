@@ -45,19 +45,22 @@ class FirebaseSignaling {
    * Join a room in Firebase Realtime DB.
    * Announces presence and listens for other operators.
    */
-  joinRoom(roomName, myPeerId, callsign, onPeerDiscovered) {
+  joinRoom(roomName, myPeerId, callsign, onPeerDiscovered, passcode = '') {
     if (!this.init()) return;
 
     this.leaveRoom(); // Clean up any previous room listeners
 
     const safeRoom = (roomName || 'alpha1').toLowerCase().replace(/[^a-z0-9]/g, '');
-    this.currentRoom = safeRoom;
+    const passHash = passcode ? '_' + String(passcode).trim().replace(/[^a-z0-9]/gi, '') : '';
+    const fullRoomKey = safeRoom + passHash;
+    
+    this.currentRoom = fullRoomKey;
     this.myPeerId = myPeerId;
 
-    console.log(`[FirebaseSignaling] Joining room #${safeRoom} as ${myPeerId}`);
+    console.log(`[FirebaseSignaling] Joining room #${safeRoom} (Security Key: ${passcode ? 'PROTECTED' : 'PUBLIC'}) as ${myPeerId}`);
 
     // Reference to this room's peers roster
-    this.roomRef = this.db.ref(`rooms/${safeRoom}/peers`);
+    this.roomRef = this.db.ref(`rooms/${fullRoomKey}/peers`);
     this.myPeerRef = this.roomRef.child(myPeerId);
 
     // 1. Set auto-removal on disconnect (tab close, network loss)

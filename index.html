@@ -114,6 +114,20 @@
                     </div>
                 </div>
 
+                <!-- Security Passcode (Optional Private Lock) -->
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label class="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1">
+                            <i class="fa-solid fa-key"></i> Channel Security Key (Optional)
+                        </label>
+                        <span class="text-[10px] text-slate-500">Private Family Lock</span>
+                    </div>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500"><i class="fa-solid fa-lock"></i></span>
+                        <input type="password" id="channelPasscodeInput" placeholder="Leave empty for public channel..." class="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-xs font-semibold text-slate-100 focus:outline-none focus:border-amber-500 transition">
+                    </div>
+                </div>
+
                 <!-- Favorite Channels Section -->
                 <div>
                     <label class="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Saved Frequencies</label>
@@ -397,6 +411,10 @@
             <i class="fa-solid fa-walkie-talkie text-base"></i>
             <span class="text-[10px] font-bold">Radio</span>
         </button>
+        <button onclick="window.uiController.switchNavTab('squad')" id="tab-btn-squad" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
+            <i class="fa-solid fa-user-group text-base"></i>
+            <span class="text-[10px] font-bold">Squad</span>
+        </button>
         <button onclick="window.uiController.switchNavTab('chat')" id="tab-btn-chat" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition relative">
             <i class="fa-solid fa-comments text-base"></i>
             <span class="text-[10px] font-bold">Chat</span>
@@ -410,6 +428,39 @@
             <span class="text-[10px] font-bold">Profile</span>
         </button>
     </nav>
+
+    <!-- Dedicated Squad / Family Friends View Tab -->
+    <section id="squadView" class="hidden w-full max-w-md p-4 space-y-4 pb-20">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-sm text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-user-group text-cyan-400"></i> Tactical Squad (Friends & Family)
+                </h3>
+                <button onclick="window.uiController.requestNotificationPermission()" class="text-[10px] text-cyan-400 hover:underline font-bold flex items-center gap-1">
+                    <i class="fa-solid fa-bell"></i> Enable Pings
+                </button>
+            </div>
+
+            <!-- Quick Add Friend Box -->
+            <div class="space-y-2">
+                <label class="font-semibold text-slate-400 text-xs block">Add Friend by Callsign (e.g. Dad, Ops1)</label>
+                <div class="flex items-center gap-2">
+                    <input type="text" id="squadAddInput" placeholder="Enter friend callsign..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 outline-none focus:border-cyan-500">
+                    <button onclick="window.uiController.handleAddFriendFromSquadView()" class="px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs rounded-xl transition">
+                        Add Friend
+                    </button>
+                </div>
+            </div>
+
+            <!-- Squad Roster List Container -->
+            <div class="space-y-2 pt-2">
+                <label class="font-semibold text-slate-400 text-xs block">Saved Squad Roster</label>
+                <div id="squadTabRosterContainer" class="space-y-2 text-xs">
+                    <div class="text-slate-500 text-xs py-4 text-center">No friends added yet. Add Dad, Mom, or teammates above!</div>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Profile View Tab -->
     <section id="profileView" class="hidden w-full max-w-md p-4 space-y-4 pb-20">

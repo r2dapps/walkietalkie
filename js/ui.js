@@ -427,9 +427,9 @@ class UIController {
     else drawer.classList.add('hidden');
   }
 
-  // Bottom Navigation Bar Tab Switcher ('radio' | 'chat' | 'channels' | 'profile')
+  // Bottom Navigation Bar Tab Switcher ('radio' | 'squad' | 'chat' | 'channels' | 'profile')
   switchNavTab(tabName) {
-    const tabs = ['radio', 'chat', 'channels', 'profile'];
+    const tabs = ['radio', 'squad', 'chat', 'channels', 'profile'];
     tabs.forEach(t => {
       const btn = document.getElementById(`tab-btn-${t}`);
       if (btn) {
@@ -441,6 +441,9 @@ class UIController {
       }
     });
 
+    const squadView = document.getElementById('squadView');
+    const profileView = document.getElementById('profileView');
+
     if (tabName === 'radio') {
       if (window.app && window.app.isJoined) {
         this.elements.setupView.classList.add('hidden');
@@ -449,9 +452,16 @@ class UIController {
         this.elements.setupView.classList.remove('hidden');
         this.elements.radioView.classList.add('hidden');
       }
-      const profileView = document.getElementById('profileView');
+      if (squadView) squadView.classList.add('hidden');
       if (profileView) profileView.classList.add('hidden');
       this.closeModal('chatModal');
+
+    } else if (tabName === 'squad') {
+      this.elements.setupView.classList.add('hidden');
+      this.elements.radioView.classList.add('hidden');
+      if (profileView) profileView.classList.add('hidden');
+      if (squadView) squadView.classList.remove('hidden');
+      this.renderSquadTabRoster();
 
     } else if (tabName === 'chat') {
       this.openModal('chatModal');
@@ -462,14 +472,14 @@ class UIController {
       } else {
         this.elements.setupView.classList.remove('hidden');
       }
-      const profileView = document.getElementById('profileView');
+      if (squadView) squadView.classList.add('hidden');
       if (profileView) profileView.classList.add('hidden');
       this.openModal('peersModal');
 
     } else if (tabName === 'profile') {
       this.elements.setupView.classList.add('hidden');
       this.elements.radioView.classList.add('hidden');
-      const profileView = document.getElementById('profileView');
+      if (squadView) squadView.classList.add('hidden');
       if (profileView) profileView.classList.remove('hidden');
 
       // Populate current profile data into inputs
@@ -525,6 +535,50 @@ class UIController {
 
     window.profileManager.addFriend(input.value.trim());
     input.value = '';
+  }
+
+  handleAddFriendFromSquadView() {
+    const input = document.getElementById('squadAddInput');
+    if (!input || !input.value.trim() || !window.profileManager) return;
+
+    window.profileManager.addFriend(input.value.trim());
+    input.value = '';
+    this.renderSquadTabRoster();
+  }
+
+  renderSquadTabRoster() {
+    const container = document.getElementById('squadTabRosterContainer');
+    if (!container || !window.profileManager) return;
+
+    const friends = window.profileManager.loadFriends();
+    const keys = Object.keys(friends);
+
+    if (keys.length === 0) {
+      container.innerHTML = `<div class="text-slate-500 text-xs py-6 text-center font-medium">No friends added yet. Type Dad, Mom, or a teammate callsign above to add them!</div>`;
+      return;
+    }
+
+    container.innerHTML = keys.map(callsign => `
+      <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-950 border border-slate-800/80 shadow">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-500 text-white flex items-center justify-center text-sm font-bold shadow-md shadow-cyan-500/20">
+            <i class="fa-solid fa-user-shield"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-slate-100 text-xs">${callsign}</h4>
+            <p class="text-[10px] text-slate-400">Tactical Squad Partner</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="window.uiController.sendPingToFriend('${callsign}')" class="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-xs rounded-xl shadow transition flex items-center gap-1.5">
+            <i class="fa-solid fa-bell text-xs"></i> Ping & Call
+          </button>
+          <button onclick="window.profileManager.removeFriend('${callsign}'); window.uiController.renderSquadTabRoster()" class="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 hover:border-rose-500 text-slate-400 hover:text-rose-400 flex items-center justify-center transition" title="Remove Friend">
+            <i class="fa-solid fa-trash-can text-xs"></i>
+          </button>
+        </div>
+      </div>
+    `).join('');
   }
 
   sendPingToFriend(targetCallsign) {
