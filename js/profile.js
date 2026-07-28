@@ -11,7 +11,14 @@ class ProfileManager {
       { id: 'user-ninja', icon: 'fa-user-ninja', label: 'SpecOps', color: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/40' },
       { id: 'shield', icon: 'fa-shield-halved', label: 'Defender', color: 'bg-amber-500/20 text-amber-400 border-amber-500/40' },
       { id: 'tower-cell', icon: 'fa-tower-cell', label: 'Comms Tech', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40' },
-      { id: 'headset', icon: 'fa-headset', label: 'Dispatcher', color: 'bg-rose-500/20 text-rose-400 border-rose-500/40' }
+      { id: 'headset', icon: 'fa-headset', label: 'Dispatcher', color: 'bg-rose-500/20 text-rose-400 border-rose-500/40' },
+      { id: 'ghost', icon: 'fa-ghost', label: 'Ghost', color: 'bg-purple-500/20 text-purple-400 border-purple-500/40' },
+      { id: 'bolt', icon: 'fa-bolt', label: 'Apex', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40' },
+      { id: 'fire', icon: 'fa-fire', label: 'Phoenix', color: 'bg-orange-500/20 text-orange-400 border-orange-500/40' },
+      { id: 'crosshairs', icon: 'fa-crosshairs', label: 'Sniper', color: 'bg-red-500/20 text-red-400 border-red-500/40' },
+      { id: 'robot', icon: 'fa-robot', label: 'Mech', color: 'bg-blue-500/20 text-blue-400 border-blue-500/40' },
+      { id: 'crown', icon: 'fa-crown', label: 'Commander', color: 'bg-amber-400/20 text-amber-300 border-amber-400/40' },
+      { id: 'cat', icon: 'fa-cat', label: 'Shadow Cat', color: 'bg-slate-500/20 text-slate-300 border-slate-500/40' }
     ];
   }
 

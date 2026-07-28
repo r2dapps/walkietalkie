@@ -794,6 +794,7 @@ class UIController {
         <button onclick="window.uiController.selectAvatar('${p.id}')" class="p-3.5 rounded-2xl flex flex-col items-center justify-center transition active:scale-95 ${borderClass}">
           <i class="fa-solid ${p.icon} text-base"></i>
         </button>
+      `;
     }).join('');
   }
 
