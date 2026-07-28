@@ -64,7 +64,7 @@ class App {
       return;
     }
 
-    this.currentRoom = roomVal.toLowerCase();
+    this.currentRoom = roomVal;
     this.myCallsign = callsignVal || 'Operator-1';
 
     window.storageManager.setLastChannel(this.currentRoom);
