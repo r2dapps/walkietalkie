@@ -190,7 +190,14 @@ class App {
     const text = input.value.trim();
     if (!text) return;
 
+    // Send via P2P WebRTC DataChannel
     const payload = window.peerManager.sendChatMessage(text);
+    
+    // Also send via Firebase RTDB (guarantees delivery even if P2P DataChannel is connecting)
+    if (window.firebaseSignaling) {
+      window.firebaseSignaling.sendRoomChat(this.myCallsign, text);
+    }
+
     window.uiController.appendChatMessage(this.myCallsign, text, payload.timestamp, true);
     input.value = '';
   }

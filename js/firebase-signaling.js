@@ -95,6 +95,49 @@ class FirebaseSignaling {
 
     // 5. Start listening for incoming pings to our callsign
     this.listenForInvitePings(callsign);
+
+    // 6. Start listening for room chat messages (Firebase fallback)
+    this.listenForRoomChat();
+  }
+
+  /**
+   * Send a chat message via Firebase RTDB (100% reliable delivery fallback)
+   */
+  sendRoomChat(senderCallsign, text) {
+    if (!this.init() || !this.currentRoom) return;
+    const chatRef = this.db.ref(`rooms/${this.currentRoom}/chats`).push();
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    chatRef.set({
+      sender: senderCallsign,
+      text: text,
+      timestamp: timestamp,
+      created: firebase.database.ServerValue.TIMESTAMP
+    });
+  }
+
+  /**
+   * Listen for room chat messages in Firebase RTDB
+   */
+  listenForRoomChat() {
+    if (!this.init() || !this.currentRoom) return;
+    const chatsRef = this.db.ref(`rooms/${this.currentRoom}/chats`).limitToLast(30);
+    this.chatsRef = chatsRef;
+    this.seenChatKeys = this.seenChatKeys || new Set();
+
+    chatsRef.on('child_added', (snapshot) => {
+      const msgKey = snapshot.key;
+      if (this.seenChatKeys.has(msgKey)) return;
+      this.seenChatKeys.add(msgKey);
+
+      const data = snapshot.val();
+      if (data && data.sender && data.text) {
+        const myCall = window.app ? window.app.myCallsign : '';
+        const isSelf = (data.sender === myCall);
+        if (!isSelf && window.peerManager && window.peerManager.callbacks.onChatMessage) {
+          window.peerManager.callbacks.onChatMessage(data.sender, data.text, data.timestamp);
+        }
+      }
+    });
   }
 
   /**
