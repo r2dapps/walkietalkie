@@ -298,10 +298,9 @@ class PeerManager {
       this.audioElements[peerId] = audio;
     }
 
-    // Mute immediately if peer is blocked
-    if (window.profileManager && window.profileManager.isPeerBlocked(peerId)) {
-      audio.muted = true;
-    }
+    // Mute immediately if peer is blocked OR if local user is currently transmitting (half-duplex safety)
+    const isBlocked = window.profileManager && window.profileManager.isPeerBlocked(peerId);
+    audio.muted = isBlocked || this.isTransmitting;
 
     // Avoid reassigning same stream (avoids Safari restart glitch)
     if (audio.srcObject !== remoteStream) {
@@ -316,6 +315,19 @@ class PeerManager {
         });
       }
     }
+  }
+
+  /**
+   * Mute or unmute all remote audio elements (Half-Duplex: prevents mic picking up speaker audio while transmitting)
+   */
+  muteAllRemoteAudio(muted) {
+    Object.keys(this.audioElements).forEach(peerId => {
+      const audio = this.audioElements[peerId];
+      if (audio) {
+        const isBlocked = window.profileManager && window.profileManager.isPeerBlocked(peerId);
+        audio.muted = muted || isBlocked;
+      }
+    });
   }
 
   /**
@@ -624,6 +636,9 @@ class PeerManager {
     this.isTransmitting = true;
     this.diagnostics.packetsSent++;
 
+    // Mute incoming audio from all peers while transmitting (half-duplex: prevents mic picking up speaker echo)
+    this.muteAllRemoteAudio(true);
+
     if (window.audioEngine) window.audioEngine.setTransmissionActive(true);
     this.broadcastData({ type: 'tx_start', sender: this.myCallsign });
 
@@ -644,6 +659,9 @@ class PeerManager {
 
     if (window.audioEngine) window.audioEngine.setTransmissionActive(false);
     this.broadcastData({ type: 'tx_stop', sender: this.myCallsign });
+
+    // Restore incoming audio from peers
+    this.muteAllRemoteAudio(false);
 
     if (this.callbacks.onRadioStateChange) {
       this.callbacks.onRadioStateChange('standby', null);
