@@ -479,9 +479,9 @@ class PeerManager {
     }
   }
 
-  // Presence Auto-Discovery (BroadcastChannel + localStorage + PeerJS Broker API)
+  // Presence Auto-Discovery (BroadcastChannel + localStorage)
   setupAutoDiscovery(localStream) {
-    // 1. BroadcastChannel: discovers peers in other tabs of the SAME browser
+    // BroadcastChannel: discovers peers in other tabs of the SAME browser (same origin)
     if ('BroadcastChannel' in window) {
       try {
         if (this.broadcastChannel) this.broadcastChannel.close();
@@ -498,7 +498,7 @@ class PeerManager {
       } catch (e) { console.warn('BroadcastChannel error:', e); }
     }
 
-    // 2. localStorage bus: other windows in the SAME BROWSER
+    // localStorage bus: discovers peers in other windows/tabs of the SAME BROWSER on SAME ORIGIN
     window.addEventListener('storage', (e) => {
       if (e.key === `aethertalk_presence_${this.currentRoom}` && e.newValue) {
         try {
@@ -513,77 +513,16 @@ class PeerManager {
       }
     });
 
-    // 3. PeerJS Broker API: discovers ALL peers in the same room across ANY browser/device
-    // This is the primary cross-browser, cross-device discovery mechanism.
-    this.discoverPeersFromBroker(localStream);
-
-    // Periodic tasks every 3 seconds
+    // Periodic presence announcement + mesh sync every 2.5s
     if (this.presenceInterval) clearInterval(this.presenceInterval);
     this.presenceInterval = setInterval(() => {
       this.announcePresence();
       this.broadcastMeshPeers();
       this.pingAllPeers();
-      this.discoverPeersFromBroker(localStream); // re-scan broker for new joiners
-    }, 3000);
+    }, 2500);
 
     // Initial announcement
     this.announcePresence();
-  }
-
-  /**
-   * Query the PeerJS broker for ALL currently connected peer IDs,
-   * then filter by room prefix and dial any we haven't connected to yet.
-   *
-   * This is the ONLY method that discovers peers across:
-   *   - Different browsers on the same machine
-   *   - Different devices on the same WiFi
-   *   - Different devices on different networks (via TURN)
-   *
-   * The PeerJS default broker exposes: GET https://0.peerjs.com/peerjs/peers
-   */
-  async discoverPeersFromBroker(localStream) {
-    if (!this.peer || this.peer.destroyed) return;
-
-    const roomPrefix = `wt-${this.currentRoom}-`;
-
-    try {
-      // PeerJS default public broker peer list endpoint
-      const response = await fetch('https://0.peerjs.com/peerjs/peers', {
-        headers: { 'Accept': 'application/json' }
-      });
-
-      if (!response.ok) {
-        console.warn('[BrokerDiscovery] Broker peer list returned:', response.status);
-        return;
-      }
-
-      const allPeers = await response.json();
-
-      if (!Array.isArray(allPeers)) {
-        console.warn('[BrokerDiscovery] Unexpected broker response format');
-        return;
-      }
-
-      // Filter to peers in our room that we haven't connected to
-      const roomPeers = allPeers.filter(id =>
-        id.startsWith(roomPrefix) &&
-        id !== this.myPeerId &&
-        !this.activeCalls[id] &&
-        !this.dialingPeers[id]
-      );
-
-      if (roomPeers.length > 0) {
-        console.log(`[BrokerDiscovery] Found ${roomPeers.length} peer(s) in room #${this.currentRoom}:`, roomPeers);
-        const stream = localStream || (window.audioEngine ? window.audioEngine.processedStream : null);
-        roomPeers.forEach(peerId => this.dialPeer(peerId, stream));
-      } else {
-        console.log(`[BrokerDiscovery] No other peers in #${this.currentRoom} yet (${allPeers.length} total on broker)`);
-      }
-
-    } catch (err) {
-      // Non-fatal — could be CORS, offline, or broker rate-limiting
-      console.warn('[BrokerDiscovery] Could not fetch broker peer list:', err.message);
-    }
   }
 
   announcePresence() {
