@@ -153,10 +153,12 @@ class FirebaseSignaling {
     const safeTarget = (targetCallsign || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
     if (!safeTarget) return;
 
+    const passcode = window.app ? window.app.currentPasscode : '';
     const inviteRef = this.db.ref(`invites/${safeTarget}`).push();
     inviteRef.set({
       fromCallsign: senderCallsign || 'AetherTalk Operator',
       room: roomName || 'alpha1',
+      key: passcode || '',
       timestamp: firebase.database.ServerValue.TIMESTAMP
     });
 
@@ -191,26 +193,45 @@ class FirebaseSignaling {
         window.uiController.showToast(`📡 ${data.fromCallsign} invited you to #${data.room}!`, 'info', 6000);
       }
 
-      // Trigger Native OS Notification Banner on phone screen if permission granted
-      if ('Notification' in window && Notification.permission === 'granted') {
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.ready.then((registration) => {
-            const baseUrl = window.location.origin + window.location.pathname;
-            const roomParam = `#room=${encodeURIComponent(data.room)}`;
-            const keyParam = data.key ? `&key=${encodeURIComponent(data.key)}` : '';
-            const targetUrl = `${baseUrl}${roomParam}${keyParam}`;
+      // Trigger Native Phone Screen Notification Banner
+      if ('Notification' in window) {
+        const fireNativeNotification = () => {
+          if (Notification.permission !== 'granted') return;
 
-            registration.showNotification(`📡 Radio Call from ${data.fromCallsign}`, {
-              body: `Tap to join channel #${data.room} now on AetherTalk`,
-              icon: './assets/icon.svg',
-              badge: './assets/icon.svg',
-              vibrate: [200, 100, 200, 100, 200],
-              tag: 'invite-' + data.room,
-              renotify: true,
-              data: {
-                url: targetUrl
-              }
+          const baseUrl = window.location.origin + window.location.pathname;
+          const roomParam = `#room=${encodeURIComponent(data.room)}`;
+          const keyParam = data.key ? `&key=${encodeURIComponent(data.key)}` : '';
+          const targetUrl = `${baseUrl}${roomParam}${keyParam}`;
+
+          const title = `📡 Radio Call from ${data.fromCallsign}`;
+          const options = {
+            body: `Tap to join channel #${data.room} now on AetherTalk`,
+            icon: './assets/icon.svg',
+            badge: './assets/icon.svg',
+            vibrate: [200, 100, 200, 100, 200],
+            tag: 'invite-' + data.room,
+            renotify: true,
+            data: { url: targetUrl }
+          };
+
+          // Try Service Worker first
+          if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.ready.then((reg) => {
+              reg.showNotification(title, options);
+            }).catch(() => {
+              try { new Notification(title, options); } catch (e) {}
             });
+          } else {
+            // Direct browser Notification fallback
+            try { new Notification(title, options); } catch (e) {}
+          }
+        };
+
+        if (Notification.permission === 'granted') {
+          fireNativeNotification();
+        } else if (Notification.permission !== 'denied') {
+          Notification.requestPermission().then((perm) => {
+            if (perm === 'granted') fireNativeNotification();
           });
         }
       }

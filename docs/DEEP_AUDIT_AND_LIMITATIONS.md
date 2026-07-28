@@ -90,3 +90,13 @@ To make the app foolproof for non-technical users, we plan to remove or hide the
 ### Task 3: 📶 Pure Offline Wi-Fi Hotspot LAN Signaling (QR Code Handshake)
 - **Status:** Planned Offline Architecture
 - **Objective:** Allow local P2P audio streaming over a mobile Wi-Fi Hotspot without any cellular or internet connection by exchanging SDP tokens locally via QR code scanning.
+
+---
+
+## 8. 🔔 Notification System Audit (3 Tiers Verification)
+
+| Tier | Scenario | Behavior & Implementation Status | Action / Mechanism |
+| :--- | :--- | :--- | :--- |
+| **Tier 1** | **In-App Active Tab** | **COMPLETE ✅** | Plays Quindar space tone chime + displays in-app toast notification banner. |
+| **Tier 2** | **App Open / Background Tab** | **COMPLETE ✅** | Triggers native OS phone screen banner via Service Worker + direct `new Notification()` fallback with vibration (`[200, 100, 200]`) and 1-tap URL routing. |
+| **Tier 3** | **App 100% Closed (Dead JS)** | **BUILT & PENDING DEPLOYMENT 🛠️** | Cloud Function script [`functions/index.js`](file:///e:/Github/walkietalkie/functions/index.js) built. Deploy via `firebase deploy --only functions` to trigger hardware pushes via Google FCM / Apple APNs gateways. |
