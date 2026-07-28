@@ -5,7 +5,7 @@ window.AETHERTALK_CONFIG = {
   firebase: {
     apiKey: "AIzaSyAOdj4rmKB1GNDhhkm7ZpFgTRXTlHrEw5o",
     authDomain: "walkietalkie-c0f03.firebaseapp.com",
-    databaseURL: "https://walkietalkie-c0f03-default-rtdb.firebaseio.com",
+    databaseURL: "https://walkietalkie-c0f03-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "walkietalkie-c0f03",
     storageBucket: "walkietalkie-c0f03.firebasestorage.app",
     messagingSenderId: "930318008093",
