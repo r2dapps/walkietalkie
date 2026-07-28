@@ -229,11 +229,13 @@ class UIController {
     let html = '';
     for (const [id, peerData] of Object.entries(peersMap)) {
       const isBlocked = window.profileManager && window.profileManager.isPeerBlocked(id);
+      const avatarIcon = window.profileManager ? window.profileManager.getAvatarIconClass(peerData.avatar) : 'fa-walkie-talkie';
+
       html += `
         <div class="py-3 flex items-center justify-between">
           <div class="flex items-center space-x-3">
-            <div class="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-rose-400 text-xs font-bold shadow">
-              <i class="fa-solid fa-walkie-talkie"></i>
+            <div class="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-rose-400 text-sm font-bold shadow">
+              <i class="fa-solid ${avatarIcon}"></i>
             </div>
             <div>
               <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
@@ -267,14 +269,19 @@ class UIController {
   }
 
   // Append Chat Message
-  appendChatMessage(sender, text, timestamp, isSelf = false) {
+  appendChatMessage(sender, text, timestamp, isSelf = false, avatarId = 'radio') {
     if (!this.elements.chatMessagesContainer) return;
+
+    const currentAvatar = isSelf ? (window.profileManager ? window.profileManager.profile.avatar : avatarId) : avatarId;
+    const avatarIcon = window.profileManager ? window.profileManager.getAvatarIconClass(currentAvatar) : 'fa-walkie-talkie';
 
     const div = document.createElement('div');
     div.className = `p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 space-y-1`;
     div.innerHTML = `
       <div class="flex justify-between items-center text-[10px]">
-        <span class="font-bold ${isSelf ? 'text-rose-400' : 'text-cyan-400'}">${sender}</span>
+        <span class="font-bold ${isSelf ? 'text-rose-400' : 'text-cyan-400'} flex items-center gap-1.5">
+          <i class="fa-solid ${avatarIcon}"></i> ${sender}
+        </span>
         <span class="text-slate-500 font-mono">${timestamp}</span>
       </div>
       <p class="text-xs text-slate-200 break-words">${text}</p>

@@ -67,8 +67,10 @@ class FirebaseSignaling {
     this.myPeerRef.onDisconnect().remove();
 
     // 2. Announce our presence to the room
+    const avatar = window.profileManager ? (window.profileManager.profile.avatar || 'radio') : 'radio';
     this.myPeerRef.set({
       callsign: callsign || 'Operator',
+      avatar: avatar,
       joinedAt: firebase.database.ServerValue.TIMESTAMP,
       peerId: myPeerId
     });
@@ -82,7 +84,7 @@ class FirebaseSignaling {
       if (remotePeerId !== this.myPeerId) {
         console.log(`[FirebaseSignaling] Discovered peer in #${safeRoom}:`, remotePeerId, peerData);
         if (onPeerDiscovered) {
-          onPeerDiscovered(remotePeerId, peerData.callsign);
+          onPeerDiscovered(remotePeerId, peerData.callsign, peerData.avatar || 'radio');
         }
       }
     });
@@ -103,12 +105,15 @@ class FirebaseSignaling {
   /**
    * Send a chat message via Firebase RTDB (100% reliable delivery fallback)
    */
-  sendRoomChat(senderCallsign, text) {
+  sendRoomChat(senderCallsign, text, avatarId = 'radio') {
     if (!this.init() || !this.currentRoom) return;
     const chatRef = this.db.ref(`rooms/${this.currentRoom}/chats`).push();
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const currentAvatar = window.profileManager ? (window.profileManager.profile.avatar || avatarId) : avatarId;
+
     chatRef.set({
       sender: senderCallsign,
+      avatar: currentAvatar,
       text: text,
       timestamp: timestamp,
       created: firebase.database.ServerValue.TIMESTAMP
@@ -134,7 +139,7 @@ class FirebaseSignaling {
         const myCall = window.app ? window.app.myCallsign : '';
         const isSelf = (data.sender === myCall);
         if (!isSelf && window.peerManager && window.peerManager.callbacks.onChatMessage) {
-          window.peerManager.callbacks.onChatMessage(data.sender, data.text, data.timestamp);
+          window.peerManager.callbacks.onChatMessage(data.sender, data.text, data.timestamp, data.avatar || 'radio');
         }
       }
     });

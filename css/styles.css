@@ -17,18 +17,50 @@ body {
   transition: background-color 0.3s ease;
 }
 
-/* Color Themes */
+/* Sunofy-Inspired Dynamic Theme Overrides */
 body[data-theme="cyber-neon"] {
   --bg-dark: #090614;
   background-color: #090614 !important;
 }
+body[data-theme="cyber-neon"] .bg-slate-900,
+body[data-theme="cyber-neon"] .bg-slate-900\/80,
+body[data-theme="cyber-neon"] .bg-slate-900\/70,
+body[data-theme="cyber-neon"] .bottom-nav-glass {
+  background-color: #130a2a !important;
+  border-color: #3b1d70 !important;
+}
+body[data-theme="cyber-neon"] .bg-slate-950 {
+  background-color: #080415 !important;
+  border-color: #27134d !important;
+}
+
 body[data-theme="desert-camo"] {
   --bg-dark: #140f07;
   background-color: #140f07 !important;
 }
+body[data-theme="desert-camo"] .bg-slate-900,
+body[data-theme="desert-camo"] .bg-slate-900\/80,
+body[data-theme="desert-camo"] .bg-slate-900\/70,
+body[data-theme="desert-camo"] .bottom-nav-glass {
+  background-color: #21190d !important;
+  border-color: #4a381c !important;
+}
+body[data-theme="desert-camo"] .bg-slate-950 {
+  background-color: #0f0b05 !important;
+  border-color: #362813 !important;
+}
+
 body[data-theme="stealth-black"] {
   --bg-dark: #000000;
   background-color: #000000 !important;
+}
+body[data-theme="stealth-black"] .bg-slate-900,
+body[data-theme="stealth-black"] .bg-slate-900\/80,
+body[data-theme="stealth-black"] .bg-slate-900\/70,
+body[data-theme="stealth-black"] .bg-slate-950,
+body[data-theme="stealth-black"] .bottom-nav-glass {
+  background-color: #050505 !important;
+  border-color: #1f1f1f !important;
 }
 
 /* Custom Scrollbar */

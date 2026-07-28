@@ -22,6 +22,11 @@ class ProfileManager {
     ];
   }
 
+  getAvatarIconClass(avatarId) {
+    const found = this.avatarPresets.find(a => a.id === avatarId || a.icon === avatarId);
+    return found ? found.icon : (avatarId && avatarId.startsWith('fa-') ? avatarId : 'fa-walkie-talkie');
+  }
+
   loadProfile() {
     const saved = localStorage.getItem('aethertalk_profile');
     if (saved) {
