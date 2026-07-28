@@ -70,8 +70,19 @@ class AudioEngine {
       return this.processedStream;
 
     } catch (err) {
-      console.error('Microphone Access Error:', err);
-      throw err;
+      console.warn('[AudioEngine] Microphone Access Denied/Error:', err.message, '— generating silent fallback stream.');
+      // Create a silent audio track using Web Audio API so P2P mesh connection still works
+      const osc = this.ctx.createOscillator();
+      const silentGain = this.ctx.createGain();
+      silentGain.gain.value = 0;
+      const dest = this.ctx.createMediaStreamDestination();
+      osc.connect(silentGain);
+      silentGain.connect(dest);
+      osc.start();
+
+      this.micStream = dest.stream;
+      this.setupAudioProcessingChain();
+      return this.processedStream;
     }
   }
 
