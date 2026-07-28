@@ -319,16 +319,141 @@ class UIController {
     }
   }
 
+  // Render Custom Presets UI
+  loadCustomPresetsUI() {
+    const listContainer = document.getElementById('customPresetsList');
+    if (!listContainer) return;
+
+    const presets = window.storageManager.getCustomPresets();
+    if (!presets || presets.length === 0) {
+      listContainer.innerHTML = `<span class="text-slate-500 text-xs italic">No saved presets. Click "+ Add Preset" to create one!</span>`;
+      return;
+    }
+
+    listContainer.innerHTML = presets.map(p => `
+      <div class="inline-flex items-center gap-1 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-xl px-2.5 py-1.5 transition">
+        <button type="button" onclick="window.uiController.connectToPreset('${p.id}')" class="text-xs font-bold text-slate-200 hover:text-amber-400 flex items-center gap-1.5">
+          <i class="fa-solid fa-walkie-talkie text-amber-400 text-[11px]"></i>
+          ${p.label}
+          ${p.key ? '<i class="fa-solid fa-lock text-[9px] text-amber-400" title="Protected"></i>' : ''}
+        </button>
+        <button type="button" onclick="window.uiController.openPresetModal('${p.id}')" class="text-slate-500 hover:text-slate-300 text-[10px] pl-1 border-l border-slate-800" title="Edit Preset">
+          <i class="fa-solid fa-pen"></i>
+        </button>
+      </div>
+    `).join('');
+  }
+
+  // 1-Tap Connect to Custom Preset
+  connectToPreset(presetId) {
+    const presets = window.storageManager.getCustomPresets();
+    const preset = presets.find(p => p.id === presetId);
+    if (!preset) return;
+
+    if (this.elements.roomInput) this.elements.roomInput.value = preset.room;
+    const passInput = document.getElementById('channelPasscodeInput');
+    if (passInput) passInput.value = preset.key || '';
+
+    this.showToast(`Connecting to ${preset.label} (#${preset.room})...`, 'info', 2000);
+    window.app.joinFrequency();
+  }
+
+  // Open Preset Modal for Create or Edit
+  openPresetModal(presetId = null) {
+    const modal = document.getElementById('presetModal');
+    const title = document.getElementById('presetModalTitle');
+    const idInput = document.getElementById('presetIdInput');
+    const labelInput = document.getElementById('presetLabelInput');
+    const roomInput = document.getElementById('presetRoomInput');
+    const keyInput = document.getElementById('presetKeyInput');
+    const deleteBtn = document.getElementById('deletePresetBtn');
+
+    if (!modal) return;
+
+    if (presetId) {
+      const presets = window.storageManager.getCustomPresets();
+      const preset = presets.find(p => p.id === presetId);
+      if (preset) {
+        if (title) title.innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-400"></i> Edit Channel Preset`;
+        if (idInput) idInput.value = preset.id;
+        if (labelInput) labelInput.value = preset.label;
+        if (roomInput) roomInput.value = preset.room;
+        if (keyInput) keyInput.value = preset.key || '';
+        if (deleteBtn) deleteBtn.classList.remove('hidden');
+      }
+    } else {
+      if (title) title.innerHTML = `<i class="fa-solid fa-star text-amber-400"></i> Save New Channel Preset`;
+      if (idInput) idInput.value = '';
+      if (labelInput) labelInput.value = '';
+      if (roomInput) roomInput.value = this.elements.roomInput ? this.elements.roomInput.value : '';
+      const passInput = document.getElementById('channelPasscodeInput');
+      if (keyInput) keyInput.value = passInput ? passInput.value : '';
+      if (deleteBtn) deleteBtn.classList.add('hidden');
+    }
+
+    this.openModal('presetModal');
+  }
+
+  // Handle Save Preset
+  handleSavePreset() {
+    const idInput = document.getElementById('presetIdInput');
+    const labelInput = document.getElementById('presetLabelInput');
+    const roomInput = document.getElementById('presetRoomInput');
+    const keyInput = document.getElementById('presetKeyInput');
+
+    const label = labelInput ? labelInput.value.trim() : '';
+    const room = roomInput ? roomInput.value.trim() : '';
+    const key = keyInput ? keyInput.value.trim() : '';
+
+    if (!label || !room) {
+      alert('Please enter a Preset Label Name and Channel Name.');
+      return;
+    }
+
+    const preset = {
+      id: idInput && idInput.value ? idInput.value : 'preset-' + Date.now(),
+      label,
+      room,
+      key
+    };
+
+    window.storageManager.saveCustomPreset(preset);
+    this.loadCustomPresetsUI();
+    this.closeModal('presetModal');
+    this.showToast(`Preset "${label}" saved!`, 'success');
+  }
+
+  // Handle Delete Preset
+  handleDeletePreset() {
+    const idInput = document.getElementById('presetIdInput');
+    if (!idInput || !idInput.value) return;
+
+    if (confirm('Delete this preset?')) {
+      window.storageManager.deleteCustomPreset(idInput.value);
+      this.loadCustomPresetsUI();
+      this.closeModal('presetModal');
+      this.showToast('Preset deleted', 'info');
+    }
+  }
+
   // Render Favorites UI
   loadFavoritesUI() {
-    if (!this.elements.favoritesList) return;
-    const favs = window.storageManager.getFavorites();
+    this.loadCustomPresetsUI();
+  }
 
-    this.elements.favoritesList.innerHTML = favs.map(channel => `
-      <button onclick="window.app.switchChannel('${channel}')" class="px-3 py-1.5 bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-medium rounded-xl transition flex items-center gap-1.5">
-        <i class="fa-solid fa-star text-amber-400 text-[10px]"></i> #${channel}
-      </button>
-    `).join('');
+  // Toggle password input visibility (eye icon)
+  togglePasswordVisibility(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (!input || !icon) return;
+
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.className = 'fa-solid fa-eye-slash text-xs text-amber-400';
+    } else {
+      input.type = 'password';
+      icon.className = 'fa-solid fa-eye text-xs text-slate-400';
+    }
   }
 
   // Diagnostics Panel Refresh

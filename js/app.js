@@ -56,7 +56,14 @@ class App {
 
     // Auto-join if hash room was specified in URL
     if (hashParams?.room) {
-      this.joinFrequency(hashParams.target);
+      if (hashParams?.key) {
+        const passInput = document.getElementById('channelPasscodeInput');
+        if (passInput) passInput.value = hashParams.key;
+      }
+      // slight delay to ensure UI updates are complete before joining
+      setTimeout(() => {
+        this.joinFrequency(hashParams.target);
+      }, 100);
     }
   }
 

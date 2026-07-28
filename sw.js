@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aethertalk-v1.0.1';
+const CACHE_NAME = 'aethertalk-v1.0.2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -58,6 +58,30 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       });
+    })
+  );
+});
+
+// Handle Notification Clicks
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  
+  // The URL to open when notification is clicked
+  const urlToOpen = new URL(event.notification.data?.url || '/', self.location.origin).href;
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      // Check if there is already a window/tab open with the target URL
+      for (let i = 0; i < windowClients.length; i++) {
+        const client = windowClients[i];
+        if (client.url.includes(urlToOpen) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // If no window is open, open a new one
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
     })
   );
 });

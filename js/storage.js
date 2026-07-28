@@ -5,6 +5,19 @@
 class StorageManager {
   constructor() {
     this.PREFIX = 'aethertalk_';
+    this.requestPersistentStorage();
+  }
+
+  // Request browser storage persistence so mobile OS doesn't clear cache/data
+  async requestPersistentStorage() {
+    if (navigator.storage && navigator.storage.persist) {
+      try {
+        const isPersisted = await navigator.storage.persist();
+        console.log('[StorageManager] Persistent storage granted:', isPersisted);
+      } catch (err) {
+        console.warn('[StorageManager] Persistent storage request failed:', err);
+      }
+    }
   }
 
   get(key, defaultValue) {
@@ -59,6 +72,33 @@ class StorageManager {
   removeFavorite(channel) {
     const favs = this.getFavorites().filter(c => c !== channel);
     this.set('favorite_channels', favs);
+  }
+
+  // Custom Presets (Name, Channel, Passcode)
+  getCustomPresets() {
+    return this.get('custom_presets', [
+      { id: 'preset-dad', label: "Dad's Radio", room: 'family-1', key: '7788' },
+      { id: 'preset-squad', label: "Home Squad", room: 'alpha-1', key: '' }
+    ]);
+  }
+
+  saveCustomPreset(preset) {
+    const presets = this.getCustomPresets();
+    const index = presets.findIndex(p => p.id === preset.id);
+    if (index >= 0) {
+      presets[index] = preset;
+    } else {
+      preset.id = preset.id || 'preset-' + Date.now();
+      presets.push(preset);
+    }
+    this.set('custom_presets', presets);
+    return presets;
+  }
+
+  deleteCustomPreset(id) {
+    const presets = this.getCustomPresets().filter(p => p.id !== id);
+    this.set('custom_presets', presets);
+    return presets;
   }
 
   // Audio Preferences

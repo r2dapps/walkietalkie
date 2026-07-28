@@ -45,10 +45,12 @@ body {
 
 /* Bottom Navigation Bar Glassmorphism */
 .bottom-nav-glass {
-  background: rgba(13, 19, 34, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(9, 13, 22, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.6);
+  padding-bottom: max(0.6rem, env(safe-area-inset-bottom));
 }
 
 /* Navigation Drawer Slide Transition */

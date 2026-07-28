@@ -6,7 +6,7 @@ class ShareManager {
     this.currentRoom = 'alpha1';
   }
 
-  // Parse URL Hash on startup e.g. #room=alpha-1&target=wt-alpha1-slot1
+  // Parse URL Hash on startup e.g. #room=alpha-1&key=7788
   parseUrlHash() {
     const hash = window.location.hash.substring(1);
     if (!hash) return null;
@@ -15,21 +15,27 @@ class ShareManager {
     const room = params.get('room') || params.get('channel');
     const callsign = params.get('callsign') || params.get('nick');
     const target = params.get('target') || params.get('peer');
+    const key = params.get('key') || params.get('passcode');
 
     return {
       room: room ? room.toLowerCase().trim() : null,
       callsign: callsign ? callsign.trim() : null,
-      target: target ? target.trim() : null
+      target: target ? target.trim() : null,
+      key: key ? key.trim() : null
     };
   }
 
-  // Generate shareable URL with room and direct target peer ID
+  // Generate shareable URL with room and optional security key
   getShareableUrl(roomName, targetPeerId = null) {
     const baseUrl = window.location.origin + window.location.pathname;
     const roomParam = encodeURIComponent(roomName || this.currentRoom);
-    const peerId = targetPeerId || (window.peerManager ? window.peerManager.myPeerId : null);
-    const targetParam = peerId ? `&target=${encodeURIComponent(peerId)}` : '';
-    return `${baseUrl}#room=${roomParam}${targetParam}`;
+    
+    // Check if there is an active passcode in the UI
+    const passInput = document.getElementById('channelPasscodeInput');
+    const passcodeVal = passInput ? passInput.value.trim() : '';
+    const keyParam = passcodeVal ? `&key=${encodeURIComponent(passcodeVal)}` : '';
+    
+    return `${baseUrl}#room=${roomParam}${keyParam}`;
   }
 
   // Copy invite link to clipboard

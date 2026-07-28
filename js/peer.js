@@ -142,6 +142,7 @@ class PeerManager {
             }, 800);
           }
 
+          this.startKeepAlivePing();
           resolve(id);
         });
 
@@ -430,6 +431,20 @@ class PeerManager {
     }
 
     switch (data.type) {
+      case 'ping':
+        try {
+          if (this.dataConns[fromPeerId]) {
+            this.dataConns[fromPeerId].send({ type: 'pong' });
+          }
+        } catch (e) {}
+        break;
+
+      case 'pong':
+        if (this.connectedPeers[fromPeerId]) {
+          this.connectedPeers[fromPeerId].lastHeard = 'Just now';
+        }
+        break;
+
       case 'hello':
         // Update callsign from actual hello message (more reliable than peerId parsing)
         if (this.connectedPeers[fromPeerId] && data.callsign) {
@@ -498,6 +513,21 @@ class PeerManager {
         }
         break;
     }
+  }
+
+  // Start 10s ping loop over WebRTC data channels to keep sockets warm on mobile
+  startKeepAlivePing() {
+    if (this.presenceInterval) clearInterval(this.presenceInterval);
+    this.presenceInterval = setInterval(() => {
+      Object.keys(this.dataConns).forEach(peerId => {
+        const conn = this.dataConns[peerId];
+        if (conn && conn.open) {
+          try {
+            conn.send({ type: 'ping', ts: Date.now() });
+          } catch (e) {}
+        }
+      });
+    }, 10000);
   }
 
   // Presence Auto-Discovery (BroadcastChannel + localStorage)

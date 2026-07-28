@@ -145,10 +145,17 @@ class FirebaseSignaling {
 
       // Trigger Web Push Notification if granted and page is in background
       if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
-        new Notification(`Radio Call from ${data.fromCallsign}`, {
-          body: `Join channel #${data.room} now on AetherTalk`,
-          icon: './assets/icon.svg'
-        });
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then((registration) => {
+            registration.showNotification(`Radio Call from ${data.fromCallsign}`, {
+              body: `Join channel #${data.room} now on AetherTalk`,
+              icon: './assets/icon.svg',
+              data: {
+                url: `/#room=${data.room}`
+              }
+            });
+          });
+        }
       }
 
       // Clean up processed invite
