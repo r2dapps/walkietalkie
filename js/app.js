@@ -14,6 +14,7 @@ class App {
 
     window.uiController.init();
     window.pwaManager.init();
+    if (window.appLock) window.appLock.init();
 
     const savedCallsign = window.storageManager.getCallsign();
     const savedChannel = window.storageManager.getLastChannel();

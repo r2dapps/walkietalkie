@@ -32,6 +32,40 @@ body {
   background: rgba(100, 116, 139, 1);
 }
 
+/* Keyframes & Animations */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-10px); }
+  40%, 80% { transform: translateX(10px); }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* Bottom Navigation Bar Glassmorphism */
+.bottom-nav-glass {
+  background: rgba(13, 19, 34, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Navigation Drawer Slide Transition */
+.drawer-backdrop {
+  transition: opacity 0.3s ease-in-out;
+}
+
+.drawer-panel {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Touch Active States */
+.active-tab-glow {
+  color: #10b981;
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
 /* LED Indicator Glow Effects */
 .led-indicator {
   width: 10px;

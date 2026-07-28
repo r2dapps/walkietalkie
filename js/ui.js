@@ -209,6 +209,7 @@ class UIController {
 
     let html = '';
     for (const [id, peerData] of Object.entries(peersMap)) {
+      const isBlocked = window.profileManager && window.profileManager.isPeerBlocked(id);
       html += `
         <div class="py-3 flex items-center justify-between">
           <div class="flex items-center space-x-3">
@@ -219,15 +220,24 @@ class UIController {
               <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
                 ${peerData.callsign}
                 ${peerData.isTransmitting ? '<span class="text-[9px] bg-rose-500/20 text-rose-400 px-1.5 py-0.5 rounded font-mono animate-pulse">TX</span>' : ''}
+                ${isBlocked ? '<span class="text-[9px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded font-mono">BLOCKED</span>' : ''}
               </h4>
               <p class="text-[10px] text-slate-400 font-mono">
                 RTT: <span class="text-emerald-400">${peerData.rtt}ms</span> | Joined: ${peerData.joinedAt}
               </p>
             </div>
           </div>
-          <button onclick="window.app.callPeerDirectly('${id}')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-semibold rounded-xl border border-slate-700 transition">
-            Direct Line
-          </button>
+          <div class="flex items-center gap-1.5">
+            ${isBlocked ? `
+              <button onclick="window.profileManager.unblockPeer('${id}')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-400 text-[10px] font-bold rounded-xl border border-slate-700 transition">
+                Unblock
+              </button>
+            ` : `
+              <button onclick="window.profileManager.blockPeer('${id}', '${peerData.callsign}')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-rose-400 text-[10px] font-bold rounded-xl border border-slate-700 transition">
+                Block
+              </button>
+            `}
+          </div>
         </div>
       `;
     }
@@ -389,6 +399,118 @@ class UIController {
     totEl.className = `text-[9px] font-mono absolute bottom-3 ${color}`;
     totEl.textContent = `TOT ${secondsLeft}s`;
   }
+
+  // Hamburger Side Drawer Toggle
+  toggleSideDrawer(show) {
+    const drawer = document.getElementById('sideDrawer');
+    if (!drawer) return;
+    if (show) drawer.classList.remove('hidden');
+    else drawer.classList.add('hidden');
+  }
+
+  // Bottom Navigation Bar Tab Switcher ('radio' | 'chat' | 'channels' | 'profile')
+  switchNavTab(tabName) {
+    const tabs = ['radio', 'chat', 'channels', 'profile'];
+    tabs.forEach(t => {
+      const btn = document.getElementById(`tab-btn-${t}`);
+      if (btn) {
+        if (t === tabName) {
+          btn.className = 'flex flex-col items-center gap-1 text-emerald-400 active-tab-glow transition';
+        } else {
+          btn.className = 'flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition';
+        }
+      }
+    });
+
+    if (tabName === 'radio') {
+      if (window.app && window.app.isJoined) {
+        this.elements.setupView.classList.add('hidden');
+        this.elements.radioView.classList.remove('hidden');
+      } else {
+        this.elements.setupView.classList.remove('hidden');
+        this.elements.radioView.classList.add('hidden');
+      }
+      const profileView = document.getElementById('profileView');
+      if (profileView) profileView.classList.add('hidden');
+      this.closeModal('chatModal');
+
+    } else if (tabName === 'chat') {
+      this.openModal('chatModal');
+
+    } else if (tabName === 'channels') {
+      if (window.app && window.app.isJoined) {
+        this.elements.setupView.classList.add('hidden');
+      } else {
+        this.elements.setupView.classList.remove('hidden');
+      }
+      const profileView = document.getElementById('profileView');
+      if (profileView) profileView.classList.add('hidden');
+      this.openModal('peersModal');
+
+    } else if (tabName === 'profile') {
+      this.elements.setupView.classList.add('hidden');
+      this.elements.radioView.classList.add('hidden');
+      const profileView = document.getElementById('profileView');
+      if (profileView) profileView.classList.remove('hidden');
+
+      // Populate current profile data into inputs
+      if (window.profileManager) {
+        const p = window.profileManager.profile;
+        const callsignInput = document.getElementById('profileCallsignInput');
+        if (callsignInput) callsignInput.value = p.callsign;
+      }
+      this.renderBlockedPeersList();
+    }
+  }
+
+  // Render Blocked Operators Roster
+  renderBlockedPeersList() {
+    const container = document.getElementById('blockedPeersContainer');
+    if (!container || !window.profileManager) return;
+
+    const blocked = window.profileManager.blockedPeers;
+    const keys = Object.keys(blocked);
+
+    if (keys.length === 0) {
+      container.innerHTML = `<div class="text-slate-500 text-[11px]">No blocked operators.</div>`;
+      return;
+    }
+
+    container.innerHTML = keys.map(peerId => `
+      <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
+        <div>
+          <span class="font-bold text-slate-200">${blocked[peerId].callsign}</span>
+          <span class="text-[10px] text-slate-500 block font-mono">${peerId}</span>
+        </div>
+        <button onclick="window.profileManager.unblockPeer('${peerId}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold text-[10px] rounded-lg border border-slate-700">
+          Unblock
+        </button>
+      </div>
+    `).join('');
+  }
+
+  // Handle Security PIN Update
+  handlePinChange() {
+    const currentInput = document.getElementById('currentPinInput');
+    const newInput = document.getElementById('newPinInput');
+    if (!currentInput || !newInput || !window.appLock) return;
+
+    const res = window.appLock.changePin(currentInput.value, newInput.value);
+    this.showToast(res.message, res.success ? 'success' : 'error');
+
+    if (res.success) {
+      currentInput.value = '';
+      newInput.value = '';
+    }
+  }
+
+  selectAvatar(avatarId) {
+    if (window.profileManager) {
+      window.profileManager.saveProfile({ avatar: avatarId });
+      this.showToast('Tactical avatar updated!', 'success');
+    }
+  }
 }
 
 window.uiController = new UIController();
+

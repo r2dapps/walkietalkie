@@ -296,6 +296,11 @@ class PeerManager {
       this.audioElements[peerId] = audio;
     }
 
+    // Mute immediately if peer is blocked
+    if (window.profileManager && window.profileManager.isPeerBlocked(peerId)) {
+      audio.muted = true;
+    }
+
     // Avoid reassigning same stream (avoids Safari restart glitch)
     if (audio.srcObject !== remoteStream) {
       audio.srcObject = remoteStream;
@@ -417,6 +422,12 @@ class PeerManager {
   }
 
   handleDataMessage(fromPeerId, data) {
+    // Ignore all messages from blocked peers
+    if (window.profileManager && window.profileManager.isPeerBlocked(fromPeerId)) {
+      console.log('[DataChannel] Suppressing message from blocked peer:', fromPeerId);
+      return;
+    }
+
     switch (data.type) {
       case 'hello':
         // Update callsign from actual hello message (more reliable than peerId parsing)

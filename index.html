@@ -51,6 +51,11 @@
     <!-- Header Navigation Bar -->
     <header class="w-full max-w-md p-3.5 flex justify-between items-center border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
         <div class="flex items-center space-x-2.5">
+            <!-- Hamburger Menu Button -->
+            <button onclick="window.uiController.toggleSideDrawer(true)" class="w-9 h-9 rounded-xl bg-slate-800/90 border border-slate-700/80 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition active:scale-95" title="Menu">
+                <i class="fa-solid fa-bars text-sm"></i>
+            </button>
+
             <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-rose-600 to-orange-500 flex items-center justify-center shadow-lg shadow-rose-600/30">
                 <i class="fa-solid fa-walkie-talkie text-white text-lg"></i>
             </div>
@@ -347,6 +352,183 @@
         </div>
     </div>
 
+    <!-- Slide-Out Hamburger Navigation Drawer -->
+    <div id="sideDrawer" class="fixed inset-0 z-50 hidden">
+        <!-- Backdrop -->
+        <div onclick="window.uiController.toggleSideDrawer(false)" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"></div>
+        <!-- Drawer Panel -->
+        <div class="absolute top-0 left-0 bottom-0 w-72 bg-slate-900 border-r border-slate-800 p-5 flex flex-col justify-between shadow-2xl z-10">
+            <div class="space-y-6">
+                <!-- Drawer Header -->
+                <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-600 to-orange-500 flex items-center justify-center">
+                            <i class="fa-solid fa-walkie-talkie text-white text-sm"></i>
+                        </div>
+                        <span class="font-black text-sm tracking-wider text-slate-200">AETHERTALK</span>
+                    </div>
+                    <button onclick="window.uiController.toggleSideDrawer(false)" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+                </div>
+
+                <!-- Navigation List -->
+                <nav class="space-y-1.5 text-xs font-semibold">
+                    <button onclick="window.uiController.switchNavTab('radio'); window.uiController.toggleSideDrawer(false)" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-200 transition">
+                        <i class="fa-solid fa-walkie-talkie text-rose-500 w-5"></i> Tactical Radio
+                    </button>
+                    <button onclick="window.uiController.switchNavTab('chat'); window.uiController.toggleSideDrawer(false)" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">
+                        <i class="fa-solid fa-comments text-cyan-400 w-5"></i> Comms & Messages
+                    </button>
+                    <button onclick="window.uiController.switchNavTab('channels'); window.uiController.toggleSideDrawer(false)" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">
+                        <i class="fa-solid fa-tower-cell text-amber-400 w-5"></i> Frequencies & Channels
+                    </button>
+                    <button onclick="window.uiController.switchNavTab('profile'); window.uiController.toggleSideDrawer(false)" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">
+                        <i class="fa-solid fa-user-gear text-emerald-400 w-5"></i> Operator Profile
+                    </button>
+                    <button onclick="window.uiController.openModal('instructionsModal'); window.uiController.toggleSideDrawer(false)" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">
+                        <i class="fa-solid fa-circle-question text-indigo-400 w-5"></i> How to Use Guide
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Drawer Bottom Actions -->
+            <div class="space-y-2 pt-4 border-t border-slate-800">
+                <button onclick="window.appLock.lock(); window.uiController.toggleSideDrawer(false)" class="w-full py-2.5 bg-slate-950 border border-slate-800 hover:border-slate-700 text-amber-400 font-semibold text-xs rounded-xl transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-lock"></i> Lock Radio App (PIN)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Bar (Mobile Native Style) -->
+    <nav id="bottomNavBar" class="fixed bottom-0 left-0 right-0 z-40 bottom-nav-glass flex items-center justify-around py-2 max-w-md mx-auto">
+        <button onclick="window.uiController.switchNavTab('radio')" id="tab-btn-radio" class="flex flex-col items-center gap-1 text-emerald-400 active-tab-glow transition">
+            <i class="fa-solid fa-walkie-talkie text-base"></i>
+            <span class="text-[10px] font-bold">Radio</span>
+        </button>
+        <button onclick="window.uiController.switchNavTab('chat')" id="tab-btn-chat" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition relative">
+            <i class="fa-solid fa-comments text-base"></i>
+            <span class="text-[10px] font-bold">Chat</span>
+        </button>
+        <button onclick="window.uiController.switchNavTab('channels')" id="tab-btn-channels" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
+            <i class="fa-solid fa-tower-cell text-base"></i>
+            <span class="text-[10px] font-bold">Channels</span>
+        </button>
+        <button onclick="window.uiController.switchNavTab('profile')" id="tab-btn-profile" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
+            <i class="fa-solid fa-user-gear text-base"></i>
+            <span class="text-[10px] font-bold">Profile</span>
+        </button>
+    </nav>
+
+    <!-- Profile View Tab -->
+    <section id="profileView" class="hidden w-full max-w-md p-4 space-y-4 pb-20">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4 shadow-xl">
+            <h3 class="font-bold text-sm text-slate-200 flex items-center gap-2 border-b border-slate-800 pb-3">
+                <i class="fa-solid fa-id-card text-emerald-400"></i> Operator Profile
+            </h3>
+
+            <!-- Callsign Input -->
+            <div>
+                <label class="font-semibold text-slate-400 text-xs block mb-1">Tactical Callsign</label>
+                <input type="text" id="profileCallsignInput" onchange="window.profileManager.saveProfile({ callsign: this.value })" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 font-bold outline-none focus:border-emerald-500">
+            </div>
+
+            <!-- Avatar Selection Grid -->
+            <div>
+                <label class="font-semibold text-slate-400 text-xs block mb-2">Tactical Avatar Icon</label>
+                <div class="grid grid-cols-5 gap-2" id="avatarPresetGrid">
+                    <button onclick="window.uiController.selectAvatar('radio')" class="p-3 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center"><i class="fa-solid fa-walkie-talkie"></i></button>
+                    <button onclick="window.uiController.selectAvatar('user-ninja')" class="p-3 rounded-2xl bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 flex items-center justify-center"><i class="fa-solid fa-user-ninja"></i></button>
+                    <button onclick="window.uiController.selectAvatar('shield')" class="p-3 rounded-2xl bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 flex items-center justify-center"><i class="fa-solid fa-shield-halved"></i></button>
+                    <button onclick="window.uiController.selectAvatar('tower-cell')" class="p-3 rounded-2xl bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 flex items-center justify-center"><i class="fa-solid fa-tower-cell"></i></button>
+                    <button onclick="window.uiController.selectAvatar('headset')" class="p-3 rounded-2xl bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 flex items-center justify-center"><i class="fa-solid fa-headset"></i></button>
+                </div>
+            </div>
+
+            <!-- PIN Lock Change Box -->
+            <div class="pt-3 border-t border-slate-800 space-y-2">
+                <label class="font-semibold text-slate-400 text-xs block">Security PIN Management (Default: 0000)</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="password" id="currentPinInput" maxlength="4" placeholder="Current PIN" class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 outline-none">
+                    <input type="password" id="newPinInput" maxlength="4" placeholder="New 4-Digit PIN" class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 outline-none">
+                </div>
+                <button onclick="window.uiController.handlePinChange()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-400 font-semibold text-xs rounded-xl border border-slate-700 transition">Update Security PIN</button>
+            </div>
+
+            <!-- Blocked Operators List -->
+            <div class="pt-3 border-t border-slate-800 space-y-2">
+                <label class="font-semibold text-slate-400 text-xs block">Blocked Operators</label>
+                <div id="blockedPeersContainer" class="space-y-1 text-xs">
+                    <div class="text-slate-500 text-[11px]">No blocked operators.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- User Guide / Instructions Modal -->
+    <div id="instructionsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 max-h-[85vh] flex flex-col shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-circle-question text-indigo-400"></i> Tactical User Guide</h3>
+                <button onclick="window.uiController.closeModal('instructionsModal')" class="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto space-y-4 text-xs text-slate-300 pr-1">
+                <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 space-y-1">
+                    <h4 class="font-bold text-emerald-400">1. How to Join a Frequency</h4>
+                    <p class="text-slate-400">Type any channel name (e.g., <code class="text-amber-400">alpha-1</code>) or pick a preset button, then tap <b>Establish Frequency</b>. Share the channel link or QR code with friends to pair instantly.</p>
+                </div>
+                <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 space-y-1">
+                    <h4 class="font-bold text-rose-400">2. Using Push-To-Talk (PTT)</h4>
+                    <p class="text-slate-400">Press and hold the big red <b>PUSH TO TALK</b> button (or hold the <b>Spacebar</b> on desktop) while speaking. Release when done. You will hear an authentic Roger Beep chime on release.</p>
+                </div>
+                <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 space-y-1">
+                    <h4 class="font-bold text-cyan-400">3. P2P Text Chat & NATO Assist</h4>
+                    <p class="text-slate-400">Tap the 💬 Chat icon to open the channel text log. Use the top NATO quick buttons to send tactical phrases (Alpha, Bravo, Wilco, SOS) instantly without typing.</p>
+                </div>
+                <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 space-y-1">
+                    <h4 class="font-bold text-amber-400">4. Security PIN Lock</h4>
+                    <p class="text-slate-400">Lock your radio screen anytime using the Hamburger menu or Settings. Default PIN is <code class="text-emerald-400 font-mono font-bold">0000</code>. Change it anytime in your Operator Profile.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Lock Keypad Screen Overlay (PIN: 0000) -->
+    <div id="app-lock-screen" class="fixed inset-0 bg-[#070a11] z-[100] hidden flex flex-col items-center justify-center p-6 space-y-6">
+        <div id="pin-keypad-box" class="w-full max-w-xs bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col items-center space-y-6 shadow-2xl">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-rose-600 flex items-center justify-center shadow-lg shadow-rose-600/30">
+                <i class="fa-solid fa-lock text-white text-2xl"></i>
+            </div>
+            <div class="text-center">
+                <h2 class="font-black text-base text-slate-100 tracking-wider">AETHERTALK LOCKED</h2>
+                <p class="text-xs text-slate-400 mt-1">Enter 4-digit PIN (Default: <span class="font-mono text-emerald-400 font-bold">0000</span>)</p>
+            </div>
+
+            <!-- PIN Indicator Dots -->
+            <div class="flex items-center space-x-4">
+                <div id="pin-dot-1" class="w-4 h-4 rounded-full bg-slate-800 border border-slate-700"></div>
+                <div id="pin-dot-2" class="w-4 h-4 rounded-full bg-slate-800 border border-slate-700"></div>
+                <div id="pin-dot-3" class="w-4 h-4 rounded-full bg-slate-800 border border-slate-700"></div>
+                <div id="pin-dot-4" class="w-4 h-4 rounded-full bg-slate-800 border border-slate-700"></div>
+            </div>
+
+            <!-- Keypad Buttons -->
+            <div class="grid grid-cols-3 gap-3 w-full">
+                <button onclick="window.appLock.pressKey('1')" class="py-3 bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-200 font-bold text-lg rounded-2xl active:scale-95 transition">1</button>
+                <button onclick="window.appLock.pressKey('2')" class="py-3 bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-200 font-bold text-lg rounded-2xl active:scale-95 transition">2</button>
+                <button onclick="window.appLock.pressKey('3')" class="py-3 bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-200 font-bold text-lg rounded-2xl active:scale-95 transition">3</button>
+                <button onclick="window.appLock.pressKey('4')" class="py-3 bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-200 font-bold text-lg rounded-2xl active:scale-95 transition">4</button>
+                <button onclick="window.appLock.pressKey('5')" class="py-3 bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-200 font-bold text-lg rounded-2xl active:scale-95 transition">5</button>
+                <button onclick="window.appLock.pressKey('6')" class="py-3 bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-200 font-bold text-lg rounded-2xl active:scale-95 transition">6</button>
+                <button onclick="window.appLock.pressKey('7')" class="py-3 bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-200 font-bold text-lg rounded-2xl active:scale-95 transition">7</button>
+                <button onclick="window.appLock.pressKey('8')" class="py-3 bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-200 font-bold text-lg rounded-2xl active:scale-95 transition">8</button>
+                <button onclick="window.appLock.pressKey('9')" class="py-3 bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-200 font-bold text-lg rounded-2xl active:scale-95 transition">9</button>
+                <button onclick="window.appLock.clearKey()" class="py-3 bg-slate-950 border border-slate-800 hover:border-slate-700 text-rose-400 font-bold text-sm rounded-2xl active:scale-95 transition"><i class="fa-solid fa-delete-left"></i></button>
+                <button onclick="window.appLock.pressKey('0')" class="py-3 bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-200 font-bold text-lg rounded-2xl active:scale-95 transition">0</button>
+                <button onclick="window.appLock.verifyPin()" class="py-3 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-sm rounded-2xl active:scale-95 transition"><i class="fa-solid fa-check"></i></button>
+            </div>
+        </div>
+    </div>
+
     <!-- External Library Scripts & Modules -->
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <!-- Firebase App & Realtime Database SDKs -->
@@ -360,6 +542,8 @@
     <script src="./js/share.js"></script>
     <script src="./js/pwa.js"></script>
     <script src="./js/firebase-signaling.js"></script>
+    <script src="./js/applock.js"></script>
+    <script src="./js/profile.js"></script>
     <script src="./js/peer.js"></script>
     <script src="./js/ui.js"></script>
     <script src="./js/app.js"></script>
