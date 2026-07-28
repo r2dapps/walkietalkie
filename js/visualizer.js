@@ -35,12 +35,8 @@ class Visualizer {
 
   setAudioState(state) {
     this.audioState = state;
-    if (state === 'standby') {
-      this.stop();
-      this.clearCanvas();
-    } else {
-      this.start();
-    }
+    // Keep running in standby for idle animation — just changes color/brightness
+    if (!this.isRunning) this.start();
   }
 
   start() {
@@ -79,42 +75,48 @@ class Visualizer {
 
     this.ctx.clearRect(0, 0, w, h);
 
-    const analyser = window.audioEngine ? window.audioEngine.analyserNode : null;
-    let dataArray = new Uint8Array(64);
+    const analyser = window.audioEngine ? window.audioEngine.getAnalyserNode() : null;
+    const bufferLength = analyser ? analyser.frequencyBinCount : 64;
+    let dataArray = new Uint8Array(bufferLength);
 
     if (analyser) {
       analyser.getByteFrequencyData(dataArray);
     } else {
-      // Fallback synthetic wave animation if analyser is null
-      for (let i = 0; i < 64; i++) {
-        dataArray[i] = Math.sin(Date.now() * 0.01 + i) * 50 + 60;
+      // Gentle idle animation
+      const t = Date.now() * 0.003;
+      for (let i = 0; i < bufferLength; i++) {
+        dataArray[i] = Math.sin(t + i * 0.4) * 20 + 25;
       }
     }
 
-    const bufferLength = dataArray.length;
-    const radius = Math.min(w, h) * 0.38;
-
-    this.ctx.save();
-    this.ctx.beginPath();
-
     const isTx = this.audioState === 'transmitting';
-    this.ctx.strokeStyle = isTx ? 'rgba(244, 63, 94, 0.85)' : 'rgba(16, 185, 129, 0.85)';
-    this.ctx.lineWidth = 4 * (window.devicePixelRatio || 1);
-    this.ctx.lineCap = 'round';
+    const isRx = this.audioState === 'receiving';
+    const baseColor = isTx ? [244, 63, 94] : isRx ? [16, 185, 129] : [100, 116, 139];
+    const radius = Math.min(w, h) * 0.38;
+    const maxExcursion = Math.min(w, h) * 0.13;
 
-    for (let i = 0; i < bufferLength; i++) {
-      const value = dataArray[i] / 255.0;
-      const r = radius + value * (Math.min(w, h) * 0.12);
-      const angle = (i * 2 * Math.PI) / bufferLength;
+    // Glow effect
+    this.ctx.save();
+    this.ctx.shadowColor = `rgba(${baseColor.join(',')}, 0.6)`;
+    this.ctx.shadowBlur = 12 * (window.devicePixelRatio || 1);
+
+    this.ctx.beginPath();
+    this.ctx.strokeStyle = `rgba(${baseColor.join(',')}, 0.9)`;
+    this.ctx.lineWidth = (isTx || isRx ? 3.5 : 2) * (window.devicePixelRatio || 1);
+    this.ctx.lineCap = 'round';
+    this.ctx.lineJoin = 'round';
+
+    for (let i = 0; i <= bufferLength; i++) {
+      const idx = i % bufferLength;
+      const value = dataArray[idx] / 255.0;
+      const r = radius + value * maxExcursion;
+      const angle = (i * 2 * Math.PI) / bufferLength - Math.PI / 2;
 
       const x = cx + r * Math.cos(angle);
       const y = cy + r * Math.sin(angle);
 
-      if (i === 0) {
-        this.ctx.moveTo(x, y);
-      } else {
-        this.ctx.lineTo(x, y);
-      }
+      if (i === 0) this.ctx.moveTo(x, y);
+      else this.ctx.lineTo(x, y);
     }
 
     this.ctx.closePath();

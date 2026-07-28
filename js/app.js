@@ -45,7 +45,12 @@ class App {
     };
 
     window.peerManager.callbacks.onChannelBusy = (speakerName) => {
-      alert(`Channel frequency occupied by ${speakerName || 'another operator'}. Standby!`);
+      // Non-blocking notification — don't use alert()
+      window.uiController.showToast(`Channel busy — ${speakerName || 'another operator'} is transmitting`, 'warning');
+    };
+
+    window.peerManager.callbacks.onTotUpdate = (secondsLeft) => {
+      window.uiController.updateTotDisplay(secondsLeft);
     };
 
     // Auto-join if hash room was specified in URL
@@ -80,7 +85,9 @@ class App {
     }
 
     try {
+      // getMicrophoneStream() returns the DSP-processed stream (for WebRTC transmission)
       this.localStream = await window.audioEngine.getMicrophoneStream();
+      console.log('[App] Got processed stream, tracks:', this.localStream ? this.localStream.getTracks().length : 0);
       await window.peerManager.initPeer(this.currentRoom, this.myCallsign, this.localStream, targetPeer);
 
       window.uiController.elements.setupView.classList.add('hidden');
@@ -124,7 +131,7 @@ class App {
   // Call Specific Peer Directly
   callPeerDirectly(peerId) {
     if (!this.localStream) return;
-    window.peerManager.callPeer(peerId, this.localStream);
+    window.peerManager.dialPeer(peerId, this.localStream);
     window.uiController.closeModal('peersModal');
   }
 

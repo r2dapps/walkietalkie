@@ -314,6 +314,81 @@ class UIController {
       this.elements.diagAudioCtx.innerText = state;
     }
   }
+
+  /**
+   * Show a temporary toast notification (non-blocking alternative to alert).
+   * @param {string} message - Toast message text
+   * @param {'info'|'warning'|'error'|'success'} type - Toast color variant
+   * @param {number} durationMs - Auto-dismiss after this many ms (default 3000)
+   */
+  showToast(message, type = 'info', durationMs = 3000) {
+    // Remove existing toast
+    const existing = document.getElementById('aethertalk-toast');
+    if (existing) existing.remove();
+
+    const colors = {
+      info:    'bg-slate-700 border-slate-600 text-slate-200',
+      warning: 'bg-amber-900/80 border-amber-500/60 text-amber-200',
+      error:   'bg-rose-900/80 border-rose-500/60 text-rose-200',
+      success: 'bg-emerald-900/80 border-emerald-500/60 text-emerald-200'
+    };
+    const icons = {
+      info: 'fa-circle-info',
+      warning: 'fa-triangle-exclamation',
+      error: 'fa-circle-xmark',
+      success: 'fa-circle-check'
+    };
+
+    const toast = document.createElement('div');
+    toast.id = 'aethertalk-toast';
+    toast.className = `fixed top-4 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2.5 px-4 py-3 rounded-2xl border shadow-2xl text-xs font-semibold backdrop-blur-sm max-w-xs text-center transition-all duration-300 ${colors[type] || colors.info}`;
+    toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i><span>${message}</span>`;
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(-8px)';
+    document.body.appendChild(toast);
+
+    // Animate in
+    requestAnimationFrame(() => {
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateX(-50%) translateY(0)';
+    });
+
+    // Animate out & remove
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(-50%) translateY(-8px)';
+      setTimeout(() => toast.remove(), 300);
+    }, durationMs);
+  }
+
+  /**
+   * Update TOT (Time-Out-Timer) display on PTT button.
+   * @param {number|null} secondsLeft - null when TOT is inactive
+   */
+  updateTotDisplay(secondsLeft) {
+    const ptt = this.elements.pttButton;
+    if (!ptt) return;
+
+    let totEl = document.getElementById('tot-display');
+
+    if (secondsLeft === null || secondsLeft === undefined) {
+      // TOT inactive — remove countdown
+      if (totEl) totEl.remove();
+      return;
+    }
+
+    if (!totEl) {
+      totEl = document.createElement('span');
+      totEl.id = 'tot-display';
+      totEl.className = 'text-[9px] font-mono absolute bottom-3';
+      ptt.style.position = 'relative';
+      ptt.appendChild(totEl);
+    }
+
+    const color = secondsLeft <= 10 ? 'text-red-300 animate-pulse' : 'text-rose-200/70';
+    totEl.className = `text-[9px] font-mono absolute bottom-3 ${color}`;
+    totEl.textContent = `TOT ${secondsLeft}s`;
+  }
 }
 
 window.uiController = new UIController();
