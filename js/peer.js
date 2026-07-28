@@ -124,6 +124,15 @@ class PeerManager {
           this.setupPeerListeners(localStream);
           this.setupAutoDiscovery(localStream);
 
+          // Real-time Firebase Room Discovery
+          if (window.firebaseSignaling) {
+            window.firebaseSignaling.joinRoom(this.currentRoom, id, this.myCallsign, (discoveredPeerId) => {
+              if (discoveredPeerId && discoveredPeerId !== this.myPeerId) {
+                this.dialPeer(discoveredPeerId, localStream);
+              }
+            });
+          }
+
           // Direct target connection if provided (e.g. from QR link)
           if (targetPeerId && targetPeerId !== this.myPeerId) {
             setTimeout(() => {
@@ -704,6 +713,9 @@ class PeerManager {
   }
 
   disconnect() {
+    if (window.firebaseSignaling) {
+      window.firebaseSignaling.leaveRoom();
+    }
     if (this.presenceInterval) clearInterval(this.presenceInterval);
     if (this.broadcastChannel) { try { this.broadcastChannel.close(); } catch (e) {} }
 
