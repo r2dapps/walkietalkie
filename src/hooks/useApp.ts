@@ -46,6 +46,19 @@ export function useApp() {
     }
   }, []);
 
+  // Listen for invite pings directed to this user's callsign
+  useEffect(() => {
+    if (storage.profile.callsign) {
+      const unsub = firebaseSignaling.listenForInvitePings(storage.profile.callsign, (ping) => {
+        notificationService.notify('Squad Ping', {
+          body: `${ping.sender} is requesting you to join frequency #${ping.room}`
+        });
+        // We could also show a toast here via a global event or context, but notification is good.
+      });
+      return unsub;
+    }
+  }, [storage.profile.callsign]);
+
   // Peer Manager Callbacks
   useEffect(() => {
     peerManager.callbacks = {

@@ -78,11 +78,11 @@ File: `src/components/SquadView.tsx` + `src/hooks/useApp.ts`
 
 Current state: `SquadView.tsx` is a stub (136 bytes).
 
-- [ ] Render friends list from `storage.getFriends()`
-- [ ] "Add Friend" input — calls `storage.saveFriends()`, saves `{ callsign, peerId: '', addedAt: Date.now() }`
-- [ ] "Ping" button — calls `firebaseSignaling.sendInvitePing(targetCallsign, currentRoom, myCallsign)`
-- [ ] "Remove" button — removes from friends map in localStorage
-- [ ] When a ping arrives (`firebaseSignaling.listenForInvitePings`) → show browser notification + toast
+- [x] Render friends list from `storage.getFriends()`
+- [x] "Add Friend" input — calls `storage.saveFriends()`, saves `{ callsign, peerId: '', addedAt: Date.now() }`
+- [x] "Ping" button — calls `firebaseSignaling.sendInvitePing(targetCallsign, currentRoom, myCallsign)`
+- [x] "Remove" button — removes from friends map in localStorage
+- [x] When a ping arrives (`firebaseSignaling.listenForInvitePings`) → show browser notification + toast
 
 ---
 
