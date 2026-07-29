@@ -73,7 +73,7 @@ export default function AppLockModal() {
           Terminal Locked
         </h1>
         <p className="text-slate-500 text-sm font-mono">
-          {hasPinSet ? 'Enter authorization code' : 'Enter PIN: 0000 (no PIN set)'}
+          Enter authorization code
         </p>
         {cooldown > 0 && (
           <div className="mt-3 px-4 py-2 bg-rose-950/80 border border-rose-700/50 rounded-lg">
