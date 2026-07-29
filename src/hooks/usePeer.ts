@@ -5,7 +5,7 @@ import { PeerInfo } from '../types';
 export function usePeer(
   onPeerListUpdate: (peers: Record<string, PeerInfo>) => void,
   onRadioStateChange: (state: 'standby'|'transmitting'|'receiving', speaker?: string) => void,
-  onChatMessage: (sender: string, text: string, timestamp: string) => void,
+  onChatMessage: (sender: string, text: string, timestamp: string, id?: string) => void,
   onChannelBusy: (speakerName: string) => void,
   onTotUpdate: (secondsLeft: number) => void
 ) {

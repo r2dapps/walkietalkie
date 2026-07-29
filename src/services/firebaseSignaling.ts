@@ -125,11 +125,12 @@ class FirebaseSignaling {
     this.currentRoomRef = null;
   }
 
-  public sendRoomChat(roomName: string, passcode: string | undefined, sender: string, text: string): void {
+  public sendRoomChat(roomName: string, passcode: string | undefined, sender: string, text: string, msgId?: string): void {
     if (!this.db) return;
     const roomKey = this.getRoomKey(roomName, passcode);
     const chatsRef = ref(this.db, `rooms/${roomKey}/chats`);
     push(chatsRef, {
+      id: msgId,
       sender,
       text,
       timestamp: new Date().toISOString(),
@@ -162,7 +163,7 @@ class FirebaseSignaling {
       const msg = data[lastKey];
       if (msg) {
         onMessage({
-          id: lastKey,
+          id: msg.id || lastKey,  // prefer our shared UUID for cross-channel dedup
           sender: msg.sender,
           text: msg.text,
           timestamp: msg.timestamp,

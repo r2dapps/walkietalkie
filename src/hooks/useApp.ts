@@ -80,8 +80,15 @@ export function useApp() {
         setRadioState(state);
         setActiveSpeaker(speaker || null);
       },
-      onChatMessage: (sender, text, timestamp) => {
-        setChatMessages(prev => [...prev, { sender, text, timestamp, isMine: false }]);
+      onChatMessage: (sender, text, timestamp, id) => {
+        setChatMessages(prev => {
+          // Deduplicate: if id already present (from Firebase arriving first), skip
+          if (id && prev.some(m => m.id === id)) return prev;
+          // Also deduplicate by sender+text within 2s window (fallback)
+          const isDupe = prev.some(m => m.sender === sender && m.text === text && Math.abs(new Date(m.timestamp).getTime() - new Date(timestamp).getTime()) < 2000);
+          if (isDupe) return prev;
+          return [...prev, { id, sender, text, timestamp, isMine: false }];
+        });
         setUnreadCount(c => c + 1);
         notificationService.notify('New Message', { body: `${sender}: ${text}` });
       },
@@ -152,7 +159,7 @@ export function useApp() {
         // Only add if not from us (prevent duplicate from P2P)
         if (msg.sender !== callsignVal) {
           setChatMessages(prev => {
-            // Deduplicate by id (if present) or by sender+text within 2 seconds
+            // Deduplicate by id first, then by sender+text within 2s window
             const isDupe = msg.id
               ? prev.some(m => m.id === msg.id)
               : prev.some(m => m.sender === msg.sender && m.text === msg.text && Math.abs(new Date(m.timestamp).getTime() - new Date(msg.timestamp).getTime()) < 2000);
@@ -253,9 +260,11 @@ export function useApp() {
   }, [appLocked, pttLocked, isJoined, radioState, storage.audioPrefs.pttMode]);
 
   const sendChat = (text: string) => {
-    peerManager.sendChatMessage(text);
-    firebaseSignaling.sendRoomChat(currentRoom, passcode, myCallsign, text);
-    const newMsg: ChatMessage = { sender: myCallsign, text, timestamp: new Date().toISOString(), isMine: true };
+    // Generate a shared ID so both P2P and Firebase deliveries deduplicate
+    const msgId = Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+    peerManager.sendChatMessage(text, msgId);
+    firebaseSignaling.sendRoomChat(currentRoom, passcode, myCallsign, text, msgId);
+    const newMsg: ChatMessage = { id: msgId, sender: myCallsign, text, timestamp: new Date().toISOString(), isMine: true };
     setChatMessages(prev => [...prev, newMsg]);
   };
 

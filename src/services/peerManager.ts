@@ -39,7 +39,7 @@ export class PeerManager {
   public callbacks = {
     onPeerListUpdate: (peers: Record<string, PeerInfo>) => {},
     onRadioStateChange: (state: 'standby'|'transmitting'|'receiving', speaker?: string) => {},
-    onChatMessage: (sender: string, text: string, timestamp: string) => {},
+    onChatMessage: (sender: string, text: string, timestamp: string, id?: string) => {},
     onChannelBusy: (speakerName: string) => {},
     onTotUpdate: (secondsLeft: number) => {}
   };
@@ -163,7 +163,7 @@ export class PeerManager {
           this.notifyPeersUpdate();
         }
       } else if (data.type === 'chat') {
-        this.callbacks.onChatMessage(data.sender, data.text, data.timestamp);
+        this.callbacks.onChatMessage(data.sender, data.text, data.timestamp, data.id);
       } else if (data.type === 'ptt') {
         if (data.active) {
           this.callbacks.onRadioStateChange('receiving', data.callsign);
@@ -309,9 +309,10 @@ export class PeerManager {
     });
   }
 
-  public sendChatMessage(text: string) {
+  public sendChatMessage(text: string, id: string) {
     this.broadcastData({
       type: 'chat',
+      id,
       sender: getProfile().callsign,
       text,
       timestamp: new Date().toISOString()
