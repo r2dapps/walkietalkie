@@ -4,7 +4,7 @@ import { PeerInfo } from '../../types';
 import { showToast } from '../ui/ToastManager';
 
 export default function PeersModal() {
-  const { state, storage, firebase } = useAppContext();
+  const { state, storage, firebase, sendPing } = useAppContext();
   const peersList: PeerInfo[] = Object.values(state.peers) as PeerInfo[];
   const [updateTick, setUpdateTick] = useState(0);
 
@@ -20,8 +20,7 @@ export default function PeersModal() {
   };
 
   const handlePing = (peer: PeerInfo) => {
-    firebase.sendInvitePing(peer.callsign, state.currentRoom, state.myCallsign, state.passcode);
-    showToast(`Ping sent to ${peer.callsign}`, 'success');
+    sendPing(peer.callsign);
   };
 
   const handleCopyCallsign = () => {

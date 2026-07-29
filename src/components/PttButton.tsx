@@ -91,6 +91,7 @@ export default function PttButton() {
         e.code === 'Space' && 
         !e.repeat && 
         isJoined && 
+        !isBlocked &&
         document.activeElement?.tagName !== 'INPUT' && 
         document.activeElement?.tagName !== 'TEXTAREA'
       ) {
@@ -115,6 +116,7 @@ export default function PttButton() {
         e.code === 'Space' && 
         holdMode && 
         isJoined && 
+        !isBlocked &&
         document.activeElement?.tagName !== 'INPUT' && 
         document.activeElement?.tagName !== 'TEXTAREA'
       ) {
@@ -131,7 +133,7 @@ export default function PttButton() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isJoined, holdMode, isTransmitting, startPTT, stopPTT]);
+  }, [isJoined, holdMode, isTransmitting, startPTT, stopPTT, isBlocked]);
 
   return (
     <div className="flex flex-col items-center justify-center py-4 relative select-none">

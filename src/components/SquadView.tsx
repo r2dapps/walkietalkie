@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 
 export default function SquadView() {
-  const { state, storage, firebase } = useAppContext();
+  const { state, storage, firebase, sendPing } = useAppContext();
   const [newFriendCallsign, setNewFriendCallsign] = useState('');
-  const [pingCooldowns, setPingCooldowns] = useState<Record<string, number>>({});
   
   const friends = Object.values(storage.getFriends() as Record<string, any>);
 
@@ -33,15 +32,7 @@ export default function SquadView() {
   };
 
   const handlePing = (targetCallsign: string) => {
-    const now = Date.now();
-    const lastPing = pingCooldowns[targetCallsign] || 0;
-    if (now - lastPing < 60000) { // 60 second cooldown
-      return;
-    }
-
-    firebase.sendInvitePing(targetCallsign, state.currentRoom, state.myCallsign, state.passcode);
-    setPingCooldowns(prev => ({ ...prev, [targetCallsign]: now }));
-    // Toast notification will be handled globally
+    sendPing(targetCallsign);
   };
 
   const handleRemove = (callsign: string) => {

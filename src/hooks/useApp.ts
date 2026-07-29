@@ -50,10 +50,17 @@ export function useApp() {
     }
   }, []);
 
+  const processedPings = useRef<Set<string>>(new Set());
+  const pingCooldowns = useRef<Record<string, number>>({});
+
   // Listen for invite pings directed to this user's callsign
   useEffect(() => {
     if (storage.profile.callsign) {
       const unsub = firebaseSignaling.listenForInvitePings(storage.profile.callsign, (ping) => {
+        const pingId = `${ping.fromCallsign}-${ping.room}-${ping.timestamp}`;
+        if (processedPings.current.has(pingId)) return;
+        processedPings.current.add(pingId);
+        
         const senderName = ping.fromCallsign || ping.sender || 'Someone';
         notificationService.notify('Squad Ping', {
           body: `${senderName} is requesting you to join frequency #${ping.room}`
@@ -246,6 +253,19 @@ export function useApp() {
     });
   };
 
+  const sendPing = (targetCallsign: string) => {
+    const now = Date.now();
+    const lastPing = pingCooldowns.current[targetCallsign] || 0;
+    if (now - lastPing < 60000) {
+      showToast(`${targetCallsign} was recently pinged. Wait a minute.`, 'warning');
+      return;
+    }
+
+    firebaseSignaling.sendInvitePing(targetCallsign, currentRoom, myCallsign, passcode);
+    pingCooldowns.current[targetCallsign] = now;
+    showToast(`Ping sent to ${targetCallsign}`, 'success');
+  };
+
   const state: AppState = {
     isJoined,
     currentRoom,
@@ -278,6 +298,7 @@ export function useApp() {
     sendChat,
     sendGpsLocation,
     setAppLocked,
-    clearUnread: () => setUnreadCount(0)
+    clearUnread: () => setUnreadCount(0),
+    sendPing
   };
 }

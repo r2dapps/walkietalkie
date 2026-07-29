@@ -81,6 +81,7 @@ class FirebaseSignaling {
     const presenceData: any = {
       peerId: myPeerId,
       callsign: callsign,
+      displayName: profile.displayName || '',
       avatar: profile.avatar,
       device_uuid: getDeviceUuid(),
       joinedAt: serverTimestamp()
