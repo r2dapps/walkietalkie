@@ -457,10 +457,14 @@ export default function SettingsModal() {
           </div>
           <button 
             onClick={() => {
+              const pin = storage.getPin();
+              if (!pin) {
+                showToast('⚠️ No PIN set. Default PIN is 0000.', 'warning');
+              }
               storage.saveIsLocked(true);
               setAppLocked(true);
             }}
-            className="w-full bg-slate-800 text-white border border-white/10 py-3 rounded-lg font-bold tracking-widest uppercase text-xs mt-2 flex items-center justify-center space-x-2 hover:bg-slate-700 transition-colors"
+            className="w-full bg-rose-900/40 text-rose-300 border border-rose-700/40 py-3 rounded-lg font-bold tracking-widest uppercase text-xs mt-2 flex items-center justify-center space-x-2 hover:bg-rose-800/50 transition-colors"
           >
             <i className="fa-solid fa-lock"></i>
             <span>Lock Application Now</span>

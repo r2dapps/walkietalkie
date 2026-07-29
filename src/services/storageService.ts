@@ -137,7 +137,7 @@ export function saveBlockedPeers(b: Record<string, BlockedPeer>): void {
 }
 
 export function getPin(): string {
-  return get<string>('pin', '0000');
+  return get<string>('pin', '');
 }
 
 export function savePin(pin: string): void {
