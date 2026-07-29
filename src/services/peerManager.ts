@@ -223,7 +223,10 @@ export class PeerManager {
             isBlocked: false
           };
           changed = true;
-          this.connectToPeer(peerId);
+          // Only dial if my ID is lexicographically greater to prevent cross-dialing glare
+          if (this.myPeerId > peerId) {
+            this.connectToPeer(peerId);
+          }
         }
       }
     });
@@ -243,11 +246,17 @@ export class PeerManager {
     this.callbacks.onPeerListUpdate({ ...this.connectedPeers });
   }
 
-  public startTransmission(totLimitSeconds: number = 60) {
+  public async startTransmission(totLimitSeconds: number = 60) {
     this.isTransmitting = true;
-    audioEngine.setTransmissionActive(true);
+    await audioEngine.setTransmissionActive(true);
     this.callbacks.onRadioStateChange('transmitting');
     
+    // Replace track with the active processed track to resume WebRTC sending
+    const track = audioEngine.getProcessedTrack();
+    if (track) {
+      this.replaceAudioTrack(track);
+    }
+
     this.broadcastData({
       type: 'ptt',
       active: true,
@@ -266,19 +275,36 @@ export class PeerManager {
     }, 1000);
   }
 
-  public stopTransmission() {
+  public async stopTransmission() {
     this.isTransmitting = false;
-    audioEngine.setTransmissionActive(false);
+    await audioEngine.setTransmissionActive(false);
     this.callbacks.onRadioStateChange('standby');
     if (this.totTimer) {
       window.clearInterval(this.totTimer);
       this.totTimer = null;
     }
     
+    // Replace track with null to completely stop WebRTC sending
+    this.replaceAudioTrack(null);
+
     this.broadcastData({
       type: 'ptt',
       active: false,
       callsign: getProfile().callsign
+    });
+  }
+
+  public replaceAudioTrack(track: MediaStreamTrack | null) {
+    if (track) {
+      this.localStream = new MediaStream([track]);
+    }
+    Object.values(this.activeCalls).forEach(call => {
+      if (call.peerConnection) {
+        const sender = call.peerConnection.getSenders().find((s: any) => s.track?.kind === 'audio' || s.track === null);
+        if (sender) {
+          sender.replaceTrack(track).catch((e: any) => console.warn('replaceTrack failed', e));
+        }
+      }
     });
   }
 

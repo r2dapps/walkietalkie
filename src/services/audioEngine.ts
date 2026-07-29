@@ -11,29 +11,20 @@ class AudioEngine {
   private masterGain: GainNode | null = null;
   private processedStreamDest: MediaStreamAudioDestinationNode | null = null;
   private micStream: MediaStream | null = null;
+  private micSource: MediaStreamAudioSourceNode | null = null;
+  private activeMicPromise: Promise<void> | null = null;
   private voxInterval: number | null = null;
 
   async getMicrophoneStream(): Promise<MediaStream> {
-    if (this.micStream) return this.processedStreamDest!.stream;
-
-    this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 48000 });
-    
-    try {
-      const prefs = getAudioPrefs();
-      this.micStream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          deviceId: prefs.inputDeviceId ? { exact: prefs.inputDeviceId } : undefined,
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        }
-      });
-    } catch (e) {
-      console.error('Mic access denied', e);
-      throw e;
+    if (this.processedStreamDest) {
+      // If VOX is enabled, ensure mic is acquired
+      if (getAudioPrefs().voxEnabled) {
+        await this.acquireMicrophone();
+      }
+      return this.processedStreamDest.stream;
     }
 
-    const source = this.ctx.createMediaStreamSource(this.micStream);
+    this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 48000 });
     
     this.hpf = this.ctx.createBiquadFilter();
     this.hpf.type = 'highpass';
@@ -65,7 +56,8 @@ class AudioEngine {
     // txGain also -> Analyser
     // txGain also -> masterGain -> ctx.destination (for local monitor if needed, but usually muted to prevent feedback)
     
-    source.connect(this.hpf);
+    // txGain also -> masterGain -> ctx.destination (for local monitor if needed, but usually muted to prevent feedback)
+    
     this.hpf.connect(this.lpf);
     this.lpf.connect(this.waveShaper);
     this.waveShaper.connect(compressor);
@@ -78,7 +70,56 @@ class AudioEngine {
 
     this.applyEqPreset(getAudioPrefs().eqPreset);
     
+    if (getAudioPrefs().voxEnabled) {
+      await this.acquireMicrophone();
+    }
+    
     return this.processedStreamDest.stream;
+  }
+
+  async acquireMicrophone(): Promise<void> {
+    if (this.micStream && this.micStream.getAudioTracks()[0].readyState === 'live') return;
+    if (this.activeMicPromise) return this.activeMicPromise;
+
+    this.activeMicPromise = (async () => {
+      try {
+        const prefs = getAudioPrefs();
+        this.micStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            deviceId: prefs.inputDeviceId ? { exact: prefs.inputDeviceId } : undefined,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          }
+        });
+        if (this.ctx && this.hpf) {
+          // Explicitly resume context upon mic acquisition
+          if (this.ctx.state === 'suspended') {
+            await this.ctx.resume();
+          }
+          this.micSource = this.ctx.createMediaStreamSource(this.micStream);
+          this.micSource.connect(this.hpf);
+        }
+      } catch (e) {
+        console.error('Mic access denied', e);
+        throw e;
+      } finally {
+        this.activeMicPromise = null;
+      }
+    })();
+
+    return this.activeMicPromise;
+  }
+
+  releaseMicrophone(): void {
+    if (this.micSource) {
+      this.micSource.disconnect();
+      this.micSource = null;
+    }
+    if (this.micStream) {
+      this.micStream.getTracks().forEach(t => t.stop());
+      this.micStream = null;
+    }
   }
 
   private makeDistortionCurve(amount: number) {
@@ -126,30 +167,54 @@ class AudioEngine {
     this.waveShaper.curve = this.makeDistortionCurve(amount);
   }
 
-  setTransmissionActive(active: boolean): void {
-    if (!this.ctx || !this.txGain || !this.micStream) return;
+  async setTransmissionActive(active: boolean): Promise<void> {
+    if (!this.ctx || !this.txGain) return;
 
-    // CRITICAL: keep mic track enabled if VOX is on to allow continuous detection
     const prefs = getAudioPrefs();
-    this.micStream.getAudioTracks().forEach(t => {
-      t.enabled = active || prefs.voxEnabled;
-    });
-
     this.ctx.resume(); // Ensure context is running
 
     if (active) {
+      if (!prefs.voxEnabled) {
+        await this.acquireMicrophone();
+      }
       this.playPttClickSound();
       this.muteAllRemoteAudio();
-      this.txGain.gain.setTargetAtTime(1, this.ctx.currentTime, 0.015);
+      
+      this.txGain.gain.cancelScheduledValues(this.ctx.currentTime);
+      this.txGain.gain.setValueAtTime(this.txGain.gain.value, this.ctx.currentTime);
+      this.txGain.gain.linearRampToValueAtTime(1, this.ctx.currentTime + 0.05);
     } else {
-      this.txGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.015);
+      this.txGain.gain.cancelScheduledValues(this.ctx.currentTime);
+      this.txGain.gain.setValueAtTime(this.txGain.gain.value, this.ctx.currentTime);
+      this.txGain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.05);
+      
       this.unmuteAllRemoteAudio();
+      
+      let delayMs = 0;
       if (prefs.rogerBeep) {
         this.playRogerBeep();
+        delayMs = 200;
       } else if (prefs.squelch) {
         this.playSquelchTail();
+        delayMs = 150;
+      }
+
+      if (delayMs > 0) {
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+
+      if (!prefs.voxEnabled) {
+        this.releaseMicrophone();
       }
     }
+  }
+
+  getProcessedTrack(): MediaStreamTrack | null {
+    if (this.processedStreamDest) {
+      const tracks = this.processedStreamDest.stream.getAudioTracks();
+      if (tracks.length > 0) return tracks[0];
+    }
+    return null;
   }
 
   getAnalyserNode(): AnalyserNode | null {
@@ -256,9 +321,10 @@ class AudioEngine {
     });
   }
 
-  startVoxMonitoring(onTrigger: (active: boolean) => void): void {
+  async startVoxMonitoring(onTrigger: (active: boolean) => void): Promise<void> {
     if (!this.analyser) return;
     this.stopVoxMonitoring();
+    await this.acquireMicrophone();
     
     const data = new Uint8Array(this.analyser.frequencyBinCount);
     let isActive = false;
@@ -286,6 +352,8 @@ class AudioEngine {
       window.clearInterval(this.voxInterval);
       this.voxInterval = null;
     }
+    // Only release if we are not transmitting right now
+    // The calling code handles releasing if appropriate
   }
 
   muteAllRemoteAudio(): void {
