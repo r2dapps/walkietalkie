@@ -177,6 +177,41 @@ export function useApp() {
     setActiveSpeaker(null);
   };
 
+  // Hardware PTT Key Hook (Spacebar / Bluetooth PTT)
+  useEffect(() => {
+    const isTargetInput = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      return target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (appLocked || pttLocked || !isJoined || isTargetInput(e)) return;
+      if (e.code === 'Space' || e.key === 'MediaPlayPause') {
+        e.preventDefault();
+        if (radioState !== 'transmitting') {
+          startPTT();
+        }
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (appLocked || pttLocked || !isJoined || isTargetInput(e)) return;
+      if (e.code === 'Space' || e.key === 'MediaPlayPause') {
+        e.preventDefault();
+        if (storage.audioPrefs.pttMode === 'hold') {
+          stopPTT();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [appLocked, pttLocked, isJoined, radioState, storage.audioPrefs.pttMode]);
+
   const sendChat = (text: string) => {
     peerManager.sendChatMessage(text);
     firebaseSignaling.sendRoomChat(currentRoom, passcode, myCallsign, text);

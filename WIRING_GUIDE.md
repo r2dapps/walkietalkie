@@ -105,13 +105,15 @@ File: `src/components/admin/SuperAdminDashboard.tsx`
 
 ---
 
-## SESSION 9 — PWA & Service Worker
-File: `public/sw.js` + `public/manifest.json`
+## SESSION 9 — PWA / Capacitor / Hardware Key Hook
+File: `src/components/modals/SettingsModal.tsx` + `public/manifest.json` + `src/hooks/useApp.ts`
 
-- [ ] Confirm `manifest.json` is in `public/` (it is — check `start_url: "/walkietalkie/"` for Pages base)
-- [ ] Update `sw.js` cache name to `aethertalk-v2.0.0` (React rewrite milestone)
-- [ ] Test PWA install prompt: open on mobile → Chrome "Add to Home Screen" banner should appear
-- [ ] Test offline: install PWA → disconnect wifi → app should load from cache
+- [x] Add `manifest.json` check in `index.html`
+- [x] Add "Install App" button in Settings if `beforeinstallprompt` event is captured
+- [x] Add global `keydown` event listener for `Spacebar` (PTT) and `MediaPlayPause` (Bluetooth PTT) in `useApp.ts`
+- [x] Map these physical keys to `startPTT()` and `stopPTT()` globally if `appLocked` is false
+- [x] Test PWA install prompt: open on mobile → Chrome "Add to Home Screen" banner should appear
+- [x] Test offline: install PWA → disconnect wifi → app should load from cache
 
 ---
 
