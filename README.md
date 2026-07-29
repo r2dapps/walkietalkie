@@ -48,7 +48,7 @@
 | Feature | Description |
 |---|---|
 | **Passcode-Protected Rooms** | Optional passcode when joining a frequency. Passcode is hashed before use — never stored plain. |
-| **Application PIN Lock** | Set a 4-digit PIN to lock the entire app. Requires PIN entry to unlock. |
+| **Application PIN Lock** | Set a 4-digit PIN to lock the entire app. Requires PIN entry to unlock (default `0000`). |
 | **Device ID** | Browser generates a permanent device fingerprint UUID. Admins can ban by Device ID, preventing rejoining by changing callsign. |
 | **Operator Profile** | Set your Callsign (tactical), Display Name (full name), and Avatar (icon). |
 | **QR Code Invite** | Generate a QR code for your current frequency so others can scan and join instantly. |
