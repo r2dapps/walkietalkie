@@ -54,8 +54,8 @@ export default function SetupView() {
         </div>
         <h1 className="text-3xl font-bold tracking-widest uppercase text-white mb-1 font-orbitron">AetherTalk</h1>
         <div className="flex items-center space-x-2 text-[var(--accent)] text-sm tracking-widest font-mono">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>{storage.profile.displayName || 'SYSTEM READY'}</span>
+          <span className={`w-2 h-2 rounded-full ${state.isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></span>
+          <span>{state.isOnline ? (storage.profile.displayName || 'SYSTEM READY') : 'OFFLINE (NO NETWORK)'}</span>
         </div>
       </div>
 

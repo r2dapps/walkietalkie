@@ -61,6 +61,7 @@ export interface AppState {
   audioPrefs: AudioPrefs;
   theme: ThemeName;
   appLocked: boolean;
+  isOnline: boolean;
 }
 
 export type ThemeName = 'tactical-dark' | 'techtalkie-oled' | 'cyber-neon' | 'desert-camo' | 'stealth-black' | 'glassmorphism' | 'creamy-vanilla';

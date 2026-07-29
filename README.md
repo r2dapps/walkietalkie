@@ -21,7 +21,7 @@
 ### 📻 Radio LCD & Interface
 | Feature | Description |
 |---|---|
-| **OLCD Display** | Military-style LCD shows: Channel frequency name, TX/RX/STANDBY state, Active speaker callsign, VHF band indicator, EQ preset name, VOX indicator, TOT countdown. |
+| **OLCD Display** | Military-style LCD shows: Channel frequency name, dynamic PL (Private Line / CTCSS) tone derived from the frequency, TX/RX/STANDBY state, Active speaker callsign, VHF band indicator, EQ preset name, VOX indicator, TOT countdown. |
 | **Tuning Knob** | Physical-style drag knob to switch between preset frequencies. Respects the **Radio Lock** so channels cannot be changed accidentally. |
 | **EQ Audio Presets** | 5 presets: **CLN** (clean mic), **AFM** (Analog FM radio warmth), **MIL** (military tactical harsh), **CB** (trucker CB radio), **VTG** (vintage 1940s walkie crackle). |
 | **Audio Visualizer** | Live animated waveform bar in the LCD while transmitting or receiving. |

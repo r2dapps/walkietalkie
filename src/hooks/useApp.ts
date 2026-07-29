@@ -22,9 +22,19 @@ export function useApp() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [appLocked, setAppLocked] = useState(true);
+  const [isOnline, setIsOnline] = useState(typeof window !== 'undefined' ? navigator.onLine : true);
 
   useEffect(() => {
     storage.saveIsLocked(true);
+    
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
   const [banned, setBanned] = useState(false);
   const [totSecondsLeft, setTotSecondsLeft] = useState(0);
@@ -317,7 +327,8 @@ export function useApp() {
     profile: storage.profile,
     audioPrefs: storage.audioPrefs,
     theme: storage.theme,
-    appLocked
+    appLocked,
+    isOnline
   };
 
   return {

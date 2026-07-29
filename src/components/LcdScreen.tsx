@@ -71,11 +71,16 @@ export default function LcdScreen() {
     showToast(`Broadcasted invite to ${friends.length} squad members`, 'success');
   };
 
-  return (
-    <div className="relative bg-[#0d161a] border-4 border-[#1e2d36] rounded-xl p-3 font-share-tech shadow-[inset_0_0_25px_rgba(0,0,0,0.8),0_4px_15px_rgba(0,0,0,0.5)] overflow-hidden select-none">
+    <div 
+      className="relative bg-[#0d161a] border-4 border-[#1e2d36] rounded-xl p-3 font-share-tech overflow-hidden select-none"
+      style={{ boxShadow: 'inset 0 0 25px rgba(0,0,0,0.8), 0 4px 15px rgba(0,0,0,0.5), 0 0 20px color-mix(in srgb, var(--accent) 30%, transparent)' }}
+    >
       
       {/* Subtle Screen Scanline Backdrop Overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_4px] pointer-events-none opacity-40 z-0"></div>
+      
+      {/* Vertical Grid Overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.2)_1px,transparent_1px)] bg-[length:24px_100%] pointer-events-none opacity-30 z-0"></div>
 
       {/* Screen Gloss Highlight */}
       <div className="absolute -top-12 -left-12 w-48 h-24 bg-white/5 rotate-45 rounded-full blur-sm pointer-events-none z-10"></div>
@@ -86,6 +91,12 @@ export default function LcdScreen() {
           
           {/* LED Indicators */}
           <div className="flex items-center space-x-2">
+            
+            <div className="flex items-center space-x-1">
+              <div className={`w-2 h-2 rounded-full border border-black ${state.isOnline ? 'bg-cyan-500 shadow-[0_0_8px_#06b6d4]' : 'bg-rose-500 shadow-[0_0_8px_#f43f5e] animate-pulse'}`}></div>
+              <span className={state.isOnline ? 'text-cyan-400 font-bold text-[9px]' : 'text-rose-400 font-bold text-[9px]'}>{state.isOnline ? 'NET' : 'OFF'}</span>
+            </div>
+
             <div className="flex items-center space-x-1">
               <div className={`w-2.5 h-2.5 rounded-full border border-black ${isTx ? 'bg-rose-500 shadow-[0_0_10px_#f43f5e] animate-pulse' : 'bg-rose-950/80'}`}></div>
               <span className={isTx ? 'text-rose-400 font-bold text-[10px]' : 'text-slate-600 text-[10px]'}>TX</span>
