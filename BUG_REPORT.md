@@ -1,53 +1,29 @@
 # AetherTalk Bug Report & Issues Audit
 **Date:** July 29, 2026  
-**Status:** Documentation Updated - Flashlight Issue Clarified
+**Status:** Flashlight Feature Implemented - Other Issues Documented
 
 ---
 
 ## 🔴 CRITICAL ISSUES
 
-### 1. **Flashlight Button Uses UI Overlay Instead of Device Torch** ⚠️ 
+### 1. **Flashlight Button Uses UI Overlay Instead of Device Torch** ✅ IMPLEMENTED
 **File:** [src/components/RadioView.tsx](src/components/RadioView.tsx#L26-L35)  
 **Severity:** CRITICAL  
+**Status:** ✅ FIXED - Mobile Torch API now implemented
 **Issue:**  
-- Flashlight button currently shows a white UI overlay (fake light)
-- Should activate the device's actual camera flashlight/torch light
+- ~~Flashlight button currently shows a white UI overlay (fake light)~~
+- ~~Should activate the device's actual camera flashlight/torch light~~
 - When used, incorrectly requests **camera permissions** (confusing UX)
-- The UI overlay is just a screen brightness increase, not actual flashlight
+- ~~The UI overlay is just a screen brightness increase, not actual flashlight~~
 
-**Current Implementation:**
-- Just renders a white div with `animate-pulse` CSS class
-- Misleads user into thinking actual flashlight is enabled
-- Camera permission prompt appears because user expects real torch functionality
-
-**Expected Behavior:**
-- Button should use **Mobile Torch API** (MediaStreamTrack.getCapabilities().torch)
-- Activates device's rear camera flash/LED as actual light source
-- Proper permission handling for torch capability
-- Visual feedback showing torch is ON/OFF
-
-**Why Camera Permissions Are Needed:**
-- Device flashlight/torch is controlled through the camera API on most mobile devices
-- `MediaStreamTrack` API requires camera access to control torch brightness
-- This is the standard mobile web approach, not a bug
-
-**Suggested Fix:**
-- Implement proper Torch API instead of just UI overlay:
-  ```javascript
-  const stream = await navigator.mediaDevices.getUserMedia({ 
-    video: { facingMode: 'environment' } 
-  });
-  const track = stream.getVideoTracks()[0];
-  const capabilities = track.getCapabilities();
-  
-  if (capabilities.torch) {
-    track.getSettings().torch 
-      ? await track.applyConstraints({ advanced: [{ torch: false }] })
-      : await track.applyConstraints({ advanced: [{ torch: true }] });
-  }
-  ```
-- Add proper error handling if torch is unavailable
-- Show platform-specific message if device doesn't support it
+**Implementation Complete:**
+- ✅ Now uses Mobile Torch API (MediaStreamTrack.torch) for actual device flashlight
+- ✅ Requests camera permission only when flashlight is activated (on demand)
+- ✅ Auto-detects torch support via capabilities - shows friendly message if unsupported
+- ✅ Minimal status indicator replaces full-screen overlay (no UX disruption)
+- ✅ Proper error handling for permission denied, device not found, torch unavailable
+- ✅ Auto-cleanup of video stream on component unmount
+- ✅ Toast notifications for user feedback (ON/OFF/errors)
 
 ---
 
@@ -199,33 +175,30 @@ useEffect(() => {
 
 ## 📋 AUDIT SUMMARY
 
-| Issue | Severity | Type | Impact |
-|-------|----------|------|--------|
-| Flashlight uses UI overlay instead of device torch | 🔴 CRITICAL | Feature Bug | Button doesn't control actual flashlight |
-| Firebase fetch error handling | 🟠 HIGH | Error Handling | Could block user on connection |
-| Notification BASE_URL issues | 🟠 HIGH | Configuration | Icons may fail in production |
-| localStorage silent failures | 🟡 MEDIUM | Data Persistence | Settings lost without warning |
-| Audio Visualizer memory leak | 🟡 MEDIUM | Performance | Event listener accumulation |
-| VOX race condition | 🟡 MEDIUM | Logic Bug | Unexpected VOX behavior |
-| Peer cleanup incomplete | 🟡 MEDIUM | Resource Management | Ghost connections possible |
-| Firebase listener unsubscribe | 🟡 MEDIUM | Memory Leak | Unused listeners accumulate |
-| Package name mismatch | 🟢 LOW | Metadata | Minimal impact |
+| Issue | Severity | Type | Impact | Status |
+|-------|----------|------|--------|--------|
+| Flashlight uses UI overlay instead of device torch | 🔴 CRITICAL | Feature Bug | Button doesn't control actual flashlight | ✅ FIXED |
+| Firebase fetch error handling | 🟠 HIGH | Error Handling | Could block user on connection | 🚧 Open |
+| Notification BASE_URL issues | 🟠 HIGH | Configuration | Icons may fail in production | 🚧 Open |
+| localStorage silent failures | 🟡 MEDIUM | Data Persistence | Settings lost without warning | 🚧 Open |
+| Audio Visualizer memory leak | 🟡 MEDIUM | Performance | Event listener accumulation | 🚧 Open |
+| VOX race condition | 🟡 MEDIUM | Logic Bug | Unexpected VOX behavior | 🚧 Open |
+| Peer cleanup incomplete | 🟡 MEDIUM | Resource Management | Ghost connections possible | 🚧 Open |
+| Firebase listener unsubscribe | 🟡 MEDIUM | Memory Leak | Unused listeners accumulate | 🚧 Open |
+| Package name mismatch | 🟢 LOW | Metadata | Minimal impact | 🚧 Open |
 
 ---
 
 ## 🛠️ RECOMMENDATIONS FOR FIXES
 
-1. **PRIORITY 1:** Implement Mobile Torch API for actual device flashlight control
-   - Replace UI overlay with real camera torch functionality
-   - Handle camera permissions properly with user-friendly messages
-   - Include fallback for devices without torch support
-2. **PRIORITY 2:** Add error handling to Firebase IP check
-3. **PRIORITY 3:** Add .catch() handlers to all fetch() calls
-4. **PRIORITY 4:** Add user feedback for storage failures
-5. **PRIORITY 5:** Clean up all event listeners properly
-6. **PRIORITY 6:** Review peer connection cleanup on frequency leave
-7. **PRIORITY 7:** Update package.json metadata
+1. ✅ **DONE:** Implement Mobile Torch API for actual device flashlight control
+2. **PRIORITY 1:** Add error handling to Firebase IP check
+3. **PRIORITY 2:** Add .catch() handlers to all fetch() calls
+4. **PRIORITY 3:** Add user feedback for storage failures
+5. **PRIORITY 4:** Clean up all event listeners properly
+6. **PRIORITY 5:** Review peer connection cleanup on frequency leave
+7. **PRIORITY 6:** Update package.json metadata
 
 ---
 
-**Note:** This audit documented bugs without code changes. Bug #1 (Flashlight) clarified: should use Mobile Torch API instead of UI overlay. Camera permissions are expected/required for real flashlight functionality.
+**Note:** Flashlight feature has been implemented using Mobile Torch API. Bug #1 now uses device camera torch instead of UI overlay. Camera permissions are now requested only on demand (when flashlight button is pressed) with proper error handling and device compatibility detection.
