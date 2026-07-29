@@ -2,7 +2,7 @@
 import { initializeApp, FirebaseApp } from 'firebase/app';
 import { 
   getDatabase, Database, ref, onValue, set, remove, push, 
-  serverTimestamp, onDisconnect, off, runTransaction, get, update
+  serverTimestamp, onDisconnect, off, runTransaction, get, update, onChildAdded
 } from 'firebase/database';
 import { PeerInfo, ChatMessage } from '../types';
 import { getProfile, getDeviceUuid } from './storageService';
@@ -250,25 +250,16 @@ class FirebaseSignaling {
     const safeCallsign = sanitizeKey(myCallsign);
     const invitesRef = ref(this.db, `invites/${safeCallsign}`);
     
-    let initialLoad = true;
-    const unsub = onValue(invitesRef, (snap) => {
-      if (initialLoad) {
-        initialLoad = false;
-        return;
-      }
-      const data = snap.val();
-      if (!data) return;
-      
-      const keys = Object.keys(data);
-      const lastKey = keys[keys.length - 1];
-      const ping = data[lastKey];
+    // Use onChildAdded to process new pings correctly
+    const unsub = onChildAdded(invitesRef, (snap) => {
+      const ping = snap.val();
       if (ping) onPing(ping);
       
-      // Cleanup old pings occasionally
-      remove(ref(this.db!, `invites/${safeCallsign}/${lastKey}`));
+      // Cleanup ping immediately after receiving
+      remove(snap.ref);
     });
     
-    return () => off(invitesRef, 'value', unsub);
+    return () => off(invitesRef, 'child_added', unsub);
   }
 
   public listenForPeers(roomName: string, passcode: string | undefined, onPeersUpdate: (peers: any) => void): () => void {

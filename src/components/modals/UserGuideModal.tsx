@@ -35,7 +35,7 @@ const NATO_ALPHABET = [
 ];
 
 export default function UserGuideModal({ isOpen, onClose }: Props) {
-  const [activeTab, setActiveTab] = useState<'guide' | 'nato'>('guide');
+  const [activeTab, setActiveTab] = useState<'guide' | 'nato' | 'faq'>('guide');
 
   if (!isOpen) return null;
 
@@ -48,7 +48,9 @@ export default function UserGuideModal({ isOpen, onClose }: Props) {
           <div className="flex items-center space-x-2">
             <i className="fa-solid fa-book-bookmark text-[var(--accent)]"></i>
             <span className="font-bold uppercase text-sm tracking-wider font-orbitron">
-              {activeTab === 'guide' ? 'Operator Field Guide' : 'NATO Phonetic Reference'}
+              {activeTab === 'guide' && 'Operator Field Guide'}
+              {activeTab === 'nato' && 'NATO Phonetic Reference'}
+              {activeTab === 'faq' && 'Glossary & FAQ'}
             </span>
           </div>
           <button 
@@ -60,18 +62,24 @@ export default function UserGuideModal({ isOpen, onClose }: Props) {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex border-b border-white/10 bg-black/20 text-xs font-bold uppercase tracking-wider">
+        <div className="flex border-b border-white/10 bg-black/20 text-[10px] sm:text-xs font-bold uppercase tracking-wider">
           <button
             onClick={() => setActiveTab('guide')}
             className={`flex-1 py-3 text-center border-b-2 transition-colors ${activeTab === 'guide' ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/10' : 'border-transparent text-slate-400 hover:text-white'}`}
           >
-            <i className="fa-solid fa-walkie-talkie mr-2"></i> How To Use
+            <i className="fa-solid fa-walkie-talkie mr-1 sm:mr-2"></i> How To Use
+          </button>
+          <button
+            onClick={() => setActiveTab('faq')}
+            className={`flex-1 py-3 text-center border-b-2 transition-colors ${activeTab === 'faq' ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/10' : 'border-transparent text-slate-400 hover:text-white'}`}
+          >
+            <i className="fa-solid fa-circle-question mr-1 sm:mr-2"></i> FAQ & Terms
           </button>
           <button
             onClick={() => setActiveTab('nato')}
             className={`flex-1 py-3 text-center border-b-2 transition-colors ${activeTab === 'nato' ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/10' : 'border-transparent text-slate-400 hover:text-white'}`}
           >
-            <i className="fa-solid fa-spell-check mr-2"></i> NATO Phonetic
+            <i className="fa-solid fa-spell-check mr-1 sm:mr-2"></i> NATO Phonetic
           </button>
         </div>
 
@@ -111,6 +119,34 @@ export default function UserGuideModal({ isOpen, onClose }: Props) {
                 <h4 className="font-bold text-[var(--accent)] mb-1 uppercase tracking-wider text-xs font-orbitron">5. PWA Direct Installation</h4>
                 <p className="text-xs text-slate-400">
                   Open <strong className="text-white">System Config</strong> to click <span className="text-emerald-400 font-bold">Install PWA App</span> to save AetherTalk directly to your phone or desktop home screen for full standalone performance.
+                </p>
+              </div>
+            </div>
+          ) : activeTab === 'faq' ? (
+            <div className="space-y-4">
+              <div className="bg-black/30 border border-white/5 p-3 rounded-lg">
+                <h4 className="font-bold text-[var(--accent)] mb-1 uppercase tracking-wider text-xs font-orbitron">Display Name vs Callsign vs Device ID</h4>
+                <p className="text-xs text-slate-400 space-y-2">
+                  <strong className="text-white">Callsign:</strong> A short, unique tactical name (e.g., "Alpha-1"). It's used on the radio LCD and for quick identification.<br/>
+                  <strong className="text-white">Display Name:</strong> Your full name (e.g., "John Smith"), shown in the Squad list for a more personal touch.<br/>
+                  <strong className="text-white">Device ID:</strong> A hidden, permanent hardware code tied to your phone/browser. If someone is banned, their Device ID is blocked so they cannot simply change their Callsign to rejoin.
+                </p>
+              </div>
+
+              <div className="bg-black/30 border border-white/5 p-3 rounded-lg">
+                <h4 className="font-bold text-[var(--accent)] mb-1 uppercase tracking-wider text-xs font-orbitron">What does "EQ: MIL" mean?</h4>
+                <p className="text-xs text-slate-400">
+                  <strong className="text-white">EQ (Equalizer) Presets</strong> change how your voice sounds to others. <strong className="text-white">MIL (Military)</strong> adds a harsh, band-passed tactical radio effect. <strong className="text-white">CB (CB Radio)</strong> sounds like a trucker's radio, and <strong className="text-white">CLN (Clean)</strong> uses your raw high-quality microphone audio without effects.
+                </p>
+              </div>
+
+              <div className="bg-black/30 border border-white/5 p-3 rounded-lg">
+                <h4 className="font-bold text-[var(--accent)] mb-1 uppercase tracking-wider text-xs font-orbitron">LCD Screen Acronyms</h4>
+                <p className="text-xs text-slate-400 space-y-1">
+                  <strong className="text-white">TX (Transmit):</strong> You are currently broadcasting your voice.<br/>
+                  <strong className="text-white">RX (Receive):</strong> You are actively hearing someone else speak.<br/>
+                  <strong className="text-white">TOT (Time-Out-Timer):</strong> A countdown timer that automatically cuts off your microphone if you hold the button for too long, preventing you from accidentally jamming the channel.<br/>
+                  <strong className="text-white">VHF (Very High Frequency):</strong> The simulated radio band standard used by the app.
                 </p>
               </div>
             </div>

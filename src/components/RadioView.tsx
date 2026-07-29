@@ -6,11 +6,13 @@ import PttButton from './PttButton';
 import FrequencyScanner from './FrequencyScanner';
 import SignalStrengthIcon from './SignalStrengthIcon';
 import UserGuideModal from './modals/UserGuideModal';
+import ShareModal from './modals/ShareModal';
 
 export default function RadioView() {
   const { state, leaveFrequency, totSecondsLeft, pttLocked, setPttLocked } = useAppContext();
   const [flashlightOn, setFlashlightOn] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const toggleFlashlight = () => {
     setFlashlightOn(!flashlightOn);
   };
@@ -64,6 +66,15 @@ export default function RadioView() {
             title="Toggle PTT Lock (Pocket Mode)"
           >
             <i className={`fa-solid ${pttLocked ? 'fa-lock' : 'fa-lock-open'} text-xs`}></i>
+          </button>
+
+          {/* Share Button */}
+          <button
+            onClick={() => setShareOpen(true)}
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:text-white hover:bg-cyan-500/30 transition-all"
+            title="Share Frequency"
+          >
+            <i className="fa-solid fa-share-nodes text-xs"></i>
           </button>
 
           {/* Flashlight Toggle Button */}
@@ -127,6 +138,9 @@ export default function RadioView() {
 
       {/* User Guide Modal */}
       <UserGuideModal isOpen={guideOpen} onClose={() => setGuideOpen(false)} />
+
+      {/* Share Modal */}
+      <ShareModal isOpen={shareOpen} onClose={() => setShareOpen(false)} />
 
     </div>
   );

@@ -8,7 +8,8 @@ export interface OperatorProfile {
 
 export type AvatarId =
   | 'radio' | 'user-ninja' | 'shield' | 'tower-cell' | 'headset' | 'ghost'
-  | 'bolt' | 'fire' | 'crosshairs' | 'robot' | 'crown' | 'cat';
+  | 'bolt' | 'fire' | 'crosshairs' | 'robot' | 'crown' | 'cat' | 'dog' | 'hippo'
+  | 'dragon' | 'otter' | 'frog' | 'kiwi-bird' | 'spider' | 'bug' | 'snowman';
 
 export interface Channel {
   id: string;

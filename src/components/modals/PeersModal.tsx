@@ -47,9 +47,9 @@ export default function PeersModal() {
           </div>
           <div className="flex-1">
             <div className="font-bold text-white tracking-wide flex items-center">
-              {state.myCallsign} <span className="text-xs text-slate-500 ml-1">(You)</span>
+              {state.profile.displayName || state.myCallsign} <span className="text-xs text-slate-500 ml-1">(You)</span>
             </div>
-            <div className="text-xs text-[var(--accent)] font-mono mt-0.5">#{state.currentRoom}</div>
+            <div className="text-xs text-[var(--accent)] font-mono mt-0.5">#{state.currentRoom} • {state.myCallsign}</div>
           </div>
           <div className="flex items-center space-x-2">
             {state.radioState === 'transmitting' && (
@@ -79,11 +79,14 @@ export default function PeersModal() {
                   <i className={`fa-solid fa-${peer.avatar || 'radio'} text-xl`}></i>
                 </div>
                 <div className="flex-1">
-                  <div className="font-bold text-white tracking-wide">{peer.callsign}</div>
+                  <div className="font-bold text-white tracking-wide">
+                    {peer.displayName || peer.callsign}
+                  </div>
                   <div className="text-[10px] text-slate-500 font-mono mt-0.5">
                     <i className="fa-solid fa-signal mr-1"></i> 
                     {peer.pingMs > 0 ? `${peer.pingMs}ms` : 'Connected'} 
                     <span className="mx-2">•</span> 
+                    {peer.callsign} 
                     {new Date(peer.joinedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>

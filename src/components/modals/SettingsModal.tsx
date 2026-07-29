@@ -155,7 +155,7 @@ export default function SettingsModal() {
           <div>
             <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Select Profile Avatar</label>
             <div className="grid grid-cols-6 gap-2">
-              {['radio', 'user-ninja', 'shield', 'tower-cell', 'headset', 'ghost', 'bolt', 'fire', 'crosshairs', 'robot', 'crown', 'cat'].map(icon => (
+              {['radio', 'user-ninja', 'shield', 'tower-cell', 'headset', 'ghost', 'bolt', 'fire', 'crosshairs', 'robot', 'crown', 'cat', 'dog', 'hippo', 'dragon', 'otter', 'frog', 'kiwi-bird', 'spider', 'bug', 'snowman'].map(icon => (
                 <button
                   key={icon}
                   onClick={() => storage.updateProfile({ avatar: icon as any })}

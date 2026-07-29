@@ -7,7 +7,7 @@ import { EqPreset } from '../types';
 import { showToast } from './ui/ToastManager';
 
 export default function LcdScreen() {
-  const { state, storage, joinFrequency, firebase } = useAppContext();
+  const { state, storage, joinFrequency, firebase, pttLocked } = useAppContext();
   const { currentRoom, radioState, activeSpeaker, audioPrefs, peers, myCallsign, passcode } = state;
   
   const isTx = radioState === 'transmitting';
@@ -50,6 +50,10 @@ export default function LcdScreen() {
   ];
 
   const handleQuickTune = (targetRoom: string) => {
+    if (pttLocked) {
+      showToast('Radio is locked. Unlock to change frequency.', 'warning');
+      return;
+    }
     if (targetRoom !== currentRoom) {
       joinFrequency(targetRoom, myCallsign, passcode);
     }

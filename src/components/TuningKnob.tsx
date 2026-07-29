@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { showToast } from './ui/ToastManager';
 
 export default function TuningKnob() {
-  const { state, joinFrequency } = useAppContext();
+  const { state, joinFrequency, pttLocked } = useAppContext();
   const { currentRoom, myCallsign, passcode } = state;
 
   const knobRef = useRef<HTMLDivElement>(null);
@@ -38,6 +39,10 @@ export default function TuningKnob() {
   };
 
   const tuneToIndex = (newIndex: number) => {
+    if (pttLocked) {
+      showToast('Radio is locked. Unlock to tune frequency.', 'warning');
+      return;
+    }
     const wrappedIdx = (newIndex + presets.length) % presets.length;
     const target = presets[wrappedIdx];
     if (target.room !== currentRoom) {
