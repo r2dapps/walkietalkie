@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aethertalk-v1.0.15';
+const CACHE_NAME = 'aethertalk-v1.0.16';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -27,6 +27,10 @@ self.addEventListener('activate', (event) => {
     })
   );
   self.clients.claim();
+  // Tell all open clients that a new version is available
+  self.clients.matchAll({ type: 'window' }).then(clients => {
+    clients.forEach(client => client.postMessage({ type: 'SW_UPDATED' }));
+  });
 });
 
 self.addEventListener('fetch', (event) => {

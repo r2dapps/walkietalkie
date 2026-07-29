@@ -4,6 +4,7 @@ export interface ToastMessage {
   id: string;
   text: string;
   type: 'info' | 'warning' | 'error' | 'success';
+  onClick?: () => void;
 }
 
 interface ToastProps {
@@ -27,13 +28,21 @@ export default function Toast({ toast, onDismiss }: ToastProps) {
     success: 'fa-circle-check text-emerald-400'
   };
 
+  const handleClick = () => {
+    if (toast.onClick) {
+      toast.onClick();
+    }
+    onDismiss(toast.id);
+  };
+
   return (
     <div 
-      onClick={() => onDismiss(toast.id)}
-      className={`flex items-center space-x-2.5 px-3.5 py-2.5 rounded-xl border shadow-xl backdrop-blur-md cursor-pointer transition-all animate-fade-in text-xs font-mono select-none ${bgStyles[toast.type]}`}
+      onClick={handleClick}
+      className={`flex items-center space-x-2.5 px-3.5 py-2.5 rounded-xl border shadow-xl backdrop-blur-md cursor-pointer transition-all animate-fade-in text-xs font-mono select-none ${bgStyles[toast.type]} ${toast.onClick ? 'ring-1 ring-white/20 hover:ring-white/40' : ''}`}
     >
       <i className={`fa-solid ${icons[toast.type]} text-sm`}></i>
-      <span className="font-bold">{toast.text}</span>
+      <span className="font-bold flex-1">{toast.text}</span>
+      {toast.onClick && <i className="fa-solid fa-arrow-right text-xs opacity-60"></i>}
     </div>
   );
 }

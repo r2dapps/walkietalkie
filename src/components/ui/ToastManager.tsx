@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Toast, { ToastMessage } from './Toast';
 
-let toastSubscriber: ((msg: string, type?: ToastMessage['type']) => void) | null = null;
+let toastSubscriber: ((msg: string, type?: ToastMessage['type'], duration?: number, onClick?: () => void) => void) | null = null;
 
-export function showToast(text: string, type: ToastMessage['type'] = 'info') {
+export function showToast(text: string, type: ToastMessage['type'] = 'info', duration = 4000, onClick?: () => void) {
   if (toastSubscriber) {
-    toastSubscriber(text, type);
+    toastSubscriber(text, type, duration, onClick);
   }
 }
 
@@ -13,14 +13,14 @@ export default function ToastManager() {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   useEffect(() => {
-    toastSubscriber = (text: string, type: ToastMessage['type'] = 'info') => {
+    toastSubscriber = (text: string, type: ToastMessage['type'] = 'info', duration = 4000, onClick?: () => void) => {
       const id = Math.random().toString(36).substring(2, 9);
-      const newToast: ToastMessage = { id, text, type };
+      const newToast: ToastMessage = { id, text, type, onClick };
       setToasts(prev => [...prev.slice(-3), newToast]);
 
       setTimeout(() => {
         setToasts(prev => prev.filter(t => t.id !== id));
-      }, 4000);
+      }, duration);
     };
 
     return () => {

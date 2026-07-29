@@ -11,6 +11,7 @@ import SquadView from './components/SquadView';
 import AppLockModal from './components/modals/AppLockModal';
 import ToastManager from './components/ui/ToastManager';
 import { pwaService } from './services/pwaService';
+import { showToast } from './components/ui/ToastManager';
 
 export default function App() {
   const { state, banned } = useAppContext();
@@ -25,7 +26,24 @@ export default function App() {
       setIsAdminPortal(window.location.hash.includes('admin'));
     };
     window.addEventListener('hashchange', handleHash);
-    return () => window.removeEventListener('hashchange', handleHash);
+
+    // Listen for service worker update messages
+    const handleSwMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'SW_UPDATED') {
+        showToast(
+          '🔄 App update available! Tap to refresh.',
+          'info',
+          8000,
+          () => window.location.reload()
+        );
+      }
+    };
+    navigator.serviceWorker?.addEventListener('message', handleSwMessage);
+
+    return () => {
+      window.removeEventListener('hashchange', handleHash);
+      navigator.serviceWorker?.removeEventListener('message', handleSwMessage);
+    };
   }, []);
 
   if (isAdminPortal) {
