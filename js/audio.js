@@ -326,10 +326,12 @@ class AudioEngine {
       this.txGain.gain.setValueAtTime(0, now);
       this.txGain.gain.linearRampToValueAtTime(1.0, now + 0.015); // 15ms fade-in (avoids click)
       this.playPttClickSound();
+      this.muteAllRemoteAudio();
     } else {
       this.txGain.gain.cancelScheduledValues(now);
       this.txGain.gain.setValueAtTime(1.0, now);
       this.txGain.gain.linearRampToValueAtTime(0, now + 0.015); // 15ms fade-out
+      this.unmuteAllRemoteAudio();
       setTimeout(() => {
         if (this.audioPrefs.rogerBeep !== false) {
           this.playRogerBeep();
@@ -338,6 +340,22 @@ class AudioEngine {
         }
       }, 20);
     }
+  }
+
+  // Mute all remote audio element playback while local PTT is active (prevents feedback)
+  muteAllRemoteAudio() {
+    const audioElements = document.querySelectorAll('audio[id^="audio-"]');
+    audioElements.forEach(el => {
+      el.muted = true;
+    });
+  }
+
+  // Unmute remote audio elements when PTT is released
+  unmuteAllRemoteAudio() {
+    const audioElements = document.querySelectorAll('audio[id^="audio-"]');
+    audioElements.forEach(el => {
+      el.muted = false;
+    });
   }
 
   // Web Audio Synthesizer: Roger Beep (1000 Hz + 1200 Hz tone sequence)
@@ -502,6 +520,33 @@ class AudioEngine {
         }
       }
     }, 100);
+  }
+
+  // Setup HTML5 MediaSession & WakeLock for mobile screen-lock background audio persistence
+  setupMediaSession() {
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: 'TechTalkie Active Frequency',
+        artist: 'Tactical Voice Channel',
+        album: 'AetherTalk Walkie-Talkie PWA',
+        artwork: [
+          { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' }
+        ]
+      });
+
+      navigator.mediaSession.setActionHandler('play', () => {
+        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+      });
+    }
+
+    if ('wakeLock' in navigator) {
+      try {
+        navigator.wakeLock.request('screen').then(lock => {
+          this.wakeLock = lock;
+          console.log('[AudioEngine] Screen WakeLock acquired.');
+        }).catch(() => {});
+      } catch (e) {}
+    }
   }
 
   stopVoxMonitoring() {

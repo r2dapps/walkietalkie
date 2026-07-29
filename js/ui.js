@@ -442,6 +442,13 @@ class UIController {
     }
   }
 
+  setTalkMode(mode) {
+    if (window.storageManager) {
+      window.storageManager.set('talk_mode', mode);
+      this.showToast('TALK MODE UPDATED', mode === 'toggle' ? 'Tap Once To Talk active' : 'Press & Hold To Talk active', 'info');
+    }
+  }
+
   // Handle Save Preset
   handleSavePreset() {
     const idInput = document.getElementById('presetIdInput');

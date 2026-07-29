@@ -66,11 +66,26 @@ class FirebaseSignaling {
     // 1. Set auto-removal on disconnect (tab close, network loss)
     this.myPeerRef.onDisconnect().remove();
 
-    // 2. Announce our presence to the room
+    // 2. Announce our presence to the room with Device UUID
     const avatar = window.profileManager ? (window.profileManager.profile.avatar || 'radio') : 'radio';
+    const deviceUuid = window.storageManager ? window.storageManager.getDeviceUuid() : 'dev-' + myPeerId;
+
+    // Check if operator/device is banned
+    if (this.db) {
+      const banRef = this.db.ref(`banned_operators/${callsign}`);
+      banRef.once('value', (snap) => {
+        if (snap.exists() && snap.val() === true) {
+          alert('ACCESS DENIED: Your Callsign or Device has been banned by Master Admin.');
+          this.leaveRoom();
+          return;
+        }
+      });
+    }
+
     this.myPeerRef.set({
       callsign: callsign || 'Operator',
       avatar: avatar,
+      device_uuid: deviceUuid,
       joinedAt: firebase.database.ServerValue.TIMESTAMP,
       peerId: myPeerId
     });
@@ -150,10 +165,21 @@ class FirebaseSignaling {
   }
 
   /**
-   * Send an instant invite ping to a friend by callsign via Firebase RTDB.
+   * Send an instant invite ping to a friend by callsign via Firebase RTDB (Rate-limited: 5s cooldown).
    */
   sendInvitePing(targetCallsign, roomName, senderCallsign) {
     if (!this.init()) return;
+    const now = Date.now();
+    this.lastPingTime = this.lastPingTime || 0;
+    if (now - this.lastPingTime < 5000) {
+      const waitSec = Math.ceil((5000 - (now - this.lastPingTime)) / 1000);
+      if (window.uiController && window.uiController.showToast) {
+        window.uiController.showToast('COOLDOWN ACTIVE', `Wait ${waitSec}s before sending another ping`, 'error');
+      }
+      return;
+    }
+    this.lastPingTime = now;
+
     const safeTarget = (targetCallsign || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
     if (!safeTarget) return;
 
@@ -168,7 +194,7 @@ class FirebaseSignaling {
 
     console.log(`[FirebaseSignaling] Sent invite ping to ${targetCallsign} for room #${roomName}`);
     if (window.uiController && window.uiController.showToast) {
-      window.uiController.showToast(`Pinged ${targetCallsign} to join #${roomName}!`, 'success');
+      window.uiController.showToast('CALL PING SENT', `Pinged ${targetCallsign} to join #${roomName}`, 'success');
     }
   }
 

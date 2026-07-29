@@ -634,6 +634,15 @@
                 </select>
             </div>
 
+            <!-- Non-Techie Talk Button Mode Selector -->
+            <div>
+                <label class="font-semibold text-slate-400 text-xs block mb-1">Talk Button Activation Mode</label>
+                <select id="talkModeSelect" onchange="window.uiController.setTalkMode(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-cyan-300 font-bold outline-none">
+                    <option value="hold" selected>🖐️ Press & Hold To Talk (Hold while speaking, release when done)</option>
+                    <option value="toggle">🔴 Tap Once To Talk (Tap to start speaking, tap again to stop)</option>
+                </select>
+            </div>
+
             <!-- Avatar Selection Grid (12 Tactical Icons) -->
             <div>
                 <label class="font-semibold text-slate-400 text-xs block mb-2">Tactical Avatar Icon</label>
@@ -826,6 +835,7 @@
     <script src="./js/share.js"></script>
     <script src="./js/pwa.js"></script>
     <script src="./js/firebase-signaling.js"></script>
+    <script src="./js/local-mesh.js"></script>
     <script src="./js/applock.js"></script>
     <script src="./js/profile.js"></script>
     <script src="./js/peer.js"></script>

@@ -20,6 +20,16 @@ class StorageManager {
     }
   }
 
+  // Generate or retrieve persistent unique Device UUID
+  getDeviceUuid() {
+    let uuid = this.get('device_uuid', null);
+    if (!uuid) {
+      uuid = 'dev-' + Math.random().toString(36).substring(2, 9) + '-' + Date.now().toString(36);
+      this.set('device_uuid', uuid);
+    }
+    return uuid;
+  }
+
   get(key, defaultValue) {
     try {
       const item = localStorage.getItem(this.PREFIX + key);
