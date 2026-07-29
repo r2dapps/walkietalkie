@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 
 export default function PttButton() {
-  const { state, startPTT, stopPTT } = useAppContext();
+  const { state, startPTT, stopPTT, pttLocked } = useAppContext();
   const { radioState, audioPrefs, isJoined, activeSpeaker } = state;
   const isTransmitting = radioState === 'transmitting';
   const isReceiving = radioState === 'receiving';
@@ -27,6 +27,11 @@ export default function PttButton() {
   
   const handlePointerDown = async (e: React.PointerEvent) => {
     e.preventDefault();
+    if (pttLocked) {
+      triggerHaptic('press'); // Just a tiny bump
+      return;
+    }
+    
     try {
       (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
     } catch (err) {}
@@ -137,53 +142,39 @@ export default function PttButton() {
         </>
       )}
 
-      {isReceiving && (
-        <div className="absolute w-44 h-44 rounded-full border-2 border-emerald-500/50 animate-ping pointer-events-none" />
-      )}
-
       {/* Heavy Tactile Outer Housing Ring */}
       <div className="p-3 bg-gradient-to-b from-[#2a343d] via-[#1a2228] to-[#0f1418] rounded-full shadow-[0_15px_30px_rgba(0,0,0,0.8),inset_0_2px_4px_rgba(255,255,255,0.15)] border border-white/10 relative">
         
         {/* Ridged Bevel Grip Ring */}
         <div className="p-2.5 rounded-full bg-radial from-[#151d24] to-[#090d10] border border-black/80 shadow-[inset_0_4px_10px_rgba(0,0,0,0.9)]">
           
-          <button
-            onPointerDown={handlePointerDown}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerCancel}
-            disabled={!isJoined}
-            className={`w-36 h-36 rounded-full flex flex-col items-center justify-center transition-all duration-150 active:scale-95 active:shadow-[inset_0_8px_16px_rgba(0,0,0,0.9)] z-10 cursor-pointer relative overflow-hidden ${
-              !isJoined
-                ? 'opacity-50 cursor-not-allowed bg-slate-900 text-slate-600 border border-slate-800'
-                : isTransmitting
-                ? 'bg-gradient-to-b from-rose-500 via-rose-600 to-rose-800 text-white shadow-[0_0_25px_rgba(244,63,94,0.8),inset_0_2px_4px_rgba(255,255,255,0.4)] border-2 border-rose-300'
-                : isReceiving
-                ? 'bg-gradient-to-b from-emerald-500 via-emerald-600 to-emerald-800 text-white shadow-[0_0_25px_rgba(16,185,129,0.8),inset_0_2px_4px_rgba(255,255,255,0.4)] border-2 border-emerald-300'
-                : 'bg-gradient-to-b from-slate-700 via-slate-800 to-slate-950 text-slate-300 border-2 border-slate-600/60 shadow-[0_8px_20px_rgba(0,0,0,0.6),inset_0_2px_4px_rgba(255,255,255,0.15)] hover:border-[var(--accent)] hover:text-white'
-            }`}
+          <div 
+            className={`w-36 h-36 rounded-full flex flex-col items-center justify-center transition-all duration-300 shadow-2xl z-10 select-none touch-none ${!isJoined ? 'bg-slate-800 border-4 border-slate-700 cursor-not-allowed opacity-50' : pttLocked ? 'bg-slate-800 border-4 border-slate-700 cursor-not-allowed' : isTransmitting ? 'bg-rose-600 border-4 border-rose-400 scale-[0.98] shadow-[0_0_50px_rgba(225,29,72,0.8)] cursor-pointer' : isReceiving ? 'bg-emerald-600 border-4 border-emerald-400 cursor-pointer shadow-[0_0_30px_rgba(16,185,129,0.5)]' : 'bg-slate-800 border-4 border-slate-600 hover:border-slate-500 cursor-pointer hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]'}`}
+            onPointerDown={(isJoined && !pttLocked) ? handlePointerDown : undefined}
+            onPointerUp={(isJoined && !pttLocked) ? handlePointerUp : undefined}
+            onPointerCancel={(isJoined && !pttLocked) ? handlePointerCancel : undefined}
+            onPointerLeave={(isJoined && !pttLocked) ? handlePointerLeave : undefined}
             style={{ touchAction: 'none' }}
           >
             {/* Tactile Rubber Grip Texture Lines */}
-            <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:8px_8px] opacity-10 pointer-events-none"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:8px_8px] opacity-5 pointer-events-none rounded-full"></div>
 
-            <i className={`fa-solid ${
-              isBusy 
-                ? 'fa-spinner animate-spin text-3xl' 
-                : isTransmitting 
-                ? 'fa-microphone text-4xl animate-pulse' 
-                : isReceiving 
-                ? 'fa-volume-high text-4xl animate-bounce' 
-                : 'fa-microphone text-3xl'
-            } mb-1`}></i>
-            
-            <span className="font-orbitron font-black tracking-widest text-base uppercase drop-shadow">
-              {isBusy ? 'CONNECTING' : isTransmitting ? 'TALKING' : isReceiving ? 'LISTENING' : 'PUSH TO TALK'}
-            </span>
-
-            <span className="text-[10px] font-mono tracking-wider opacity-70 mt-0.5 font-bold">
-              {holdMode ? 'HOLD TO TRANSMIT' : 'TAP TO TOGGLE'}
-            </span>
-          </button>
+            {/* Inner ring & icon */}
+            <div className="absolute inset-2 rounded-full border border-white/10 flex flex-col items-center justify-center pointer-events-none">
+              {pttLocked ? (
+                <i className="fa-solid fa-lock text-5xl text-slate-500 mb-2 drop-shadow-md"></i>
+              ) : isBusy ? (
+                <i className="fa-solid fa-spinner fa-spin text-5xl text-white/50 mb-2"></i>
+              ) : isTransmitting ? (
+                <i className="fa-solid fa-microphone-lines text-5xl text-white mb-2 drop-shadow-md animate-pulse"></i>
+              ) : (
+                <i className={`fa-solid fa-microphone text-5xl mb-2 drop-shadow-md ${isReceiving ? 'text-white' : 'text-slate-400'}`}></i>
+              )}
+              <span className={`text-[10px] font-bold tracking-widest font-mono uppercase ${isTransmitting || isReceiving ? 'text-white' : 'text-slate-500'}`}>
+                {pttLocked ? 'PTT LOCKED' : !isJoined ? 'OFFLINE' : isTransmitting ? 'TRANSMITTING' : isReceiving ? 'RECEIVING' : holdMode ? 'HOLD TO TALK' : 'TAP TO TOGGLE'}
+              </span>
+            </div>
+          </div>
 
         </div>
 

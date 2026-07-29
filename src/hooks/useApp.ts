@@ -23,6 +23,7 @@ export function useApp() {
   const [appLocked, setAppLocked] = useState(storage.getIsLocked());
   const [banned, setBanned] = useState(false);
   const [totSecondsLeft, setTotSecondsLeft] = useState(0);
+  const [pttLocked, setPttLocked] = useState(false);
   
   const localStreamRef = useRef<MediaStream | null>(null);
   
@@ -212,6 +213,8 @@ export function useApp() {
     storage,
     banned,
     totSecondsLeft,
+    pttLocked,
+    setPttLocked,
     joinFrequency,
     leaveFrequency,
     startPTT,

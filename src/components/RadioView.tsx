@@ -8,7 +8,7 @@ import SignalStrengthIcon from './SignalStrengthIcon';
 import UserGuideModal from './modals/UserGuideModal';
 
 export default function RadioView() {
-  const { state, leaveFrequency, totSecondsLeft } = useAppContext();
+  const { state, leaveFrequency, totSecondsLeft, pttLocked, setPttLocked } = useAppContext();
   const [flashlightOn, setFlashlightOn] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const videoTrackRef = useRef<MediaStreamTrack | null>(null);
@@ -84,6 +84,19 @@ export default function RadioView() {
 
         {/* Quick Action Buttons */}
         <div className="flex items-center space-x-2">
+
+          {/* PTT Lock Button */}
+          <button
+            onClick={() => setPttLocked(!pttLocked)}
+            className={`w-8 h-8 flex items-center justify-center rounded-lg border transition-all ${
+              pttLocked
+                ? 'bg-rose-500 text-white border-rose-400 shadow-[0_0_12px_#f43f5e]'
+                : 'bg-white/5 border-white/10 text-slate-300 hover:text-white hover:bg-white/10'
+            }`}
+            title="Toggle PTT Lock (Pocket Mode)"
+          >
+            <i className={`fa-solid ${pttLocked ? 'fa-lock' : 'fa-lock-open'} text-xs`}></i>
+          </button>
 
           {/* Flashlight Toggle Button */}
           <button
