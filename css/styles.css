@@ -17,6 +17,24 @@ body {
   transition: background-color 0.3s ease;
 }
 
+/* TechTalkie Dynamic High-Tech OLED Theme */
+body[data-theme="techtalkie-oled"] {
+  --bg-dark: #050811;
+  background-color: #050811 !important;
+}
+body[data-theme="techtalkie-oled"] .bg-slate-900,
+body[data-theme="techtalkie-oled"] .bg-slate-900\/80,
+body[data-theme="techtalkie-oled"] .bg-slate-900\/70,
+body[data-theme="techtalkie-oled"] .bottom-nav-glass {
+  background-color: #0b1120 !important;
+  border-color: #1e293b !important;
+  box-shadow: 0 10px 25px -5px rgba(6, 182, 212, 0.08);
+}
+body[data-theme="techtalkie-oled"] .bg-slate-950 {
+  background-color: #02040a !important;
+  border-color: #0f172a !important;
+}
+
 /* Sunofy-Inspired Dynamic Theme Overrides */
 body[data-theme="cyber-neon"] {
   --bg-dark: #090614;
