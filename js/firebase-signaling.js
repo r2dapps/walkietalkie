@@ -72,7 +72,8 @@ class FirebaseSignaling {
 
     // Check if operator/device is banned
     if (this.db) {
-      const banRef = this.db.ref(`banned_operators/${callsign}`);
+      const safeCallsign = (callsign || '').replace(/[.#$\[\]]/g, '_');
+      const banRef = this.db.ref(`banned_operators/${safeCallsign}`);
       banRef.once('value', (snap) => {
         if (snap.exists() && snap.val() === true) {
           alert('ACCESS DENIED: Your Callsign or Device has been banned by Master Admin.');
@@ -100,7 +101,8 @@ class FirebaseSignaling {
           
           // Check if IP is banned
           if (this.db) {
-            this.db.ref(`banned_operators/${data.ip}`).once('value', (snap) => {
+            const safeIp = data.ip.replace(/[.#$\[\]]/g, '_');
+            this.db.ref(`banned_operators/${safeIp}`).once('value', (snap) => {
               if (snap.exists() && snap.val() === true) {
                 alert('ACCESS DENIED: Your IP Address has been banned by Master Admin.');
                 this.leaveRoom();

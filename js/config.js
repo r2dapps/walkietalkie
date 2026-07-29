@@ -12,7 +12,7 @@ window.AETHERTALK_CONFIG = window.AETHERTALK_CONFIG || {};
   }
 
   window.AETHERTALK_CONFIG.firebase = parsed || {
-    apiKey: (typeof process !== 'undefined' && process.env?.VITE_FIREBASE_API_KEY) || window.AETHERTALK_CUSTOM_KEY || "",
+    apiKey: (typeof process !== 'undefined' && process.env?.VITE_FIREBASE_API_KEY) || window.AETHERTALK_CUSTOM_KEY || "AIzaSyAOdj4rmKB1GNDhhkm7ZpFgTRXTlHrEw5o",
     authDomain: "walkietalkie-c0f03.firebaseapp.com",
     databaseURL: "https://walkietalkie-c0f03-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "walkietalkie-c0f03",

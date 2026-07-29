@@ -324,10 +324,10 @@ class AudioEngine {
   setTransmissionActive(active) {
     if (!this.txGain || !this.ctx) return;
 
-    // Toggle raw microphone hardware track enabled state
+    // Toggle raw microphone hardware track enabled state (keep enabled if VOX is active)
     if (this.micStream) {
       this.micStream.getAudioTracks().forEach(t => {
-        t.enabled = active;
+        t.enabled = active || !!(this.audioPrefs && this.audioPrefs.voxEnabled);
       });
     }
 

@@ -272,15 +272,17 @@
 
             banOperator(target) {
                 if (!this.db) return;
-                const safeTarget = String(target).trim();
-                if (!safeTarget) return;
+                const rawTarget = String(target).trim();
+                if (!rawTarget) return;
+                const safeTarget = rawTarget.replace(/[.#$\[\]]/g, '_');
                 this.db.ref(`banned_operators/${safeTarget}`).set(true);
-                alert(`Operator/Device ${safeTarget} has been banned!`);
+                alert(`Operator/Device ${rawTarget} has been banned!`);
             }
 
             unbanOperator(target) {
                 if (!this.db) return;
-                this.db.ref(`banned_operators/${target}`).remove();
+                const safeTarget = String(target).trim().replace(/[.#$\[\]]/g, '_');
+                this.db.ref(`banned_operators/${safeTarget}`).remove();
             }
 
             banTargetFromInput() {
