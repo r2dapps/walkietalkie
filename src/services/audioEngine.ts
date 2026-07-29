@@ -382,10 +382,6 @@ class AudioEngine {
     if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
       return { inputs: [], outputs: [] };
     }
-    // Request permission first if not granted to get labels
-    try {
-      await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch (e) {}
 
     const devices = await navigator.mediaDevices.enumerateDevices();
     return {

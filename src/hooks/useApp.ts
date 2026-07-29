@@ -21,7 +21,11 @@ export function useApp() {
   const [activeSpeaker, setActiveSpeaker] = useState<string | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [appLocked, setAppLocked] = useState(storage.getIsLocked());
+  const [appLocked, setAppLocked] = useState(true);
+
+  useEffect(() => {
+    storage.saveIsLocked(true);
+  }, []);
   const [banned, setBanned] = useState(false);
   const [totSecondsLeft, setTotSecondsLeft] = useState(0);
   const [pttLocked, setPttLocked] = useState(false);
@@ -44,10 +48,21 @@ export function useApp() {
     const hashData = parseUrlHash();
     if (hashData && hashData.room && !isJoined) {
       setCurrentRoom(hashData.room);
-      if (hashData.callsign) setMyCallsign(hashData.callsign);
-      if (hashData.key) setPasscode(hashData.key);
-      // Auto join requires interaction usually, but we can set up the form
+      const callsignToUse = hashData.callsign || storage.profile.callsign || 'Operator-1';
+      setMyCallsign(callsignToUse);
+      const keyToUse = hashData.key || '';
+      setPasscode(keyToUse);
+      
+      // Auto join mimicking legacy JS logic
+      setTimeout(() => {
+        // joinFrequency is defined below, but since this runs asynchronously it's safe to call.
+        joinFrequency(hashData.room, callsignToUse, keyToUse).catch(err => {
+          console.error('Auto-join failed:', err);
+          showToast('Microphone permission required for auto-join. Click Establish Link manually.', 'error');
+        });
+      }, 300);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const processedPings = useRef<Set<string>>(new Set());

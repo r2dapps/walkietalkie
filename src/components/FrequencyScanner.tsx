@@ -11,9 +11,22 @@ export default function FrequencyScanner({ embedded = false }: FrequencyScannerP
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const { state } = useAppContext();
-  const { radioState } = state;
+  const { radioState, currentRoom = 'alpha1' } = state;
   
   const [peakDb, setPeakDb] = useState<number>(-48);
+
+  const hashStr = (str: string) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash |= 0; 
+    }
+    return Math.abs(hash);
+  };
+  
+  const freqNum = hashStr(currentRoom);
+  const mhzBase = 144 + (freqNum % 4);
+  const khzPartStr = ((freqNum * 125) % 995).toString().padStart(3, '0');
 
   useEffect(() => {
     const svg = d3.select(svgRef.current);
@@ -94,7 +107,14 @@ export default function FrequencyScanner({ embedded = false }: FrequencyScannerP
       .attr('stroke-dasharray', '2 2');
 
     // Grid lines (Vertical Frequency Bins)
-    const xGridValues = [16, 32, 48];
+    const offset = freqNum % 16;
+    const xGridValues = [
+      offset > 0 ? offset : null,
+      16 + offset, 
+      32 + offset, 
+      48 + offset
+    ].filter(v => v !== null && v < 64) as number[];
+
     g.selectAll('.grid-x')
       .data(xGridValues)
       .enter()
@@ -199,7 +219,7 @@ export default function FrequencyScanner({ embedded = false }: FrequencyScannerP
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animFrameId);
     };
-  }, [radioState]);
+  }, [radioState, currentRoom, freqNum]);
 
   return (
     <div 
@@ -213,10 +233,10 @@ export default function FrequencyScanner({ embedded = false }: FrequencyScannerP
 
       {/* Clean Frequency Labels and Peak Signal readout */}
       <div className="flex justify-between items-center text-[8px] font-mono text-emerald-500/80 px-4 -mt-1">
-        <span>144.5M</span>
-        <span>145.5M</span>
-        <span className="text-emerald-300 font-bold">146.52 MHz</span>
-        <span>147.5M</span>
+        <span>{mhzBase - 1}.5M</span>
+        <span>{mhzBase}.0M</span>
+        <span className="text-emerald-300 font-bold">{mhzBase}.{khzPartStr} MHz</span>
+        <span>{mhzBase + 1}.0M</span>
         <span className="text-emerald-400/90 font-bold">{peakDb} dBm</span>
       </div>
 

@@ -132,9 +132,6 @@ export default function LcdScreen() {
             >
               <i className="fa-solid fa-share-nodes"></i>
             </button>
-
-            <span className="text-slate-500">•</span>
-            <span className="text-cyan-400 font-bold"><i className="fa-solid fa-users text-[8px] mr-0.5"></i>{activeCount}</span>
           </div>
 
         </div>
@@ -143,9 +140,12 @@ export default function LcdScreen() {
         <div className="pt-2 pb-1 text-center flex flex-col items-center justify-center">
           
           <div className="flex items-center justify-between w-full text-xs text-[var(--accent)]/70 px-1 font-mono">
-            <span>CH-01</span>
+            <div className="flex flex-col items-start">
+              <span>CH-01</span>
+              <span className="text-cyan-400 font-bold mt-0.5 text-[9px]"><i className="fa-solid fa-users text-[8px] mr-0.5"></i>{activeCount} OPR</span>
+            </div>
             <span className="tracking-widest font-bold text-[var(--accent)]">{freqDisplay} MHz</span>
-            <span className="text-[9px] text-emerald-400/80 font-bold">PL: {plToneDisplay}</span>
+            <span className="text-[9px] text-emerald-400/80 font-bold mt-auto pb-0.5">PL: {plToneDisplay}</span>
           </div>
 
           {/* Main Digital Channel Title */}

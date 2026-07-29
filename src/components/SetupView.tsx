@@ -6,6 +6,7 @@ export default function SetupView() {
   const { state, joinFrequency, storage } = useAppContext();
   const [room, setRoom] = useState(storage.getLastChannel());
   const [callsign, setCallsign] = useState(storage.profile.callsign || '');
+  const [displayName, setDisplayName] = useState(storage.profile.displayName || '');
   const [passcode, setPasscode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -13,7 +14,8 @@ export default function SetupView() {
 
   React.useEffect(() => {
     setCallsign(storage.profile.callsign || '');
-  }, [storage.profile.callsign]);
+    setDisplayName(storage.profile.displayName || '');
+  }, [storage.profile.callsign, storage.profile.displayName]);
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +28,7 @@ export default function SetupView() {
     setError('');
     
     try {
+      storage.updateProfile({ displayName: displayName || callsign || 'Operator-1' });
       await joinFrequency(room, callsign, passcode);
     } catch (err: any) {
       setError(err.message || 'Failed to establish connection.');
@@ -97,6 +100,21 @@ export default function SetupView() {
         </div>
 
         <div>
+          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Display Name <span className="text-slate-600">(Public)</span></label>
+          <div className="relative">
+            <i className="fa-solid fa-id-badge absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
+            <input 
+              type="text" 
+              value={displayName} 
+              onChange={e => setDisplayName(e.target.value)}
+              placeholder="e.g. Captain Alex Vance"
+              className="w-full bg-black/40 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:border-[var(--accent)] transition-colors font-sans"
+              maxLength={25}
+            />
+          </div>
+        </div>
+
+        <div>
           <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Passcode <span className="text-slate-600">(Optional)</span></label>
           <div className="relative">
             <i className="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
@@ -132,15 +150,19 @@ export default function SetupView() {
       <div className="w-full max-w-sm mt-8">
         <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 text-center">Quick Frequencies</div>
         <div className="grid grid-cols-2 gap-3">
-          {storage.getFavorites().slice(0, 4).map(fav => (
-            <button 
-              key={fav}
-              onClick={() => setRoom(fav)}
-              className={`py-2 px-3 rounded text-sm font-mono border ${room === fav ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/10' : 'border-white/10 text-slate-400 bg-[var(--panel)] hover:bg-white/5'}`}
-            >
-              #{fav}
-            </button>
-          ))}
+          {Array.from(new Set([...storage.getFavorites(), ...storage.getCustomPresets().map(p => p.room)])).slice(0, 6).map(fav => {
+            const preset = storage.getCustomPresets().find(p => p.room === fav);
+            const label = preset ? preset.label : `#${fav}`;
+            return (
+              <button 
+                key={fav}
+                onClick={() => setRoom(fav)}
+                className={`py-2 px-3 rounded text-sm font-mono border ${room === fav ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/10' : 'border-white/10 text-slate-400 bg-[var(--panel)] hover:bg-white/5'}`}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
       </div>
 

@@ -34,21 +34,21 @@ export default function AppLockModal() {
         setInputPin('');
         setAttempts(0);
       } else {
-        const newAttempts = attempts + 1;
-        setAttempts(newAttempts);
+        setAttempts(prev => {
+          const newAttempts = prev + 1;
+          if (newAttempts >= 5) {
+            setCooldown(30);
+          }
+          return newAttempts;
+        });
         setShake(true);
-        // After 5 failed attempts, add a cooldown
-        if (newAttempts >= 5) {
-          setCooldown(30);
-          setAttempts(0);
-        }
         setTimeout(() => {
           setShake(false);
           setInputPin('');
         }, 500);
       }
     }
-  }, [inputPin, savedPin, setAppLocked, storage, attempts, cooldown]);
+  }, [inputPin]); // ONLY run when inputPin changes!
 
   const handleKeypad = (num: string) => {
     if (cooldown > 0 || inputPin.length >= 4) return;

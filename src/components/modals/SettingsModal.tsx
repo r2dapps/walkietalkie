@@ -20,6 +20,13 @@ export default function SettingsModal() {
   const [newPresetLabel, setNewPresetLabel] = useState('');
   const [newPresetRoom, setNewPresetRoom] = useState('');
   const [newPresetFreq, setNewPresetFreq] = useState('');
+  const [localDisplayName, setLocalDisplayName] = useState(profile.displayName || '');
+  const [localCallsign, setLocalCallsign] = useState(profile.callsign || '');
+
+  useEffect(() => {
+    setLocalDisplayName(profile.displayName || '');
+    setLocalCallsign(profile.callsign || '');
+  }, [profile.displayName, profile.callsign]);
 
   useEffect(() => {
     audioEngine.enumerateAudioDevices().then(devices => {
@@ -145,8 +152,9 @@ export default function SettingsModal() {
               </label>
               <input 
                 type="text"
-                value={profile.displayName || ''}
-                onChange={e => storage.updateProfile({ displayName: e.target.value })}
+                value={localDisplayName}
+                onChange={e => setLocalDisplayName(e.target.value)}
+                onBlur={() => storage.updateProfile({ displayName: localDisplayName })}
                 placeholder="e.g. Captain Alex Vance"
                 className="w-full bg-black/40 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-[var(--accent)] font-sans"
               />
@@ -158,8 +166,9 @@ export default function SettingsModal() {
               </label>
               <input 
                 type="text"
-                value={profile.callsign || ''}
-                onChange={e => storage.updateProfile({ callsign: e.target.value.replace(/[^a-zA-Z0-9_-]/g, '') })}
+                value={localCallsign}
+                onChange={e => setLocalCallsign(e.target.value.replace(/[^a-zA-Z0-9_-]/g, ''))}
+                onBlur={() => storage.updateProfile({ callsign: localCallsign || 'Operator-1' })}
                 placeholder="e.g. Operator-1"
                 className="w-full bg-black/40 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-[var(--accent)] font-mono"
               />
