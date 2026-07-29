@@ -11,7 +11,8 @@ export default function FrequencyScanner({ embedded = false }: FrequencyScannerP
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const { state } = useAppContext();
-  const { radioState, currentRoom = 'alpha1' } = state;
+  const { radioState, currentRoom = 'alpha1', audioPrefs } = state;
+  const visMode = audioPrefs?.visualizerMode || 'waveform';
   
   const [peakDb, setPeakDb] = useState<number>(-48);
 
@@ -131,13 +132,13 @@ export default function FrequencyScanner({ embedded = false }: FrequencyScannerP
     const lineGenerator = d3.line<[number, number]>()
       .x(d => xScale(d[0]))
       .y(d => yScale(d[1]))
-      .curve(d3.curveBasis);
+      .curve(visMode === 'spectrum' ? d3.curveStep : visMode === 'matrix' ? d3.curveLinear : d3.curveBasis);
 
     const areaGenerator = d3.area<[number, number]>()
       .x(d => xScale(d[0]))
       .y0(innerHeight)
       .y1(d => yScale(d[1]))
-      .curve(d3.curveBasis);
+      .curve(visMode === 'spectrum' ? d3.curveStep : visMode === 'matrix' ? d3.curveLinear : d3.curveBasis);
 
     // Area Fill Path
     const areaPath = g.append('path')
@@ -219,7 +220,7 @@ export default function FrequencyScanner({ embedded = false }: FrequencyScannerP
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animFrameId);
     };
-  }, [radioState, currentRoom, freqNum]);
+  }, [radioState, currentRoom, freqNum, visMode]);
 
   return (
     <div 

@@ -42,9 +42,11 @@ export interface AudioPrefs {
   pttMode: 'hold' | 'toggle';
   inputDeviceId?: string;
   outputDeviceId?: string;
+  visualizerMode?: VisualizerMode;
 }
 
 export type EqPreset = 'clean' | 'analog_fm' | 'military' | 'cb_radio' | 'vintage';
+export type VisualizerMode = 'waveform' | 'spectrum' | 'matrix';
 
 export interface AppState {
   isJoined: boolean;

@@ -3,7 +3,7 @@ import { useAppContext } from '../context/AppContext';
 import SignalStrengthIcon from './SignalStrengthIcon';
 import FrequencyScanner from './FrequencyScanner';
 import TuningKnob from './TuningKnob';
-import { EqPreset } from '../types';
+import { EqPreset, VisualizerMode } from '../types';
 import { showToast } from './ui/ToastManager';
 
 export default function LcdScreen() {
@@ -41,6 +41,15 @@ export default function LcdScreen() {
     storage.updateAudioPrefs({ eqPreset: eqPresets[nextIndex].id });
   };
 
+  // Visualizer Mode Cycle handler
+  const cycleVisMode = () => {
+    const modes: VisualizerMode[] = ['waveform', 'spectrum', 'matrix'];
+    const currentMode = audioPrefs.visualizerMode || 'waveform';
+    const currentIndex = modes.indexOf(currentMode as VisualizerMode);
+    const nextIndex = (currentIndex + 1) % modes.length;
+    storage.updateAudioPrefs({ visualizerMode: modes[nextIndex] });
+  };
+
   // Quick Preset Tune Handler
   const channelPresets = [
     { label: 'α-1', room: 'alpha1' },
@@ -71,6 +80,7 @@ export default function LcdScreen() {
     showToast(`Broadcasted invite to ${friends.length} squad members`, 'success');
   };
 
+  return (
     <div 
       className="relative bg-[#0d161a] border-4 border-[#1e2d36] rounded-xl p-3 font-share-tech overflow-hidden select-none"
       style={{ boxShadow: 'inset 0 0 25px rgba(0,0,0,0.8), 0 4px 15px rgba(0,0,0,0.5), 0 0 20px color-mix(in srgb, var(--accent) 30%, transparent)' }}
@@ -131,6 +141,17 @@ export default function LcdScreen() {
               title="Click to cycle EQ Filter preset"
             >
               EQ: {currentEqObj.label}
+            </button>
+
+            <span className="text-slate-500">•</span>
+
+            {/* Interactive Visualizer Mode Button */}
+            <button 
+              onClick={cycleVisMode}
+              className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/40 text-[8px] font-bold font-mono tracking-wider cursor-pointer transition-all active:scale-95 uppercase"
+              title="Click to cycle Visualizer mode"
+            >
+              VIS: {audioPrefs.visualizerMode || 'WAVEFORM'}
             </button>
 
             <span className="text-slate-500">•</span>

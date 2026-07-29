@@ -92,7 +92,8 @@ export function getAudioPrefs(): AudioPrefs {
     voxThreshold: 20,
     totTimeout: 60,
     volume: 1.0,
-    pttMode: 'hold'
+    pttMode: 'hold',
+    visualizerMode: 'waveform'
   });
 }
 
