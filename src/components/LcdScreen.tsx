@@ -82,7 +82,7 @@ export default function LcdScreen() {
 
   return (
     <div 
-      className="relative bg-[#0d161a] border-4 border-[#1e2d36] rounded-xl p-3 font-share-tech overflow-hidden select-none"
+      className="relative bg-[#0d161a] border-4 border-[#1e2d36] rounded-xl p-2 font-share-tech overflow-hidden select-none"
       style={{ boxShadow: 'inset 0 0 30px color-mix(in srgb, var(--accent) 20%, transparent), inset 0 0 15px rgba(0,0,0,0.8), 0 4px 15px rgba(0,0,0,0.5)' }}
     >
       
@@ -97,7 +97,7 @@ export default function LcdScreen() {
 
       <div className="relative z-10">
         {/* Top Status LED Row & Signal Indicator */}
-        <div className="flex justify-between items-center pb-2 border-b border-white/10 text-[11px] font-mono tracking-widest text-slate-400">
+        <div className="flex justify-between items-center pb-1 border-b border-white/10 text-[11px] font-mono tracking-widest text-slate-400">
           
           {/* LED Indicators */}
           <div className="flex items-center space-x-2">
@@ -153,22 +153,31 @@ export default function LcdScreen() {
         </div>
 
         {/* Frequency & Channel Main Telemetry */}
-        <div className="pt-2 pb-1 text-center flex flex-col items-center justify-center">
+        <div className="pt-1 text-center flex flex-col items-center justify-center">
           
-          <div className="flex items-center justify-between w-full text-xs text-[var(--accent)]/70 px-1 font-mono">
-            <div className="flex flex-col items-start">
+          <div className="flex flex-col w-full text-xs text-[var(--accent)]/70 px-1 font-mono">
+            {/* Top Row: CH-01 | Frequency | PL Tone */}
+            <div className="flex items-center justify-between w-full">
               <span>CH-01</span>
-              <span className="text-cyan-400 font-bold mt-0.5 text-[9px] mb-1.5"><i className="fa-solid fa-users text-[8px] mr-0.5"></i>{activeCount} OPR</span>
-              <button 
-                onClick={cycleVisMode}
-                className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-1 py-0.5 rounded border border-emerald-500/40 text-[7px] font-bold font-mono tracking-wider cursor-pointer transition-all active:scale-95 uppercase"
-                title="Cycle Visualizer Mode"
-              >
-                VIS: {audioPrefs.visualizerMode || 'WAVEFORM'}
-              </button>
+              <span className="tracking-widest font-bold text-[var(--accent)]">{freqDisplay} MHz</span>
+              <span className="text-[9px] text-emerald-400/80 font-bold">PL: {plToneDisplay}</span>
             </div>
-            <span className="tracking-widest font-bold text-[var(--accent)]">{freqDisplay} MHz</span>
-            <span className="text-[9px] text-emerald-400/80 font-bold mt-auto pb-0.5">PL: {plToneDisplay}</span>
+
+            {/* Second Row: OPR count and VIS button on the left */}
+            <div className="flex items-start justify-between w-full mt-0.5">
+              <div className="flex flex-col items-start space-y-1">
+                <span className="text-cyan-400 font-bold text-[9px]">
+                  <i className="fa-solid fa-users text-[8px] mr-0.5"></i>{activeCount} OPR
+                </span>
+                <button 
+                  onClick={cycleVisMode}
+                  className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-1 py-0.5 rounded border border-emerald-500/40 text-[7px] font-bold font-mono tracking-wider cursor-pointer transition-all active:scale-95 uppercase"
+                  title="Cycle Visualizer Mode"
+                >
+                  VIS: {audioPrefs.visualizerMode || 'WAVEFORM'}
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Main Digital Channel Title */}
@@ -177,7 +186,7 @@ export default function LcdScreen() {
           </div>
 
           {/* Rotatable Physical Tuning Dial Knob */}
-          <div className="w-full my-1">
+          <div className="w-full">
             <TuningKnob />
           </div>
 
@@ -203,11 +212,11 @@ export default function LcdScreen() {
 
         </div>
 
-        {/* Embedded D3 Real-time Spectrum Scanner */}
+        {/* Embedded Canvas Real-time Spectrum Scanner */}
         <FrequencyScanner embedded={true} />
 
         {/* Bottom S-Meter (Signal Strength Bar) */}
-        <div className="pt-1.5 border-t border-white/10 flex items-center justify-between text-[10px] font-mono">
+        <div className="pt-1 mt-0.5 border-t border-white/10 flex items-center justify-between text-[10px] font-mono">
           
           <div className="flex items-center space-x-1">
             <span className="text-slate-500 text-[9px] font-bold mr-1">S-METER</span>
