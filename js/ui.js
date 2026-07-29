@@ -736,7 +736,7 @@ class UIController {
           </div>
         </div>
         <div class="flex items-center gap-1.5">
-          <button onclick="window.uiController.sendPingToFriend('${callsign}')" class="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] rounded-lg transition flex items-center gap-1">
+          <button onclick="window.uiController.sendPingToFriend('${callsign}')" class="ping-btn px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] rounded-lg transition flex items-center gap-1" data-ping-btn>
             <i class="fa-solid fa-bell"></i> Ping
           </button>
           <button onclick="window.profileManager.removeFriend('${callsign}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-rose-400 font-bold text-[10px] rounded-lg border border-slate-700">
@@ -788,7 +788,7 @@ class UIController {
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="window.uiController.sendPingToFriend('${callsign}')" class="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-xs rounded-xl shadow transition flex items-center gap-1.5">
+          <button onclick="window.uiController.sendPingToFriend('${callsign}')" class="ping-btn px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-xs rounded-xl shadow transition flex items-center gap-1.5" data-ping-btn>
             <i class="fa-solid fa-bell text-xs"></i> Ping & Call
           </button>
           <button onclick="window.profileManager.removeFriend('${callsign}'); window.uiController.renderSquadTabRoster()" class="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 hover:border-rose-500 text-slate-400 hover:text-rose-400 flex items-center justify-center transition" title="Remove Friend">
