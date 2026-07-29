@@ -1,0 +1,16 @@
+{
+  "name": "AetherTalk Walkie Talkie",
+  "short_name": "AetherTalk",
+  "theme_color": "#06b6d4",
+  "background_color": "#090d16",
+  "display": "standalone",
+  "orientation": "portrait",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

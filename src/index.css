@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-accent: var(--accent);
+}
+
+@layer base {
+  :root {
+    --bg: #090d16;
+    --panel: #111827;
+    --accent: #06b6d4;
+  }
+  
+  body[data-theme="tactical-dark"] {
+    --bg: #090d16;
+    --panel: #111827;
+    --accent: #06b6d4;
+  }
+  
+  body[data-theme="techtalkie-oled"] {
+    --bg: #050811;
+    --panel: #0b1120;
+    --accent: #3b82f6;
+  }
+  
+  body[data-theme="cyber-neon"] {
+    --bg: #090614;
+    --panel: #1a1025;
+    --accent: #a855f7;
+  }
+  
+  body[data-theme="desert-camo"] {
+    --bg: #1a1208;
+    --panel: #291e10;
+    --accent: #f59e0b;
+  }
+  
+  body[data-theme="stealth-black"] {
+    --bg: #000000;
+    --panel: #111111;
+    --accent: #64748b;
+  }
+
+  body[data-theme="glassmorphism"] {
+    --bg: #0b132b;
+    --panel: rgba(28, 37, 65, 0.65);
+    --accent: #3a86ff;
+  }
+
+  body[data-theme="creamy-vanilla"] {
+    --bg: #f7f3e9;
+    --panel: #eae3d2;
+    --accent: #d97706;
+  }
+
+  /* Custom scrollbar for chat/lists */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+.font-orbitron {
+  font-family: 'Orbitron', monospace, sans-serif;
+}
+
+.font-share-tech {
+  font-family: 'Share Tech Mono', monospace, sans-serif;
+}
+
+.font-vt323 {
+  font-family: 'VT323', monospace, sans-serif;
+}

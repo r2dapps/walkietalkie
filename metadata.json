@@ -1,0 +1,10 @@
+{
+  "name": "AetherTalk Walkie Talkie",
+  "description": "High-fidelity real-time P2P push-to-talk walkie talkie web application.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
