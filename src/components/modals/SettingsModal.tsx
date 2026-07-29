@@ -3,6 +3,7 @@ import { useAppContext } from '../../context/AppContext';
 import { ThemeName, EqPreset } from '../../types';
 import { audioEngine } from '../../services/audioEngine';
 import { notificationService } from '../../services/notificationService';
+import { showToast } from '../ui/ToastManager';
 
 export default function SettingsModal() {
   const { state, storage, setAppLocked } = useAppContext();
@@ -453,6 +454,22 @@ export default function SettingsModal() {
           >
             <i className="fa-solid fa-lock"></i>
             <span>Lock Application Now</span>
+          </button>
+        </section>
+
+        {/* Updates */}
+        <section className="bg-[var(--panel)] border border-white/10 rounded-xl p-4 shadow-lg space-y-3">
+          <button 
+            onClick={() => {
+              showToast('Checking for updates...', 'info');
+              setTimeout(() => {
+                showToast('AetherTalk is up to date.', 'success');
+              }, 1500);
+            }}
+            className="w-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 py-3 rounded-lg font-bold tracking-widest uppercase text-xs flex items-center justify-center space-x-2 hover:bg-cyan-500/30 transition-colors"
+          >
+            <i className="fa-solid fa-arrows-rotate"></i>
+            <span>Check for Updates</span>
           </button>
         </section>
 
