@@ -74,7 +74,7 @@ export default function RadioView() {
             className="w-8 h-8 flex items-center justify-center rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:text-white hover:bg-cyan-500/30 transition-all"
             title="Share Frequency"
           >
-            <i className="fa-solid fa-share-nodes text-xs"></i>
+            <i className="fa-solid fa-qrcode text-xs"></i>
           </button>
 
           {/* Flashlight Toggle Button */}

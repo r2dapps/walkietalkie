@@ -254,7 +254,10 @@ class FirebaseSignaling {
     // Use onChildAdded to process new pings correctly
     const unsub = onChildAdded(invitesRef, (snap) => {
       const ping = snap.val();
-      if (ping) onPing(ping);
+      if (ping) {
+        ping.id = snap.key;
+        onPing(ping);
+      }
       
       // Cleanup ping immediately after receiving
       remove(snap.ref);

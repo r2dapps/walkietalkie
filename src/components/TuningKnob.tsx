@@ -58,6 +58,10 @@ export default function TuningKnob() {
 
   // Pointer drag to rotate knob
   const handlePointerDown = (e: React.PointerEvent) => {
+    if (pttLocked) {
+      showToast('Radio is locked. Unlock to tune frequency.', 'warning');
+      return;
+    }
     if (!knobRef.current) return;
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
     isDragging.current = true;

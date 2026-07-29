@@ -215,6 +215,7 @@ export class PeerManager {
           this.connectedPeers[peerId] = {
             peerId,
             callsign: fbPeers[peerId].callsign,
+            displayName: fbPeers[peerId].displayName,
             avatar: fbPeers[peerId].avatar || 'radio',
             isTransmitting: false,
             pingMs: 0,

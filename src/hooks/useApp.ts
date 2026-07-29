@@ -57,7 +57,8 @@ export function useApp() {
   useEffect(() => {
     if (storage.profile.callsign) {
       const unsub = firebaseSignaling.listenForInvitePings(storage.profile.callsign, (ping) => {
-        const pingId = `${ping.fromCallsign}-${ping.room}-${ping.timestamp}`;
+        // Deduplicate pings based on unique push ID
+        const pingId = ping.id || `${ping.fromCallsign}-${ping.room}-${ping.timestamp}`;
         if (processedPings.current.has(pingId)) return;
         processedPings.current.add(pingId);
         

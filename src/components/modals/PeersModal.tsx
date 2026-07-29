@@ -4,9 +4,17 @@ import { PeerInfo } from '../../types';
 import { showToast } from '../ui/ToastManager';
 
 export default function PeersModal() {
-  const { state, storage, firebase, sendPing } = useAppContext();
+  const { state, storage, firebase, sendPing, pingCooldowns } = useAppContext();
   const peersList: PeerInfo[] = Object.values(state.peers) as PeerInfo[];
   const [updateTick, setUpdateTick] = useState(0);
+
+  // Re-render every second to update cooldown UI
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setUpdateTick(t => t + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const friends = storage.getFriends();
 
@@ -97,10 +105,17 @@ export default function PeersModal() {
                   
                   <button 
                     onClick={() => handlePing(peer)}
-                    className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 flex items-center justify-center transition-all"
+                    disabled={Date.now() - (pingCooldowns.current[peer.callsign] || 0) < 60000}
+                    className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Ping Operator"
                   >
-                    <i className="fa-solid fa-tower-broadcast text-xs"></i>
+                    {Date.now() - (pingCooldowns.current[peer.callsign] || 0) < 60000 ? (
+                      <span className="text-[10px] font-bold font-mono">
+                        {Math.ceil((60000 - (Date.now() - pingCooldowns.current[peer.callsign])) / 1000)}s
+                      </span>
+                    ) : (
+                      <i className="fa-solid fa-tower-broadcast text-xs"></i>
+                    )}
                   </button>
 
                   {!isFriend && (
