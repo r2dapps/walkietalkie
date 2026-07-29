@@ -14,7 +14,7 @@ export class NotificationService {
   public async registerServiceWorker(): Promise<void> {
     if ('serviceWorker' in navigator) {
       try {
-        await navigator.serviceWorker.register('/sw.js');
+        await navigator.serviceWorker.register(import.meta.env.BASE_URL + 'sw.js');
       } catch (e) {
         console.error('SW registration failed', e);
       }
@@ -27,13 +27,13 @@ export class NotificationService {
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.ready.then(reg => {
             reg.showNotification(title, {
-              icon: '/icon.svg',
+              icon: import.meta.env.BASE_URL + 'icon.svg',
               ...options
             });
           });
         } else {
           new Notification(title, {
-            icon: '/icon.svg',
+            icon: import.meta.env.BASE_URL + 'icon.svg',
             ...options
           });
         }
