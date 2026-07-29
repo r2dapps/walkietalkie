@@ -129,17 +129,6 @@ export default function LcdScreen() {
             <span className="text-emerald-400/80 font-bold">VHF</span>
             <span className="text-slate-500">•</span>
             
-            {/* Interactive EQ Cycle Button */}
-            <button 
-              onClick={cycleEqPreset}
-              className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 px-1.5 py-0.5 rounded border border-cyan-500/40 text-[8px] font-bold font-mono tracking-wider cursor-pointer transition-all active:scale-95"
-              title="Click to cycle EQ Filter preset"
-            >
-              EQ: {currentEqObj.label}
-            </button>
-
-            <span className="text-slate-500">•</span>
-            
             {/* Broadcast Invite Button */}
             <button 
               onClick={handleBroadcastInvite}
@@ -163,26 +152,34 @@ export default function LcdScreen() {
               <span className="text-[9px] text-emerald-400/80 font-bold">PL: {plToneDisplay}</span>
             </div>
 
-            {/* Second Row: OPR count and VIS button on the left */}
-            <div className="flex items-start justify-between w-full mt-0.5">
-              <div className="flex flex-col items-start space-y-1">
+            {/* Second Row: EQ | Channel Title | OPR */}
+            <div className="flex items-center justify-between w-full mt-1.5">
+              
+              {/* Below CH-01: Radio Effects Toggle (EQ) */}
+              <div className="flex flex-col items-start w-1/3">
+                <button 
+                  onClick={cycleEqPreset}
+                  className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 px-1.5 py-0.5 rounded border border-cyan-500/40 text-[7px] font-bold font-mono tracking-wider cursor-pointer transition-all active:scale-95 uppercase"
+                  title="Cycle EQ Filter preset"
+                >
+                  EQ: {currentEqObj.label}
+                </button>
+              </div>
+
+              {/* Center: #alpha1 */}
+              <div className="w-1/3 text-center">
+                <div className="text-lg font-black font-orbitron tracking-widest text-[var(--accent)] drop-shadow-[0_0_8px_rgba(6,182,212,0.5)] uppercase truncate px-1">
+                  #{currentRoom}
+                </div>
+              </div>
+
+              {/* Below PL: OPR count */}
+              <div className="flex flex-col items-end w-1/3">
                 <span className="text-cyan-400 font-bold text-[9px]">
                   <i className="fa-solid fa-users text-[8px] mr-0.5"></i>{activeCount} OPR
                 </span>
-                <button 
-                  onClick={cycleVisMode}
-                  className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-1 py-0.5 rounded border border-emerald-500/40 text-[7px] font-bold font-mono tracking-wider cursor-pointer transition-all active:scale-95 uppercase"
-                  title="Cycle Visualizer Mode"
-                >
-                  VIS: {audioPrefs.visualizerMode || 'WAVEFORM'}
-                </button>
               </div>
             </div>
-          </div>
-
-          {/* Main Digital Channel Title */}
-          <div className="text-2xl sm:text-3xl font-black font-orbitron tracking-widest text-[var(--accent)] drop-shadow-[0_0_10px_rgba(6,182,212,0.5)] uppercase my-0.5 truncate w-full px-2">
-            #{currentRoom}
           </div>
 
           {/* Rotatable Physical Tuning Dial Knob */}
@@ -190,24 +187,37 @@ export default function LcdScreen() {
             <TuningKnob />
           </div>
 
-          {/* Active Transmitting Operator Banner */}
-          <div className="h-5 flex items-center justify-center w-full my-0.5">
-            {isRx && activeSpeaker ? (
-              <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-2.5 py-0.5 rounded text-[10px] font-bold font-mono tracking-wider animate-pulse flex items-center space-x-1.5">
-                <i className="fa-solid fa-volume-high text-[9px]"></i>
-                <span>RX: {activeSpeaker}</span>
-              </div>
-            ) : isTx ? (
-              <div className="bg-rose-500/20 border border-rose-500/40 text-rose-300 px-2.5 py-0.5 rounded text-[10px] font-bold font-mono tracking-wider animate-pulse flex items-center space-x-1.5">
-                <i className="fa-solid fa-microphone text-[9px]"></i>
-                <span>BROADCASTING LIVE</span>
-              </div>
-            ) : (
-              <div className="text-[9px] text-slate-500 font-mono tracking-widest uppercase flex items-center space-x-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/60 animate-ping mr-1"></span>
-                <span>STANDBY — FREQUENCY CLEAR</span>
-              </div>
-            )}
+          {/* Active Transmitting Operator Banner & VIS Toggle */}
+          <div className="h-5 flex items-center justify-between w-full my-0.5 px-1">
+            
+            {/* Banner Side */}
+            <div className="flex-1 flex items-center justify-start overflow-hidden">
+              {isRx && activeSpeaker ? (
+                <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-2 py-0.5 rounded text-[9px] font-bold font-mono tracking-wider animate-pulse flex items-center space-x-1.5 truncate">
+                  <i className="fa-solid fa-volume-high text-[8px]"></i>
+                  <span className="truncate">RX: {activeSpeaker}</span>
+                </div>
+              ) : isTx ? (
+                <div className="bg-rose-500/20 border border-rose-500/40 text-rose-300 px-2 py-0.5 rounded text-[9px] font-bold font-mono tracking-wider animate-pulse flex items-center space-x-1.5 truncate">
+                  <i className="fa-solid fa-microphone text-[8px]"></i>
+                  <span className="truncate">BROADCASTING</span>
+                </div>
+              ) : (
+                <div className="text-[9px] text-slate-500 font-mono tracking-widest uppercase flex items-center space-x-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/60 animate-ping mr-1 shrink-0"></span>
+                  <span className="truncate">STANDBY — CLEAR</span>
+                </div>
+              )}
+            </div>
+
+            {/* VIS Toggle Side */}
+            <button 
+              onClick={cycleVisMode}
+              className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/40 text-[7px] font-bold font-mono tracking-wider cursor-pointer transition-all active:scale-95 uppercase shrink-0 ml-2"
+              title="Cycle Visualizer Mode"
+            >
+              VIS: {audioPrefs.visualizerMode || 'WAVEFORM'}
+            </button>
           </div>
 
         </div>
