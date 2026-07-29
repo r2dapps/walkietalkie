@@ -4,14 +4,14 @@ import { ThemeName, EqPreset } from '../../types';
 import { audioEngine } from '../../services/audioEngine';
 import { notificationService } from '../../services/notificationService';
 import { showToast } from '../ui/ToastManager';
+import { pwaService } from '../../services/pwaService';
 
 export default function SettingsModal() {
   const { state, storage, setAppLocked } = useAppContext();
   const { profile, audioPrefs, theme } = storage;
   const [currentPinInput, setCurrentPinInput] = useState('');
   const [pinInput, setPinInput] = useState('');
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [isPwaInstalled, setIsPwaInstalled] = useState(false);
+  const [isPwaInstalled, setIsPwaInstalled] = useState(pwaService.isInstalled);
   const [audioInputs, setAudioInputs] = useState<MediaDeviceInfo[]>([]);
   const [audioOutputs, setAudioOutputs] = useState<MediaDeviceInfo[]>([]);
 
@@ -29,31 +29,15 @@ export default function SettingsModal() {
   }, []);
 
   useEffect(() => {
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsPwaInstalled(true);
-    }
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
+    // Update local state if it changed between mount
+    setIsPwaInstalled(pwaService.isInstalled);
   }, []);
 
   const handleInstallPwa = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const choiceResult = await deferredPrompt.userChoice;
-      if (choiceResult.outcome === 'accepted') {
-        setIsPwaInstalled(true);
-      }
-      setDeferredPrompt(null);
-    } else {
+    const success = await pwaService.promptInstall();
+    if (success) {
+      setIsPwaInstalled(true);
+    } else if (!pwaService.deferredPrompt) {
       alert('To install AetherTalk PWA: tap "Add to Home Screen" or "Install App" in your browser menu!');
     }
   };
@@ -66,19 +50,30 @@ export default function SettingsModal() {
           <h2 className="font-orbitron font-bold tracking-wider text-sm uppercase text-[var(--accent)]">System Config</h2>
         </div>
 
-        {/* PWA Direct Install Button */}
-        <button
-          onClick={handleInstallPwa}
-          disabled={isPwaInstalled}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold font-mono tracking-wider transition-all flex items-center space-x-1.5 ${
-            isPwaInstalled
-              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-              : 'bg-[var(--accent)] text-[var(--bg)] hover:brightness-110 active:scale-95 shadow-md'
-          }`}
-        >
-          <i className={`fa-solid ${isPwaInstalled ? 'fa-circle-check' : 'fa-download'}`}></i>
-          <span>{isPwaInstalled ? 'PWA Installed' : 'Install PWA App'}</span>
-        </button>
+        <div className="flex space-x-2">
+          {/* PWA Direct Install Button */}
+          <button
+            onClick={handleInstallPwa}
+            disabled={isPwaInstalled}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold font-mono tracking-wider transition-all flex items-center space-x-1.5 ${
+              isPwaInstalled
+                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                : 'bg-[var(--accent)] text-[var(--bg)] hover:brightness-110 active:scale-95 shadow-md'
+            }`}
+          >
+            <i className={`fa-solid ${isPwaInstalled ? 'fa-circle-check' : 'fa-download'}`}></i>
+            <span>{isPwaInstalled ? 'PWA Installed' : 'Install PWA App'}</span>
+          </button>
+          
+          <button
+            onClick={() => pwaService.forceUpdateApp()}
+            className="px-3 py-1.5 rounded-lg text-xs font-bold font-mono tracking-wider transition-all flex items-center space-x-1.5 bg-slate-800 text-white hover:bg-slate-700 border border-slate-700 shadow-md"
+            title="Force Update App"
+          >
+            <i className="fa-solid fa-arrows-rotate"></i>
+            <span className="hidden sm:inline">Update</span>
+          </button>
+        </div>
       </div>
 
       <div className="px-4 pt-4 flex space-x-2">

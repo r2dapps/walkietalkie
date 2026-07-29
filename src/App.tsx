@@ -10,6 +10,7 @@ import SettingsModal from './components/modals/SettingsModal';
 import SquadView from './components/SquadView';
 import AppLockModal from './components/modals/AppLockModal';
 import ToastManager from './components/ui/ToastManager';
+import { pwaService } from './services/pwaService';
 
 export default function App() {
   const { state, banned } = useAppContext();
@@ -17,6 +18,9 @@ export default function App() {
   const [isAdminPortal, setIsAdminPortal] = useState(() => window.location.hash.includes('admin'));
 
   useEffect(() => {
+    // Initialize PWA Manager
+    pwaService.init();
+
     const handleHash = () => {
       setIsAdminPortal(window.location.hash.includes('admin'));
     };
