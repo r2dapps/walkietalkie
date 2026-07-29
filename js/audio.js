@@ -200,6 +200,10 @@ class AudioEngine {
       osc.start();
 
       this.micStream = dest.stream;
+      // Disable microphone hardware track by default (enabled ONLY during active PTT)
+      this.micStream.getAudioTracks().forEach(t => {
+        t.enabled = false;
+      });
       this.setupAudioProcessingChain();
       return this.processedStream;
     }
@@ -319,6 +323,13 @@ class AudioEngine {
    */
   setTransmissionActive(active) {
     if (!this.txGain || !this.ctx) return;
+
+    // Toggle raw microphone hardware track enabled state
+    if (this.micStream) {
+      this.micStream.getAudioTracks().forEach(t => {
+        t.enabled = active;
+      });
+    }
 
     const now = this.ctx.currentTime;
     if (active) {

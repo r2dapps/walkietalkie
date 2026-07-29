@@ -214,8 +214,13 @@ class FirebaseSignaling {
     });
 
     console.log(`[FirebaseSignaling] Sent invite ping to ${targetCallsign} for room #${roomName}`);
-    if (window.uiController && window.uiController.showToast) {
-      window.uiController.showToast('CALL PING SENT', `Pinged ${targetCallsign} to join #${roomName}`, 'success');
+    if (window.uiController) {
+      if (window.uiController.showToast) {
+        window.uiController.showToast('CALL PING SENT', `Pinged ${targetCallsign} to join #${roomName}`, 'success');
+      }
+      if (window.uiController.startPingCooldownUI) {
+        window.uiController.startPingCooldownUI(5);
+      }
     }
   }
 

@@ -470,6 +470,36 @@ class UIController {
     }
   }
 
+  startPingCooldownUI(seconds = 5) {
+    if (this.pingCooldownTimer) clearInterval(this.pingCooldownTimer);
+    let remaining = seconds;
+
+    const updateBtns = (sec) => {
+      const pingBtns = document.querySelectorAll('.ping-btn, [data-ping-btn]');
+      pingBtns.forEach(btn => {
+        if (sec > 0) {
+          btn.disabled = true;
+          btn.classList.add('opacity-50', 'pointer-events-none');
+          btn.dataset.origText = btn.dataset.origText || btn.innerHTML;
+          btn.innerHTML = `<i class="fa-solid fa-hourglass-half animate-spin"></i> (${sec}s)`;
+        } else {
+          btn.disabled = false;
+          btn.classList.remove('opacity-50', 'pointer-events-none');
+          if (btn.dataset.origText) btn.innerHTML = btn.dataset.origText;
+        }
+      });
+    };
+
+    updateBtns(remaining);
+    this.pingCooldownTimer = setInterval(() => {
+      remaining--;
+      updateBtns(remaining);
+      if (remaining <= 0) {
+        clearInterval(this.pingCooldownTimer);
+      }
+    }, 1000);
+  }
+
   // Handle Save Preset
   handleSavePreset() {
     const idInput = document.getElementById('presetIdInput');
