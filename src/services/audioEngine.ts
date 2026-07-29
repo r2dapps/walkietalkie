@@ -19,8 +19,10 @@ class AudioEngine {
     this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 48000 });
     
     try {
+      const prefs = getAudioPrefs();
       this.micStream = await navigator.mediaDevices.getUserMedia({
         audio: {
+          deviceId: prefs.inputDeviceId ? { exact: prefs.inputDeviceId } : undefined,
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
@@ -295,6 +297,30 @@ class AudioEngine {
   unmuteAllRemoteAudio(): void {
     document.querySelectorAll<HTMLAudioElement>('audio[id^="audio-"]').forEach(a => {
       a.muted = false;
+    });
+  }
+
+  async enumerateAudioDevices(): Promise<{ inputs: MediaDeviceInfo[], outputs: MediaDeviceInfo[] }> {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+      return { inputs: [], outputs: [] };
+    }
+    // Request permission first if not granted to get labels
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (e) {}
+
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    return {
+      inputs: devices.filter(d => d.kind === 'audioinput'),
+      outputs: devices.filter(d => d.kind === 'audiooutput')
+    };
+  }
+
+  applyOutputDevice(deviceId: string): void {
+    document.querySelectorAll<HTMLAudioElement>('audio[id^="audio-"], audio[id="roger-beep"]').forEach((a: any) => {
+      if (typeof a.setSinkId === 'function') {
+        a.setSinkId(deviceId).catch(console.error);
+      }
     });
   }
 }

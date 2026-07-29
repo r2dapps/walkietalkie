@@ -63,13 +63,13 @@ File: `src/services/peerManager.ts` (lines 80–320)
 ## SESSION 5 — Wire Settings Modal Fully
 File: `src/components/modals/SettingsModal.tsx`
 
-- [ ] Theme selector — test all 7 themes switch body `data-theme` correctly
-- [ ] EQ Preset — confirm `audioEngine.applyEqPreset()` is called on change
-- [ ] Avatar selector — 12 avatar grid, saves to localStorage profile
-- [ ] PIN change — current PIN + new PIN (4 digits), calls `storage.savePin()`
-- [ ] Push notifications — calls `notificationService.requestPermission()`
-- [ ] Audio device selectors — mic input + speaker output (calls `audioEngine.enumerateAudioDevices()`)
-- [ ] Custom presets CRUD — add/edit/delete channel presets in localStorage
+- [x] Theme selector — test all 7 themes switch body `data-theme` correctly
+- [x] EQ Preset — confirm `audioEngine.applyEqPreset()` is called on change
+- [x] Avatar selector — 12 avatar grid, saves to localStorage profile
+- [x] PIN change — current PIN + new PIN (4 digits), calls `storage.savePin()`
+- [x] Push notifications — calls `notificationService.requestPermission()`
+- [x] Audio device selectors — mic input + speaker output (calls `audioEngine.enumerateAudioDevices()`)
+- [x] Custom presets CRUD — add/edit/delete channel presets in localStorage
 
 ---
 

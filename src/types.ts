@@ -39,6 +39,8 @@ export interface AudioPrefs {
   totTimeout: number;
   volume: number;
   pttMode: 'hold' | 'toggle';
+  inputDeviceId?: string;
+  outputDeviceId?: string;
 }
 
 export type EqPreset = 'clean' | 'analog_fm' | 'military' | 'cb_radio' | 'vintage';

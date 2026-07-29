@@ -29,7 +29,10 @@ export function useApp() {
   // Audio Preferences auto-apply
   useEffect(() => {
     audioEngine.applyEqPreset(storage.audioPrefs.eqPreset);
-  }, [storage.audioPrefs.eqPreset]);
+    if (storage.audioPrefs.outputDeviceId) {
+      audioEngine.applyOutputDevice(storage.audioPrefs.outputDeviceId);
+    }
+  }, [storage.audioPrefs.eqPreset, storage.audioPrefs.outputDeviceId]);
 
   // Handle URL Hash for auto-join
   useEffect(() => {
