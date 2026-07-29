@@ -94,14 +94,26 @@ export function useApp() {
   }, []);
 
   // VOX monitoring
+  const voxActiveRef = useRef(false);
   useEffect(() => {
-    if (isJoined && storage.audioPrefs.voxEnabled && radioState === 'standby') {
+    // Only disable VOX monitoring if we are receiving to prevent echo loops
+    if (isJoined && storage.audioPrefs.voxEnabled && radioState !== 'receiving') {
       audioEngine.startVoxMonitoring((active) => {
-        if (active) startPTT();
-        else stopPTT();
+        if (active) {
+          voxActiveRef.current = true;
+          startPTT();
+        } else if (voxActiveRef.current) {
+          voxActiveRef.current = false;
+          stopPTT();
+        }
       });
     } else {
       audioEngine.stopVoxMonitoring();
+      // If we were transmitting via VOX and we get interrupted by receiving, stop transmitting
+      if (voxActiveRef.current && radioState === 'transmitting') {
+        voxActiveRef.current = false;
+        stopPTT();
+      }
     }
     return () => audioEngine.stopVoxMonitoring();
   }, [isJoined, storage.audioPrefs.voxEnabled, radioState]);
@@ -290,6 +302,7 @@ export function useApp() {
     banned,
     totSecondsLeft,
     pttLocked,
+    pingCooldowns,
     setPttLocked,
     joinFrequency,
     leaveFrequency,

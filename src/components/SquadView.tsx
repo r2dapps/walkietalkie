@@ -2,15 +2,16 @@ import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 
 export default function SquadView() {
-  const { state, storage, firebase, sendPing } = useAppContext();
+  const { state, storage, firebase, sendPing, pingCooldowns } = useAppContext();
   const [newFriendCallsign, setNewFriendCallsign] = useState('');
+  const [tick, setTick] = useState(0);
   
   const friends = Object.values(storage.getFriends() as Record<string, any>);
 
   // Re-render every second to update cooldown UI
   React.useEffect(() => {
     const interval = setInterval(() => {
-      setPingCooldowns(prev => ({ ...prev }));
+      setTick(t => t + 1);
     }, 1000);
     return () => clearInterval(interval);
   }, []);
@@ -90,13 +91,13 @@ export default function SquadView() {
                 <div className="flex items-center space-x-2">
                   <button 
                     onClick={() => handlePing(friend.callsign)}
-                    disabled={Date.now() - (pingCooldowns[friend.callsign] || 0) < 60000}
+                    disabled={Date.now() - (pingCooldowns.current[friend.callsign] || 0) < 60000}
                     title="Send Join Ping"
                     className="w-10 h-10 rounded-full flex items-center justify-center border transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/40 relative overflow-hidden"
                   >
-                    {Date.now() - (pingCooldowns[friend.callsign] || 0) < 60000 ? (
+                    {Date.now() - (pingCooldowns.current[friend.callsign] || 0) < 60000 ? (
                       <span className="text-[10px] font-bold font-mono">
-                        {Math.ceil((60000 - (Date.now() - pingCooldowns[friend.callsign])) / 1000)}s
+                        {Math.ceil((60000 - (Date.now() - pingCooldowns.current[friend.callsign])) / 1000)}s
                       </span>
                     ) : (
                       <i className="fa-solid fa-tower-broadcast text-xs"></i>
