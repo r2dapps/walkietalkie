@@ -1,5 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { showToast } from './ui/ToastManager';
 import LcdScreen from './LcdScreen';
 import AudioVisualizer from './AudioVisualizer';
 import PttButton from './PttButton';
@@ -13,32 +14,95 @@ export default function RadioView() {
   const [flashlightOn, setFlashlightOn] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
-  const toggleFlashlight = () => {
-    setFlashlightOn(!flashlightOn);
+  const [torchSupported, setTorchSupported] = useState<boolean | null>(null);
+  const videoStreamRef = useRef<MediaStream | null>(null);
+  const videoTrackRef = useRef<MediaStreamTrack | null>(null);
+
+  // Clean up flashlight on component unmount
+  useEffect(() => {
+    return () => {
+      if (videoStreamRef.current) {
+        videoStreamRef.current.getTracks().forEach(track => track.stop());
+        videoStreamRef.current = null;
+      }
+      videoTrackRef.current = null;
+    };
+  }, []);
+
+  const toggleFlashlight = async () => {
+    try {
+      // If torch is already on, turn it off
+      if (flashlightOn && videoTrackRef.current) {
+        await videoTrackRef.current.applyConstraints({
+          advanced: [{ torch: false }]
+        });
+        videoStreamRef.current?.getTracks().forEach(track => track.stop());
+        videoStreamRef.current = null;
+        videoTrackRef.current = null;
+        setFlashlightOn(false);
+        setTorchSupported(null);
+        showToast('Flashlight OFF', 'info');
+        return;
+      }
+
+      // Request camera access to control torch
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' } },
+          audio: false
+        });
+
+        const videoTrack = stream.getVideoTracks()[0];
+        if (!videoTrack) {
+          showToast('Failed to access camera', 'error');
+          return;
+        }
+
+        // Check if device supports torch
+        const capabilities = videoTrack.getCapabilities?.() as any;
+        const supportsTorch = capabilities?.torch === true;
+
+        if (!supportsTorch) {
+          showToast('Your device does not support flashlight control', 'warning');
+          stream.getTracks().forEach(track => track.stop());
+          setTorchSupported(false);
+          return;
+        }
+
+        // Enable torch
+        await videoTrack.applyConstraints({
+          advanced: [{ torch: true }]
+        });
+
+        videoStreamRef.current = stream;
+        videoTrackRef.current = videoTrack;
+        setFlashlightOn(true);
+        setTorchSupported(true);
+        showToast('✨ Flashlight ON', 'success');
+      } catch (permErr: any) {
+        if (permErr.name === 'NotAllowedError') {
+          showToast('Camera permission denied. Enable in settings to use flashlight.', 'warning');
+        } else if (permErr.name === 'NotFoundError') {
+          showToast('No camera found on this device', 'warning');
+          setTorchSupported(false);
+        } else {
+          showToast('Failed to enable flashlight', 'error');
+        }
+      }
+    } catch (err) {
+      console.error('Flashlight toggle error:', err);
+      showToast('Flashlight error', 'error');
+    }
   };
 
   return (
     <div className="flex flex-col h-full bg-[var(--bg)] relative overflow-hidden">
       
-      {/* Screen Emergency Flashlight Overlay when active */}
+      {/* Flashlight Status Indicator */}
       {flashlightOn && (
-        <div 
-          onClick={toggleFlashlight}
-          className="fixed inset-0 z-50 bg-white shadow-[0_0_100px_rgba(255,255,255,1)] flex flex-col items-center justify-between p-6 text-black cursor-pointer animate-pulse"
-        >
-          <div className="text-xs font-bold uppercase tracking-widest bg-black/10 px-3 py-1 rounded-full">
-            Emergency Flashlight / Strobe Active — Tap Anywhere To Extinguish
-          </div>
-          <div className="text-center space-y-2">
-            <i className="fa-solid fa-lightbulb text-6xl text-amber-500 animate-bounce"></i>
-            <h2 className="text-2xl font-black font-orbitron uppercase">FLASH BEACON ON</h2>
-          </div>
-          <button 
-            onClick={toggleFlashlight}
-            className="px-6 py-2 bg-black text-white rounded-full font-bold uppercase text-xs tracking-wider shadow-lg"
-          >
-            Turn Off Flashlight
-          </button>
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-40 bg-amber-500/90 text-black px-4 py-2 rounded-full font-bold text-sm flex items-center space-x-2 shadow-lg border border-amber-300 backdrop-blur-sm">
+          <i className="fa-solid fa-lightbulb animate-pulse text-lg"></i>
+          <span>DEVICE FLASHLIGHT ACTIVE</span>
         </div>
       )}
 
