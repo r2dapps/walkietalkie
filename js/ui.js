@@ -435,6 +435,13 @@ class UIController {
     input.focus();
   }
 
+  clearChatLog() {
+    const container = document.getElementById('chatMessagesContainer');
+    if (container) {
+      container.innerHTML = `<div class="text-center py-4 text-slate-500 text-[11px]">Chat log cleared. Encryption channel active.</div>`;
+    }
+  }
+
   // Handle Save Preset
   handleSavePreset() {
     const idInput = document.getElementById('presetIdInput');

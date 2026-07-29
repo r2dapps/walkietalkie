@@ -236,7 +236,12 @@
         <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-3 h-[75vh] flex flex-col shadow-2xl">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                 <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-comments text-cyan-500"></i> Tactical Channel Log</h3>
-                <button onclick="window.uiController.closeModal('chatModal')" class="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                <div class="flex items-center space-x-2">
+                    <button onclick="window.uiController.clearChatLog()" title="Clear Chat Log" class="px-2.5 py-1 bg-slate-800 hover:bg-rose-950 text-slate-400 hover:text-rose-400 text-[10px] font-bold rounded-lg border border-slate-700 hover:border-rose-800 transition flex items-center gap-1">
+                        <i class="fa-solid fa-trash-can"></i> Clear Log
+                    </button>
+                    <button onclick="window.uiController.closeModal('chatModal')" class="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                </div>
             </div>
             <div id="chatMessagesContainer" class="flex-1 overflow-y-auto space-y-2.5 pr-1 text-xs">
                 <div class="text-center py-4 text-slate-500 text-[11px]">Frequency encrypted message board initialized.</div>

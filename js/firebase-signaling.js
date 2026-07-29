@@ -125,9 +125,10 @@ class FirebaseSignaling {
    */
   listenForRoomChat() {
     if (!this.init() || !this.currentRoom) return;
-    const chatsRef = this.db.ref(`rooms/${this.currentRoom}/chats`).limitToLast(30);
+    this.seenChatKeys = new Set();
+    this.joinTime = Date.now() - 5000; // Allow 5s clock tolerance
+    const chatsRef = this.db.ref(`rooms/${this.currentRoom}/chats`).limitToLast(15);
     this.chatsRef = chatsRef;
-    this.seenChatKeys = this.seenChatKeys || new Set();
 
     chatsRef.on('child_added', (snapshot) => {
       const msgKey = snapshot.key;
@@ -136,6 +137,9 @@ class FirebaseSignaling {
 
       const data = snapshot.val();
       if (data && data.sender && data.text) {
+        // Only display messages created during this session
+        if (data.created && data.created < this.joinTime) return;
+
         const myCall = window.app ? window.app.myCallsign : '';
         const isSelf = (data.sender === myCall);
         if (!isSelf && window.peerManager && window.peerManager.callbacks.onChatMessage) {
