@@ -1,36 +1,53 @@
 # AetherTalk Bug Report & Issues Audit
 **Date:** July 29, 2026  
-**Status:** Code Audit - No Changes Made
+**Status:** Documentation Updated - Flashlight Issue Clarified
 
 ---
 
 ## 🔴 CRITICAL ISSUES
 
-### 1. **Flashlight Button Not Staying ON - Only Flashing** ⚠️ 
+### 1. **Flashlight Button Uses UI Overlay Instead of Device Torch** ⚠️ 
 **File:** [src/components/RadioView.tsx](src/components/RadioView.tsx#L26-L35)  
-**Severity:** HIGH  
+**Severity:** CRITICAL  
 **Issue:**  
-- The flashlight overlay uses `animate-pulse` CSS class which creates a fading/pulsing effect
-- User expects a steady, continuous bright light that "turns on" and stays on
-- Currently it just flashes/pulses the brightness instead of maintaining a constant bright state
+- Flashlight button currently shows a white UI overlay (fake light)
+- Should activate the device's actual camera flashlight/torch light
+- When used, incorrectly requests **camera permissions** (confusing UX)
+- The UI overlay is just a screen brightness increase, not actual flashlight
 
-**Current Code (Lines 26-35):**
-```jsx
-{flashlightOn && (
-  <div 
-    onClick={toggleFlashlight}
-    className="fixed inset-0 z-50 bg-white shadow-[0_0_100px_rgba(255,255,255,1)] flex flex-col items-center justify-between p-6 text-black cursor-pointer animate-pulse"
-  >
-```
+**Current Implementation:**
+- Just renders a white div with `animate-pulse` CSS class
+- Misleads user into thinking actual flashlight is enabled
+- Camera permission prompt appears because user expects real torch functionality
 
 **Expected Behavior:**
-- Full white screen overlay that stays permanently bright/on (no pulsing)
-- Only the icon should maybe animate (bounce), not the whole screen
+- Button should use **Mobile Torch API** (MediaStreamTrack.getCapabilities().torch)
+- Activates device's rear camera flash/LED as actual light source
+- Proper permission handling for torch capability
+- Visual feedback showing torch is ON/OFF
+
+**Why Camera Permissions Are Needed:**
+- Device flashlight/torch is controlled through the camera API on most mobile devices
+- `MediaStreamTrack` API requires camera access to control torch brightness
+- This is the standard mobile web approach, not a bug
 
 **Suggested Fix:**
-- Remove `animate-pulse` from the main overlay div
-- Keep the screen as solid white with constant glow
-- Optionally add strobe/flash mode as separate feature if desired
+- Implement proper Torch API instead of just UI overlay:
+  ```javascript
+  const stream = await navigator.mediaDevices.getUserMedia({ 
+    video: { facingMode: 'environment' } 
+  });
+  const track = stream.getVideoTracks()[0];
+  const capabilities = track.getCapabilities();
+  
+  if (capabilities.torch) {
+    track.getSettings().torch 
+      ? await track.applyConstraints({ advanced: [{ torch: false }] })
+      : await track.applyConstraints({ advanced: [{ torch: true }] });
+  }
+  ```
+- Add proper error handling if torch is unavailable
+- Show platform-specific message if device doesn't support it
 
 ---
 
@@ -133,7 +150,8 @@ useEffect(() => {
 **Severity:** MEDIUM  
 **Issue:**
 - VOX monitoring starts/stops based on multiple state conditions
-- If `radioState` changes rapidly, could have race conditions between stop/start
+- If `radioState` changes rapidly, could have race conditions between stop/
+
 - `stopVoxMonitoring()` might be called twice, or monitoring might continue when it shouldn't
 
 **Risk:** VOX could trigger unexpectedly or not stop when receiving starts
@@ -183,7 +201,7 @@ useEffect(() => {
 
 | Issue | Severity | Type | Impact |
 |-------|----------|------|--------|
-| Flashlight not staying ON | 🔴 CRITICAL | UX Bug | Feature doesn't work as intended |
+| Flashlight uses UI overlay instead of device torch | 🔴 CRITICAL | Feature Bug | Button doesn't control actual flashlight |
 | Firebase fetch error handling | 🟠 HIGH | Error Handling | Could block user on connection |
 | Notification BASE_URL issues | 🟠 HIGH | Configuration | Icons may fail in production |
 | localStorage silent failures | 🟡 MEDIUM | Data Persistence | Settings lost without warning |
@@ -197,7 +215,10 @@ useEffect(() => {
 
 ## 🛠️ RECOMMENDATIONS FOR FIXES
 
-1. **PRIORITY 1:** Fix flashlight to stay ON (remove animate-pulse)
+1. **PRIORITY 1:** Implement Mobile Torch API for actual device flashlight control
+   - Replace UI overlay with real camera torch functionality
+   - Handle camera permissions properly with user-friendly messages
+   - Include fallback for devices without torch support
 2. **PRIORITY 2:** Add error handling to Firebase IP check
 3. **PRIORITY 3:** Add .catch() handlers to all fetch() calls
 4. **PRIORITY 4:** Add user feedback for storage failures
@@ -207,4 +228,4 @@ useEffect(() => {
 
 ---
 
-**Note:** This audit was performed without modifying any code. All bugs are documented for reference and future fixes.
+**Note:** This audit documented bugs without code changes. Bug #1 (Flashlight) clarified: should use Mobile Torch API instead of UI overlay. Camera permissions are expected/required for real flashlight functionality.
