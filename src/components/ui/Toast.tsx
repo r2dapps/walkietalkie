@@ -7,6 +7,7 @@ export interface ToastMessage {
 }
 
 interface ToastProps {
+  key?: React.Key;
   toast: ToastMessage;
   onDismiss: (id: string) => void;
 }

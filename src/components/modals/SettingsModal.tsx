@@ -270,6 +270,7 @@ export default function SettingsModal() {
                 <option value="hold">Hold to Talk (Standard)</option>
                 <option value="toggle">Tap to Toggle On/Off</option>
               </select>
+            </div>
 
             <div>
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Audio Filter EQ</label>

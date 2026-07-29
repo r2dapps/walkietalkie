@@ -2,7 +2,7 @@
 import { initializeApp, FirebaseApp } from 'firebase/app';
 import { 
   getDatabase, Database, ref, onValue, set, remove, push, 
-  serverTimestamp, onDisconnect, off, runTransaction, get 
+  serverTimestamp, onDisconnect, off, runTransaction, get, update
 } from 'firebase/database';
 import { PeerInfo, ChatMessage } from '../types';
 import { getProfile, getDeviceUuid } from './storageService';

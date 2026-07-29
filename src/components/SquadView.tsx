@@ -5,7 +5,7 @@ export default function SquadView() {
   const { state, storage, firebase } = useAppContext();
   const [newFriendCallsign, setNewFriendCallsign] = useState('');
   
-  const friends = Object.values(storage.getFriends());
+  const friends = Object.values(storage.getFriends() as Record<string, any>);
 
   const handleAddFriend = () => {
     if (!newFriendCallsign.trim()) return;

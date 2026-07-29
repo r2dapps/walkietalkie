@@ -36,8 +36,12 @@ export default function ToastManager() {
 
   return (
     <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col space-y-2 max-w-xs w-full px-2 pointer-events-auto">
-      {toasts.map(toast => (
-        <Toast key={toast.id} toast={toast} onDismiss={dismiss} />
+      {toasts.map((toast) => (
+        <Toast 
+          key={toast.id}
+          toast={toast} 
+          onDismiss={dismiss} 
+        />
       ))}
     </div>
   );

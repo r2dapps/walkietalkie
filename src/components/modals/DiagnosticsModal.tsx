@@ -20,7 +20,8 @@ export default function DiagnosticsModal({ isOpen, onClose }: DiagnosticsModalPr
   useEffect(() => {
     if (!isOpen) return;
     const interval = setInterval(() => {
-      setDiag(peerManager.getDiagnostics());
+      const pStats = (peerManager as any).getDiagnostics ? (peerManager as any).getDiagnostics() : { error: 'Not available' };
+      setDiag(pStats);
     }, 1000);
     return () => clearInterval(interval);
   }, [isOpen]);

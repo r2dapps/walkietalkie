@@ -153,7 +153,7 @@ export default function PttButton() {
             onPointerDown={(isJoined && !pttLocked) ? handlePointerDown : undefined}
             onPointerUp={(isJoined && !pttLocked) ? handlePointerUp : undefined}
             onPointerCancel={(isJoined && !pttLocked) ? handlePointerCancel : undefined}
-            onPointerLeave={(isJoined && !pttLocked) ? handlePointerLeave : undefined}
+            onPointerLeave={(isJoined && !pttLocked) ? handlePointerCancel : undefined}
             style={{ touchAction: 'none' }}
           >
             {/* Tactile Rubber Grip Texture Lines */}
