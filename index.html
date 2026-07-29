@@ -241,6 +241,19 @@
             <div id="chatMessagesContainer" class="flex-1 overflow-y-auto space-y-2.5 pr-1 text-xs">
                 <div class="text-center py-4 text-slate-500 text-[11px]">Frequency encrypted message board initialized.</div>
             </div>
+            <!-- NATO Phonetic Assist & GPS Broadcast Bar -->
+            <div class="flex flex-wrap gap-1.5 pt-1 border-t border-slate-800/80">
+                <button type="button" onclick="window.uiController.insertNatoPhrase('Alpha')" class="px-2 py-0.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded text-[10px] font-mono text-cyan-400 font-bold">Alpha</button>
+                <button type="button" onclick="window.uiController.insertNatoPhrase('Bravo')" class="px-2 py-0.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded text-[10px] font-mono text-cyan-400 font-bold">Bravo</button>
+                <button type="button" onclick="window.uiController.insertNatoPhrase('Wilco')" class="px-2 py-0.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded text-[10px] font-mono text-cyan-400 font-bold">Wilco</button>
+                <button type="button" onclick="window.uiController.insertNatoPhrase('Roger That')" class="px-2 py-0.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded text-[10px] font-mono text-cyan-400 font-bold">Roger That</button>
+                <button type="button" onclick="window.uiController.insertNatoPhrase('SOS Alert')" class="px-2 py-0.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded text-[10px] font-mono font-bold text-rose-400">SOS Alert</button>
+                <button type="button" onclick="window.uiController.insertNatoPhrase('Over & Out')" class="px-2 py-0.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded text-[10px] font-mono text-cyan-400 font-bold">Over & Out</button>
+                <button type="button" onclick="window.app.sendGpsLocation()" class="px-2 py-0.5 bg-emerald-950 hover:bg-emerald-900 border border-emerald-600/80 rounded text-[10px] font-mono font-bold text-emerald-300 flex items-center gap-1">
+                    <i class="fa-solid fa-location-dot text-emerald-400"></i> GPS
+                </button>
+            </div>
+
             <div class="flex items-center space-x-2 pt-2 border-t border-slate-800">
                 <input type="text" id="chatInput" onkeydown="if(event.key==='Enter') window.app.sendChat()" placeholder="Broadcast message or NATO phrase..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
                 <button onclick="window.app.sendChat()" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl transition text-xs flex items-center gap-1">

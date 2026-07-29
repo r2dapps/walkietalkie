@@ -427,6 +427,14 @@ class UIController {
     this.openModal('presetModal');
   }
 
+  insertNatoPhrase(phrase) {
+    const input = document.getElementById('chatInput');
+    if (!input) return;
+    const current = input.value.trim();
+    input.value = current ? `${current} ${phrase}` : phrase;
+    input.focus();
+  }
+
   // Handle Save Preset
   handleSavePreset() {
     const idInput = document.getElementById('presetIdInput');

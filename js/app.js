@@ -225,6 +225,29 @@ class App {
     input.value = '';
   }
 
+  // Send GPS Coordinates to Channel Log
+  sendGpsLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude.toFixed(4);
+          const lng = pos.coords.longitude.toFixed(4);
+          const locText = `📍 GPS COORDS: ${lat}, ${lng}`;
+          
+          const payload = window.peerManager.sendChatMessage(locText);
+          if (window.firebaseSignaling) {
+            window.firebaseSignaling.sendRoomChat(this.myCallsign, locText);
+          }
+          window.uiController.appendChatMessage(this.myCallsign, locText, payload.timestamp, true);
+          window.uiController.showToast('GPS BROADCAST', 'Tactical coordinates sent to frequency', 'success');
+        },
+        () => {
+          alert('Unable to retrieve GPS coordinates. Ensure location permissions are allowed.');
+        }
+      );
+    }
+  }
+
   // Open Share QR Modal
   openShareModal() {
     const qrContainer = window.uiController.elements.qrContainer;
