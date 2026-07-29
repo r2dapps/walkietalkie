@@ -282,6 +282,42 @@ class FirebaseSignaling {
     
     return () => off(peersRef, 'value', unsub);
   }
+
+  // Admin Methods
+  public listenForBannedOperators(onUpdate: (banned: Record<string, boolean>) => void): () => void {
+    if (!this.db) return () => {};
+    const banRef = ref(this.db, 'banned_operators');
+    const unsub = onValue(banRef, (snap) => {
+      onUpdate(snap.val() || {});
+    });
+    return () => off(banRef, 'value', unsub);
+  }
+
+  public unbanOperator(key: string): void {
+    if (!this.db) return;
+    remove(ref(this.db, `banned_operators/${key}`));
+  }
+
+  public async kickAll(): Promise<void> {
+    if (!this.db) return;
+    try {
+      const roomsRef = ref(this.db, 'rooms');
+      const snap = await get(roomsRef);
+      const rooms = snap.val();
+      if (!rooms) return;
+
+      const updates: any = {};
+      Object.keys(rooms).forEach(roomKey => {
+        const peers = rooms[roomKey].peers || {};
+        Object.keys(peers).forEach(peerId => {
+          updates[`rooms/${roomKey}/peers/${peerId}/banned`] = true; // Use banned flag to force disconnect since client already listens to it
+        });
+      });
+      await update(ref(this.db), updates);
+    } catch (e) {
+      console.error('Kick All Failed', e);
+    }
+  }
 }
 
 export const firebaseSignaling = new FirebaseSignaling();

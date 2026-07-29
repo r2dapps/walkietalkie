@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import SuperAdminPortal from './components/admin/SuperAdminPortal';
 import { useAppContext } from './context/AppContext';
 import SetupView from './components/SetupView';
 import RadioView from './components/RadioView';
@@ -12,6 +13,19 @@ import AppLockModal from './components/modals/AppLockModal';
 export default function App() {
   const { state, banned } = useAppContext();
   const [activeTab, setActiveTab] = useState('radio');
+  const [isAdminPortal, setIsAdminPortal] = useState(() => window.location.hash.includes('admin'));
+
+  useEffect(() => {
+    const handleHash = () => {
+      setIsAdminPortal(window.location.hash.includes('admin'));
+    };
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
+  if (isAdminPortal) {
+    return <SuperAdminPortal />;
+  }
 
   if (banned) {
     return (

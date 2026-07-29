@@ -95,15 +95,13 @@ File: `src/components/LcdScreen.tsx` (line 57+)
 
 ---
 
-## SESSION 8 — SuperAdmin Portal (Wire to React Router or Separate Route)
-File: `src/components/admin/SuperAdminPortal.tsx`
+## SESSION 8 — SuperAdmin Dashboard & IP Unban
+File: `src/components/admin/SuperAdminDashboard.tsx`
 
-- [ ] Add `?admin=1` URL param check in `App.tsx` to conditionally render `SuperAdminPortal` full-screen
-- [ ] SuperAdmin login: hardcoded check for `admin` / `1234` / `family2026` → sets `adminAuthed` state
-- [ ] Connected operators table — subscribe to `firebaseSignaling.listenForPeers()` for ALL rooms
-- [ ] Ban user: `firebaseSignaling.banOperator(callsign)` → writes `banned_operators/{safeCallsign} = true`
-- [ ] Ban IP: `firebaseSignaling.banOperator(ip)` → writes `banned_operators/{safeIp}` (dots → underscores)
-- [ ] Unban: `remove(ref(db, 'banned_operators/{safeKey}'))`
+- [x] Create a hidden UI accessible via a secret key/hash (e.g. `/#admin=123`).
+- [x] List all active IP bans (by reading `/banned_ips` or by holding a listener in `firebaseSignaling`).
+- [x] Provide an "Unban" button that sets the IP in `/banned_ips` to `null`.
+- [x] "Kick All" button that iterates `active_rooms` and writes `force_disconnect` to peers.
 
 ---
 
