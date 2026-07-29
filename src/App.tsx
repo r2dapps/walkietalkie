@@ -12,6 +12,7 @@ import AppLockModal from './components/modals/AppLockModal';
 import ToastManager from './components/ui/ToastManager';
 import { pwaService } from './services/pwaService';
 import { showToast } from './components/ui/ToastManager';
+import { getPin, saveIsLocked } from './services/storageService';
 
 export default function App() {
   const { state, banned } = useAppContext();
@@ -40,9 +41,25 @@ export default function App() {
     };
     navigator.serviceWorker?.addEventListener('message', handleSwMessage);
 
+    // Auto-lock when app is hidden or closed (only if a PIN has been set)
+    const autoLock = () => {
+      if (getPin()) {
+        saveIsLocked(true);
+      }
+    };
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') autoLock();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('beforeunload', autoLock);
+    window.addEventListener('pagehide', autoLock);
+
     return () => {
       window.removeEventListener('hashchange', handleHash);
       navigator.serviceWorker?.removeEventListener('message', handleSwMessage);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('beforeunload', autoLock);
+      window.removeEventListener('pagehide', autoLock);
     };
   }, []);
 
