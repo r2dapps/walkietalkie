@@ -71,20 +71,6 @@ class FirebaseSignaling {
       }
     });
 
-    // Handle IP ban logic via external API async
-    fetch('https://api.ipify.org?format=json')
-      .then(res => res.json())
-      .then(data => {
-        if (data.ip && this.db) {
-          const safeIp = sanitizeKey(data.ip);
-          const ipBanRef = ref(this.db, `banned_operators/${safeIp}`);
-          onValue(ipBanRef, (snap) => {
-            if (snap.exists() && snap.val() === true) onBan();
-          });
-        }
-      })
-      .catch(() => {});
-
     const roomKey = this.getRoomKey(roomName, passcode);
     this.currentRoomRef = ref(this.db, `rooms/${roomKey}`);
     
@@ -92,7 +78,7 @@ class FirebaseSignaling {
     const profile = getProfile();
     this.myPresenceRef = ref(this.db, `rooms/${roomKey}/peers/${myPeerId}`);
     
-    const presenceData = {
+    const presenceData: any = {
       peerId: myPeerId,
       callsign: callsign,
       avatar: profile.avatar,
@@ -103,6 +89,26 @@ class FirebaseSignaling {
     onDisconnect(this.myPresenceRef).remove().then(() => {
       if (this.myPresenceRef) set(this.myPresenceRef, presenceData);
     });
+
+    // Handle IP ban logic via external API async
+    fetch('https://api.ipify.org?format=json')
+      .then(res => res.json())
+      .then(data => {
+        if (data.ip && this.db) {
+          const safeIp = sanitizeKey(data.ip);
+          const ipBanRef = ref(this.db, `banned_operators/${safeIp}`);
+          onValue(ipBanRef, (snap) => {
+            if (snap.exists() && snap.val() === true) onBan();
+          });
+          
+          // Update presence record with IP address
+          presenceData.ipAddress = data.ip;
+          if (this.myPresenceRef) {
+             set(this.myPresenceRef, presenceData);
+          }
+        }
+      })
+      .catch(() => {});
   }
 
   public leaveRoom(): void {

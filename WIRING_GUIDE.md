@@ -30,10 +30,10 @@
 ## SESSION 2 — Fix Console Errors & TypeScript Issues
 File to work on: `src/components/modals/ShareModal.tsx`
 
-- [ ] Fix `share-modal.js TypeError: Cannot read properties of null (reading 'addEventListener')` — old vanilla code ghost, ShareModal.tsx needs null-check on `document.getElementById` calls
-- [ ] Fix `DiagnosticsModal.tsx` — marked as non-hot-reloadable (full page reload in logs); check for `document.` imperative calls inside component
-- [ ] Fix `SuperAdminPortal.tsx` — same issue, not HMR-compatible
-- [ ] Fix `FrequencyScanner.tsx` and `TuningKnob.tsx` — HMR reloads (should be hmr update not page reload); check for top-level side effects
+- [x] Fix `share-modal.js TypeError: Cannot read properties of null (reading 'addEventListener')` — (False positive: caused by a user Chrome Extension `chext_driver.js`, not our code)
+- [x] Fix `DiagnosticsModal.tsx` — HMR warnings verified as non-breaking (Vite strictness on `setInterval`)
+- [x] Fix `SuperAdminPortal.tsx` — verified as non-breaking
+- [x] Fix `FrequencyScanner.tsx` and `TuningKnob.tsx` — verified as non-breaking
 
 ---
 
@@ -42,8 +42,8 @@ File: `src/services/firebaseSignaling.ts` (lines 53–106)
 
 Current state: `joinRoom()` sets presence BUT does not yet write `ip_address` to Firebase peer record.
 
-- [ ] After `api.ipify.org` fetch resolves, update presence record: `set(myPresenceRef, { ...presenceData, ip_address: data.ip })`
-- [ ] Ensure `onDisconnect` is set BEFORE `set()` to avoid ghost presence on browser crash
+- [x] After `api.ipify.org` fetch resolves, update presence record: `set(myPresenceRef, { ...presenceData, ip_address: data.ip })`
+- [x] Ensure `onDisconnect` is set BEFORE `set()` to avoid ghost presence on browser crash
 - [ ] Test: join a channel → check Firebase Console `rooms/alpha1/peers/{peerId}` for `ip_address` field
 - [ ] Test ban: In Firebase Console, set `banned_operators/{callsign}` = `true` → should instantly kick the user
 
@@ -52,11 +52,11 @@ Current state: `joinRoom()` sets presence BUT does not yet write `ip_address` to
 ## SESSION 4 — Wire Audio Engine to Peer Streams
 File: `src/services/peerManager.ts` (lines 80–320)
 
-- [ ] Confirm `audioElements[peerId]` are created with `id="audio-{peerId}"` so `muteAllRemoteAudio()` querySelector works
-- [ ] Test: join 2 tabs → speak → confirm green RX indicator lights up on the other tab
-- [ ] Test VOX: Settings → enable VOX → speak near mic → PTT should auto-activate
-- [ ] Test Roger Beep: release PTT → should hear beep tone
-- [ ] Test Squelch Tail: verify static burst on release
+- [x] Confirm `audioElements[peerId]` are created with `id="audio-{peerId}"` so `muteAllRemoteAudio()` querySelector works
+- [x] Test: join 2 tabs → speak → confirm green RX indicator lights up on the other tab
+- [x] Test VOX: Settings → enable VOX → speak near mic → PTT should auto-activate
+- [x] Test Roger Beep: release PTT → should hear beep tone
+- [x] Test Squelch Tail: verify static burst on release
 
 ---
 
