@@ -138,22 +138,22 @@ export default function PttButton() {
   return (
     <div className="flex flex-col items-center justify-center py-4 relative select-none">
       
-      {/* Outer Glow Waves when active */}
-      {isTransmitting && (
-        <>
-          <div className="absolute w-44 h-44 rounded-full border-2 border-rose-500/40 animate-ping pointer-events-none" />
-          <div className="absolute w-52 h-52 rounded-full border border-rose-500/20 animate-pulse pointer-events-none" />
-        </>
-      )}
-
       {/* Heavy Tactile Outer Housing Ring */}
       <div className="p-3 bg-gradient-to-b from-[#2a343d] via-[#1a2228] to-[#0f1418] rounded-full shadow-[0_15px_30px_rgba(0,0,0,0.8),inset_0_2px_4px_rgba(255,255,255,0.15)] border border-white/10 relative">
+        
+        {/* Outer Glow Waves when active */}
+        {isTransmitting && (
+          <>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-44 h-44 rounded-full border-2 border-rose-500/40 animate-ping pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-52 h-52 rounded-full border border-rose-500/20 animate-pulse pointer-events-none" />
+          </>
+        )}
         
         {/* Ridged Bevel Grip Ring */}
         <div className="p-2.5 rounded-full bg-radial from-[#151d24] to-[#090d10] border border-black/80 shadow-[inset_0_4px_10px_rgba(0,0,0,0.9)]">
           
           <div 
-            className={`w-36 h-36 rounded-full flex flex-col items-center justify-center transition-all duration-300 shadow-2xl z-10 select-none touch-none ${!isJoined ? 'bg-slate-800 border-4 border-slate-700 cursor-not-allowed opacity-50' : isBlocked ? 'bg-slate-800 border-4 border-slate-700 cursor-not-allowed shadow-[0_0_20px_rgba(16,185,129,0.3)]' : isTransmitting ? 'bg-rose-600 border-4 border-rose-400 scale-[0.98] shadow-[0_0_50px_rgba(225,29,72,0.8)] cursor-pointer' : 'bg-slate-800 border-4 border-slate-600 hover:border-slate-500 cursor-pointer hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]'}`}
+            className={`w-36 h-36 rounded-full overflow-hidden flex flex-col items-center justify-center transition-all duration-300 shadow-2xl z-10 select-none touch-none ${!isJoined ? 'bg-slate-800 border-4 border-slate-700 cursor-not-allowed opacity-50' : isBlocked ? 'bg-slate-800 border-4 border-slate-700 cursor-not-allowed shadow-[0_0_20px_rgba(16,185,129,0.3)]' : isTransmitting ? 'bg-rose-600 border-4 border-rose-400 scale-[0.98] shadow-[0_0_50px_rgba(225,29,72,0.8)] cursor-pointer' : 'bg-slate-800 border-4 border-slate-600 hover:border-slate-500 cursor-pointer hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]'}`}
             onPointerDown={(isJoined && !isBlocked) ? handlePointerDown : undefined}
             onPointerUp={(isJoined && !isBlocked) ? handlePointerUp : undefined}
             onPointerCancel={(isJoined && !isBlocked) ? handlePointerCancel : undefined}
