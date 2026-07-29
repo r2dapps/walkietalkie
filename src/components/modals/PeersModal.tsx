@@ -62,13 +62,6 @@ export default function PeersModal() {
             {state.radioState === 'transmitting' && (
               <div className="w-3 h-3 bg-rose-500 rounded-full shadow-[0_0_8px_#f43f5e] animate-pulse"></div>
             )}
-            <button 
-              onClick={handleCopyCallsign}
-              className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 flex items-center justify-center transition-all"
-              title="Copy Callsign"
-            >
-              <i className="fa-regular fa-copy"></i>
-            </button>
           </div>
         </div>
 
@@ -89,12 +82,12 @@ export default function PeersModal() {
                   <div className="font-bold text-white tracking-wide">
                     {peer.displayName || peer.callsign}
                   </div>
-                  <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                  <div className="text-[10px] text-[var(--accent)] font-mono mt-0.5">
+                    #{state.currentRoom} • {peer.callsign}
+                  </div>
+                  <div className="text-[9px] text-slate-500 font-mono mt-0.5">
                     <i className="fa-solid fa-signal mr-1"></i> 
-                    {peer.pingMs > 0 ? `${peer.pingMs}ms` : 'Connected'} 
-                    <span className="mx-2">•</span> 
-                    {peer.callsign} 
-                    {new Date(peer.joinedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {peer.pingMs > 0 ? `${peer.pingMs}ms` : 'Connected'}
                   </div>
                 </div>
                 

@@ -86,7 +86,22 @@ export default function SettingsModal() {
           className="flex-1 py-2 bg-slate-800 rounded-lg text-xs font-bold text-white border border-white/10 hover:bg-slate-700 flex justify-center items-center space-x-2"
         >
           <i className="fa-solid fa-bell text-amber-400"></i>
-          <span>Enable Notifications</span>
+          <span className="hidden sm:inline">Notifications</span>
+        </button>
+        <button
+          onClick={async () => {
+            try {
+              const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              stream.getTracks().forEach(track => track.stop());
+              alert('Microphone permission granted!');
+            } catch (err) {
+              alert('Microphone permission denied. Please allow it in your browser settings.');
+            }
+          }}
+          className="flex-1 py-2 bg-slate-800 rounded-lg text-xs font-bold text-white border border-white/10 hover:bg-slate-700 flex justify-center items-center space-x-2"
+        >
+          <i className="fa-solid fa-microphone text-[var(--accent)]"></i>
+          <span className="hidden sm:inline">Check Mic</span>
         </button>
       </div>
 

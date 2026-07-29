@@ -328,6 +328,7 @@ class AudioEngine {
     
     const data = new Uint8Array(this.analyser.frequencyBinCount);
     let isActive = false;
+    let hangTimer: number | null = null;
     
     this.voxInterval = window.setInterval(() => {
       if (!this.analyser) return;
@@ -337,12 +338,21 @@ class AudioEngine {
       const avg = sum / data.length;
       const threshold = getAudioPrefs().voxThreshold;
       
-      if (avg > threshold && !isActive) {
-        isActive = true;
-        onTrigger(true);
-      } else if (avg <= threshold && isActive) {
-        isActive = false;
-        onTrigger(false);
+      if (avg > threshold) {
+        if (hangTimer) {
+          window.clearTimeout(hangTimer);
+          hangTimer = null;
+        }
+        if (!isActive) {
+          isActive = true;
+          onTrigger(true);
+        }
+      } else if (avg <= threshold && isActive && !hangTimer) {
+        hangTimer = window.setTimeout(() => {
+          isActive = false;
+          hangTimer = null;
+          onTrigger(false);
+        }, 1000); // 1 second hang time for VOX
       }
     }, 100);
   }

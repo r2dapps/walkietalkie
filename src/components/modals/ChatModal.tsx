@@ -69,16 +69,22 @@ export default function ChatModal() {
             <p className="text-sm font-mono uppercase tracking-widest text-opacity-50">No comms history</p>
           </div>
         ) : (
-          state.chatMessages.map((msg, i) => (
-            <div key={msg.id || i} className={`flex flex-col ${msg.isMine ? 'items-end' : 'items-start'}`}>
-              <div className="text-[10px] text-slate-500 mb-1 ml-1 font-mono uppercase">
-                {msg.sender} • {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </div>
-              <div className={`px-4 py-2 rounded-xl max-w-[85%] text-sm ${msg.isMine ? 'bg-[var(--accent)] text-[var(--bg)] rounded-tr-sm font-medium' : 'bg-[var(--panel)] border border-white/10 text-white rounded-tl-sm'}`}>
+          state.chatMessages.map((msg, i) => {
+            const peerInfo = Object.values(state.peers).find(p => p.callsign === msg.sender);
+            const displayName = msg.isMine ? (state.profile.displayName || state.myCallsign) : (peerInfo?.displayName || msg.sender);
+            const displayStr = displayName !== msg.sender && !msg.isMine ? `${displayName} (${msg.sender})` : displayName;
+
+            return (
+              <div key={msg.id || i} className={`flex flex-col ${msg.isMine ? 'items-end' : 'items-start'}`}>
+                <div className="text-[10px] text-slate-500 mb-1 ml-1 font-mono uppercase">
+                  {displayStr} • {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </div>
+                <div className={`px-4 py-2 rounded-xl max-w-[85%] text-sm ${msg.isMine ? 'bg-[var(--accent)] text-[var(--bg)] rounded-tr-sm font-medium' : 'bg-[var(--panel)] border border-white/10 text-white rounded-tl-sm'}`}>
                 {msg.text}
               </div>
             </div>
-          ))
+            );
+          })
         )}
         <div ref={endRef} />
       </div>
