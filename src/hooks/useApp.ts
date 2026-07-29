@@ -83,7 +83,7 @@ export function useApp() {
         });
         showToast(`${senderName} pinged you to join #${ping.room}`, 'info');
       });
-      return unsub;
+      return () => unsub();
     }
   }, [storage.profile.callsign]);
 

@@ -109,7 +109,9 @@ class FirebaseSignaling {
           }
         }
       })
-      .catch(() => {});
+      .catch(err => {
+        console.warn('Could not check IP ban status (API blocked or offline):', err);
+      });
   }
 
   public leaveRoom(): void {
