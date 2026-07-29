@@ -86,9 +86,30 @@ class FirebaseSignaling {
       callsign: callsign || 'Operator',
       avatar: avatar,
       device_uuid: deviceUuid,
+      ip_address: 'Detecting...',
       joinedAt: firebase.database.ServerValue.TIMESTAMP,
       peerId: myPeerId
     });
+
+    // Fetch public IP address asynchronously to populate SuperAdmin roster
+    fetch('https://api.ipify.org?format=json')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.ip && this.myPeerRef) {
+          this.myPeerRef.update({ ip_address: data.ip });
+          
+          // Check if IP is banned
+          if (this.db) {
+            this.db.ref(`banned_operators/${data.ip}`).once('value', (snap) => {
+              if (snap.exists() && snap.val() === true) {
+                alert('ACCESS DENIED: Your IP Address has been banned by Master Admin.');
+                this.leaveRoom();
+              }
+            });
+          }
+        }
+      })
+      .catch(() => {});
 
     // 3. Listen for new or existing peers in this room
     this.roomRef.on('child_added', (snapshot) => {

@@ -95,13 +95,14 @@
                             <tr>
                                 <th class="p-3">Callsign</th>
                                 <th class="p-3">Device UUID</th>
+                                <th class="p-3">IP Address</th>
                                 <th class="p-3">Joined</th>
                                 <th class="p-3 text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody id="operatorsTableBody" class="divide-y divide-slate-800/60 font-mono">
                             <tr>
-                                <td colspan="4" class="p-4 text-center text-slate-500">Scanning network channels...</td>
+                                <td colspan="5" class="p-4 text-center text-slate-500">Scanning network channels...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -221,13 +222,14 @@
                 document.getElementById('statBandwidth').innerText = `${kb} KB`;
 
                 if (activeCount === 0) {
-                    tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">No active operators on frequency.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">No active operators on frequency.</td></tr>`;
                     return;
                 }
 
                 tbody.innerHTML = Object.entries(peers).map(([peerId, data]) => {
                     const callsign = data.callsign || 'Operator';
                     const uuid = data.device_uuid || peerId.substring(0, 16);
+                    const ip = data.ip_address || '192.168.1.XX';
                     const time = data.joinedAt ? new Date(data.joinedAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : 'Active';
                     return `
                         <tr class="hover:bg-slate-800/40">
@@ -235,10 +237,14 @@
                                 <span class="w-2 h-2 rounded-full bg-emerald-400"></span> ${callsign}
                             </td>
                             <td class="p-3 text-slate-400 text-[11px]">${uuid}</td>
+                            <td class="p-3 text-amber-400 text-[11px] font-mono">${ip}</td>
                             <td class="p-3 text-slate-400">${time}</td>
-                            <td class="p-3 text-right">
-                                <button onclick="adminApp.banOperator('${callsign}')" class="px-2.5 py-1 bg-rose-950 hover:bg-rose-900 border border-rose-700/80 text-rose-300 font-bold text-[10px] rounded transition">
-                                    <i class="fa-solid fa-ban"></i> Ban
+                            <td class="p-3 text-right space-x-1">
+                                <button onclick="adminApp.banOperator('${callsign}')" title="Ban Callsign" class="px-2 py-1 bg-rose-950 hover:bg-rose-900 border border-rose-700/80 text-rose-300 font-bold text-[10px] rounded transition">
+                                    <i class="fa-solid fa-ban"></i> Ban User
+                                </button>
+                                <button onclick="adminApp.banOperator('${ip}')" title="Ban IP Address" class="px-2 py-1 bg-amber-950 hover:bg-amber-900 border border-amber-700/80 text-amber-300 font-bold text-[10px] rounded transition">
+                                    <i class="fa-solid fa-network-wired"></i> Ban IP
                                 </button>
                             </td>
                         </tr>

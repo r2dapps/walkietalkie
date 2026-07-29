@@ -445,7 +445,28 @@ class UIController {
   setTalkMode(mode) {
     if (window.storageManager) {
       window.storageManager.set('talk_mode', mode);
+      this.updateTalkModeUI(mode);
       this.showToast('TALK MODE UPDATED', mode === 'toggle' ? 'Tap Once To Talk active' : 'Press & Hold To Talk active', 'info');
+    }
+  }
+
+  toggleTalkModeQuick() {
+    const current = window.storageManager ? window.storageManager.get('talk_mode', 'hold') : 'hold';
+    const next = current === 'hold' ? 'toggle' : 'hold';
+    this.setTalkMode(next);
+  }
+
+  updateTalkModeUI(mode) {
+    const label = document.getElementById('quickTalkModeLabel');
+    const select = document.getElementById('talkModeSelect');
+    const subtext = document.getElementById('radioSubtext');
+
+    if (label) {
+      label.innerText = mode === 'toggle' ? 'Mode: Tap Once To Talk' : 'Mode: Press & Hold To Talk';
+    }
+    if (select) select.value = mode;
+    if (subtext) {
+      subtext.innerText = mode === 'toggle' ? 'Tap PTT button once to start, tap again to stop' : 'Hold PTT button or use Spacebar to speak';
     }
   }
 
