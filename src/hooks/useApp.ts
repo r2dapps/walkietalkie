@@ -266,6 +266,7 @@ export function useApp() {
   return {
     state,
     storage,
+    firebase: firebaseSignaling,
     banned,
     totSecondsLeft,
     pttLocked,
