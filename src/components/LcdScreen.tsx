@@ -83,7 +83,7 @@ export default function LcdScreen() {
   return (
     <div 
       className="relative bg-[#0d161a] border-4 border-[#1e2d36] rounded-xl p-3 font-share-tech overflow-hidden select-none"
-      style={{ boxShadow: 'inset 0 0 25px rgba(0,0,0,0.8), 0 4px 15px rgba(0,0,0,0.5), 0 0 20px color-mix(in srgb, var(--accent) 30%, transparent)' }}
+      style={{ boxShadow: 'inset 0 0 30px color-mix(in srgb, var(--accent) 20%, transparent), inset 0 0 15px rgba(0,0,0,0.8), 0 4px 15px rgba(0,0,0,0.5)' }}
     >
       
       {/* Subtle Screen Scanline Backdrop Overlay */}
@@ -101,11 +101,6 @@ export default function LcdScreen() {
           
           {/* LED Indicators */}
           <div className="flex items-center space-x-2">
-            
-            <div className="flex items-center space-x-1">
-              <div className={`w-2 h-2 rounded-full border border-black ${state.isOnline ? 'bg-cyan-500 shadow-[0_0_8px_#06b6d4]' : 'bg-rose-500 shadow-[0_0_8px_#f43f5e] animate-pulse'}`}></div>
-              <span className={state.isOnline ? 'text-cyan-400 font-bold text-[9px]' : 'text-rose-400 font-bold text-[9px]'}>{state.isOnline ? 'NET' : 'OFF'}</span>
-            </div>
 
             <div className="flex items-center space-x-1">
               <div className={`w-2.5 h-2.5 rounded-full border border-black ${isTx ? 'bg-rose-500 shadow-[0_0_10px_#f43f5e] animate-pulse' : 'bg-rose-950/80'}`}></div>
@@ -144,17 +139,6 @@ export default function LcdScreen() {
             </button>
 
             <span className="text-slate-500">•</span>
-
-            {/* Interactive Visualizer Mode Button */}
-            <button 
-              onClick={cycleVisMode}
-              className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/40 text-[8px] font-bold font-mono tracking-wider cursor-pointer transition-all active:scale-95 uppercase"
-              title="Click to cycle Visualizer mode"
-            >
-              VIS: {audioPrefs.visualizerMode || 'WAVEFORM'}
-            </button>
-
-            <span className="text-slate-500">•</span>
             
             {/* Broadcast Invite Button */}
             <button 
@@ -174,7 +158,14 @@ export default function LcdScreen() {
           <div className="flex items-center justify-between w-full text-xs text-[var(--accent)]/70 px-1 font-mono">
             <div className="flex flex-col items-start">
               <span>CH-01</span>
-              <span className="text-cyan-400 font-bold mt-0.5 text-[9px]"><i className="fa-solid fa-users text-[8px] mr-0.5"></i>{activeCount} OPR</span>
+              <span className="text-cyan-400 font-bold mt-0.5 text-[9px] mb-1.5"><i className="fa-solid fa-users text-[8px] mr-0.5"></i>{activeCount} OPR</span>
+              <button 
+                onClick={cycleVisMode}
+                className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-1 py-0.5 rounded border border-emerald-500/40 text-[7px] font-bold font-mono tracking-wider cursor-pointer transition-all active:scale-95 uppercase"
+                title="Cycle Visualizer Mode"
+              >
+                VIS: {audioPrefs.visualizerMode || 'WAVEFORM'}
+              </button>
             </div>
             <span className="tracking-widest font-bold text-[var(--accent)]">{freqDisplay} MHz</span>
             <span className="text-[9px] text-emerald-400/80 font-bold mt-auto pb-0.5">PL: {plToneDisplay}</span>

@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import * as d3 from 'd3';
 import { audioEngine } from '../services/audioEngine';
 import { useAppContext } from '../context/AppContext';
 
@@ -9,7 +8,7 @@ interface FrequencyScannerProps {
 
 export default function FrequencyScanner({ embedded = false }: FrequencyScannerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const { state } = useAppContext();
   const { radioState, currentRoom = 'alpha1', audioPrefs } = state;
   const visMode = audioPrefs?.visualizerMode || 'waveform';
@@ -30,191 +29,163 @@ export default function FrequencyScanner({ embedded = false }: FrequencyScannerP
   const khzPartStr = ((freqNum * 125) % 995).toString().padStart(3, '0');
 
   useEffect(() => {
-    const svg = d3.select(svgRef.current);
-    if (!svgRef.current || !containerRef.current) return;
-
-    let width = containerRef.current.clientWidth || 320;
-    const height = 54;
-    const margin = { top: 4, right: 8, bottom: 10, left: 16 };
-
-    const innerWidth = width - margin.left - margin.right;
-    const innerHeight = height - margin.top - margin.bottom;
-
-    svg.attr('width', width).attr('height', height);
-
-    // Clear previous elements
-    svg.selectAll('*').remove();
-
-    // Defs for phosphor green gradient & glow filter
-    const defs = svg.append('defs');
-
-    // Glow filter
-    const filter = defs.append('filter')
-      .attr('id', 'greenGlow')
-      .attr('x', '-20%')
-      .attr('y', '-20%')
-      .attr('width', '140%')
-      .attr('height', '140%');
-
-    filter.append('feGaussianBlur')
-      .attr('stdDeviation', '1.8')
-      .attr('result', 'coloredBlur');
-
-    const feMerge = filter.append('feMerge');
-    feMerge.append('feMergeNode').attr('in', 'coloredBlur');
-    feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
-
-    // Linear gradient for wave fill
-    const fillGradient = defs.append('linearGradient')
-      .attr('id', 'waveGradient')
-      .attr('x1', '0%').attr('y1', '0%')
-      .attr('x2', '0%').attr('y2', '100%');
-
-    fillGradient.append('stop')
-      .attr('offset', '0%')
-      .attr('stop-color', '#10b981')
-      .attr('stop-opacity', '0.35');
-
-    fillGradient.append('stop')
-      .attr('offset', '100%')
-      .attr('stop-color', '#064e3b')
-      .attr('stop-opacity', '0.0');
-
-    // Root Group
-    const g = svg.append('g')
-      .attr('transform', `translate(${margin.left},${margin.top})`);
-
-    // D3 Scales
-    const xScale = d3.scaleLinear()
-      .domain([0, 64])
-      .range([0, innerWidth]);
-
-    const yScale = d3.scaleLinear()
-      .domain([0, 255])
-      .range([innerHeight, 0]);
-
-    // Subtle Grid lines (Horizontal)
-    const yGridValues = [80, 160];
-    g.selectAll('.grid-y')
-      .data(yGridValues)
-      .enter()
-      .append('line')
-      .attr('x1', 0)
-      .attr('x2', innerWidth)
-      .attr('y1', d => yScale(d))
-      .attr('y2', d => yScale(d))
-      .attr('stroke', '#064e3b')
-      .attr('stroke-width', 0.5)
-      .attr('stroke-dasharray', '2 2');
-
-    // Grid lines (Vertical Frequency Bins)
-    const offset = freqNum % 16;
-    const xGridValues = [
-      offset > 0 ? offset : null,
-      16 + offset, 
-      32 + offset, 
-      48 + offset
-    ].filter(v => v !== null && v < 64) as number[];
-
-    g.selectAll('.grid-x')
-      .data(xGridValues)
-      .enter()
-      .append('line')
-      .attr('x1', d => xScale(d))
-      .attr('x2', d => xScale(d))
-      .attr('y1', 0)
-      .attr('y2', innerHeight)
-      .attr('stroke', '#064e3b')
-      .attr('stroke-width', 0.5)
-      .attr('stroke-dasharray', '2 2');
-
-    // D3 Wave Path Generator
-    const lineGenerator = d3.line<[number, number]>()
-      .x(d => xScale(d[0]))
-      .y(d => yScale(d[1]))
-      .curve(visMode === 'spectrum' ? d3.curveStep : visMode === 'matrix' ? d3.curveLinear : d3.curveBasis);
-
-    const areaGenerator = d3.area<[number, number]>()
-      .x(d => xScale(d[0]))
-      .y0(innerHeight)
-      .y1(d => yScale(d[1]))
-      .curve(visMode === 'spectrum' ? d3.curveStep : visMode === 'matrix' ? d3.curveLinear : d3.curveBasis);
-
-    // Area Fill Path
-    const areaPath = g.append('path')
-      .attr('fill', 'url(#waveGradient)');
-
-    // Wave Line Path
-    const wavePath = g.append('path')
-      .attr('fill', 'none')
-      .attr('stroke', radioState === 'transmitting' ? '#f43f5e' : radioState === 'receiving' ? '#10b981' : '#34d399')
-      .attr('stroke-width', 1.8)
-      .attr('filter', 'url(#greenGlow)');
-
-    // Vertical Scanline Sweep
-    const scanline = g.append('line')
-      .attr('y1', 0)
-      .attr('y2', innerHeight)
-      .attr('stroke', '#6ee7b7')
-      .attr('stroke-width', 1.2)
-      .attr('opacity', 0.7)
-      .attr('filter', 'url(#greenGlow)');
+    const canvas = canvasRef.current;
+    if (!canvas || !containerRef.current) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
     let animFrameId: number;
-    let scanX = 0;
+    let width = containerRef.current.clientWidth || 320;
+    let height = 54;
+    canvas.width = width;
+    canvas.height = height;
 
-    const analyser = audioEngine.getAnalyserNode();
-    const dataArray = analyser ? new Uint8Array(analyser.frequencyBinCount) : null;
+    const handleResize = () => {
+      if (containerRef.current) {
+        width = containerRef.current.clientWidth || 320;
+        canvas.width = width;
+      }
+    };
+    window.addEventListener('resize', handleResize);
 
-    const renderWave = () => {
-      let points: [number, number][] = [];
-      const numPoints = 64;
-      const t = Date.now() * 0.003;
+    const render = () => {
+      // Clear canvas with subtle trail
+      ctx.fillStyle = 'rgba(13, 22, 26, 0.4)';
+      ctx.fillRect(0, 0, width, height);
 
-      if (analyser && dataArray && (radioState === 'transmitting' || radioState === 'receiving')) {
-        analyser.getByteFrequencyData(dataArray);
-        let maxVal = 0;
-        
-        for (let i = 0; i < numPoints; i++) {
-          const binIdx = Math.floor(i * (dataArray.length / 2 / numPoints));
-          const val = dataArray[binIdx] || 15;
-          if (val > maxVal) maxVal = val;
-          points.push([i, val]);
+      // Draw faint grid lines
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.15)'; // Emerald tint grid
+      ctx.lineWidth = 1;
+      ctx.setLineDash([2, 2]);
+
+      // Horizontal grid line
+      ctx.beginPath();
+      ctx.moveTo(0, height / 2);
+      ctx.lineTo(width, height / 2);
+      ctx.stroke();
+
+      // Vertical grid lines
+      const gridSpacing = width / 8;
+      for (let x = gridSpacing; x < width; x += gridSpacing) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+
+      const analyser = audioEngine.getAnalyserNode();
+      const isActive = radioState === 'transmitting' || radioState === 'receiving';
+      const spectrum = analyser ? new Uint8Array(analyser.frequencyBinCount) : new Uint8Array(0);
+      
+      let maxVal = 0;
+      if (isActive && analyser) {
+        analyser.getByteFrequencyData(spectrum);
+        for (let i = 0; i < spectrum.length; i++) {
+          if (spectrum[i] > maxVal) maxVal = spectrum[i];
         }
-
-        const dbCalculated = Math.round(-60 + (maxVal / 255) * 50);
-        setPeakDb(dbCalculated);
-
+        setPeakDb(Math.round(-60 + (maxVal / 255) * 50));
       } else {
-        let maxVal = 10;
-        for (let i = 0; i < numPoints; i++) {
-          const noise = Math.sin(i * 0.3 + t * 2) * 10 + Math.cos(i * 0.8 - t) * 6 + 14;
-          const carrierPeak = Math.exp(-Math.pow(i - 32, 2) / 20) * 35;
-          const val = Math.max(6, noise + carrierPeak);
-          if (val > maxVal) maxVal = val;
-          points.push([i, val]);
-        }
         setPeakDb(-52);
       }
 
-      wavePath.attr('d', lineGenerator(points) || '');
-      areaPath.attr('d', areaGenerator(points) || '');
+      const glowColor = radioState === 'transmitting' ? '#f43f5e' : radioState === 'receiving' ? '#10b981' : '#34d399';
+      const lineColor = radioState === 'transmitting' ? '#fda4af' : radioState === 'receiving' ? '#6ee7b7' : '#059669';
 
-      scanX = (scanX + 1.5) % innerWidth;
-      scanline.attr('x1', scanX).attr('x2', scanX);
+      if (visMode === 'spectrum') {
+        // Equalizer spectrum bars
+        const barCount = 32;
+        const barWidth = width / barCount - 2;
 
-      animFrameId = requestAnimationFrame(renderWave);
+        for (let i = 0; i < barCount; i++) {
+          let val = 0;
+          if (isActive && spectrum.length > 0) {
+            const index = Math.floor((i / barCount) * (spectrum.length / 2));
+            val = spectrum[index] / 255;
+          } else {
+            val = Math.random() * 0.08;
+          }
+
+          const barHeight = Math.max(2, val * height * 0.9);
+          const x = i * (barWidth + 2) + 1;
+          const y = height - barHeight;
+
+          const grad = ctx.createLinearGradient(0, height, 0, 0);
+          grad.addColorStop(0, glowColor);
+          grad.addColorStop(1, lineColor);
+
+          ctx.fillStyle = grad;
+          ctx.fillRect(x, y, barWidth, barHeight);
+        }
+      } else if (visMode === 'matrix') {
+        // Radial / Matrix scatter dots
+        ctx.fillStyle = glowColor;
+        ctx.shadowBlur = isActive ? 8 : 2;
+        ctx.shadowColor = glowColor;
+
+        const totalPoints = 64;
+        const sliceWidth = width / totalPoints;
+        
+        for (let i = 0; i < totalPoints; i++) {
+          let amplitude = 0;
+          if (isActive && spectrum.length > 0) {
+            const index = Math.floor((i / totalPoints) * spectrum.length);
+            amplitude = (spectrum[index] / 255);
+          } else {
+            amplitude = Math.random() * 0.1;
+          }
+
+          const px = i * sliceWidth + (sliceWidth / 2);
+          const py = height / 2 + (Math.random() > 0.5 ? 1 : -1) * (amplitude * height / 2);
+          const size = Math.max(1, amplitude * 4);
+
+          ctx.beginPath();
+          ctx.arc(px, py, size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.shadowBlur = 0;
+      } else {
+        // Oscilloscope Waveform (default)
+        ctx.beginPath();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = lineColor;
+        ctx.shadowBlur = isActive ? 8 : 0;
+        ctx.shadowColor = glowColor;
+
+        const sliceWidth = width / 64;
+        let x = 0;
+        const t = Date.now() * 0.005;
+
+        for (let i = 0; i < 64; i++) {
+          let v = 0;
+          if (isActive && spectrum.length > 0) {
+            const index = Math.floor((i / 64) * spectrum.length);
+            // using frequency data to emulate wave (since we don't have raw time domain bytes exposed currently)
+            v = ((spectrum[index] - 128) / 128) * 0.8;
+          } else {
+            // Idle radio static baseline
+            const noise = (Math.sin(i * 0.3 + t * 2) * 0.05) + (Math.cos(i * 0.8 - t) * 0.03);
+            const carrierPeak = Math.exp(-Math.pow(i - 32, 2) / 20) * 0.15;
+            v = noise + carrierPeak;
+          }
+
+          const y = (v * height / 2) + height / 2;
+
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+
+          x += sliceWidth;
+        }
+
+        ctx.lineTo(width, height / 2);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+
+      animFrameId = requestAnimationFrame(render);
     };
 
-    renderWave();
-
-    const handleResize = () => {
-      if (!containerRef.current) return;
-      width = containerRef.current.clientWidth || 320;
-      svg.attr('width', width);
-    };
-
-    window.addEventListener('resize', handleResize);
+    render();
 
     return () => {
       window.removeEventListener('resize', handleResize);
@@ -227,20 +198,17 @@ export default function FrequencyScanner({ embedded = false }: FrequencyScannerP
       ref={containerRef} 
       className="w-full select-none relative overflow-hidden my-1"
     >
-      {/* SVG Canvas for D3 */}
       <div className="relative flex justify-center">
-        <svg ref={svgRef} className="w-full h-[54px] block" />
+        <canvas ref={canvasRef} className="w-full h-[54px] block" />
       </div>
 
-      {/* Clean Frequency Labels and Peak Signal readout */}
-      <div className="flex justify-between items-center text-[8px] font-mono text-emerald-500/80 px-4 -mt-1">
+      <div className="flex justify-between items-center text-[8px] font-mono text-emerald-500/80 px-4 mt-0.5">
         <span>{mhzBase - 1}.5M</span>
         <span>{mhzBase}.0M</span>
         <span className="text-emerald-300 font-bold">{mhzBase}.{khzPartStr} MHz</span>
         <span>{mhzBase + 1}.0M</span>
         <span className="text-emerald-400/90 font-bold">{peakDb} dBm</span>
       </div>
-
     </div>
   );
 }

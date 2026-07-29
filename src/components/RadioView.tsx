@@ -56,7 +56,14 @@ export default function RadioView() {
           <i className="fa-solid fa-satellite-dish text-[var(--accent)] text-lg"></i>
           <div>
             <span className="font-orbitron font-black tracking-wider text-sm uppercase block">AetherTalk</span>
-            <span className="text-[9px] text-slate-400 font-mono tracking-widest -mt-1 block">TACTICAL RADIO</span>
+            <span className="text-[9px] text-slate-400 font-mono tracking-widest -mt-1 flex items-center space-x-1.5">
+              <span>TACTICAL RADIO</span>
+              <span className="text-slate-600">•</span>
+              <span className={state.isOnline ? 'text-emerald-400' : 'text-rose-400'}>
+                 <i className={`fa-solid fa-circle text-[6px] mr-1 ${state.isOnline ? '' : 'animate-pulse'}`}></i>
+                 {state.isOnline ? 'ONLINE' : 'OFFLINE'}
+              </span>
+            </span>
           </div>
         </div>
 

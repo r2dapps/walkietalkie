@@ -141,6 +141,13 @@ export default function UserGuideModal({ isOpen, onClose }: Props) {
               </div>
 
               <div className="bg-black/30 border border-white/5 p-3 rounded-lg">
+                <h4 className="font-bold text-[var(--accent)] mb-1 uppercase tracking-wider text-xs font-orbitron">What is the "PL" Tone?</h4>
+                <p className="text-xs text-slate-400">
+                  <strong className="text-white">PL (Private Line)</strong> or CTCSS is a sub-audible tone used in real radios to filter out interference. In AetherTalk, it is dynamically generated based on the active frequency channel to simulate real radio hardware constraints. It automatically matches when you join the same channel.
+                </p>
+              </div>
+
+              <div className="bg-black/30 border border-white/5 p-3 rounded-lg">
                 <h4 className="font-bold text-[var(--accent)] mb-1 uppercase tracking-wider text-xs font-orbitron">LCD Screen Acronyms</h4>
                 <p className="text-xs text-slate-400 space-y-1">
                   <strong className="text-white">TX (Transmit):</strong> You are currently broadcasting your voice.<br/>
