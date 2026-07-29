@@ -29,6 +29,7 @@ export default function PeersModal() {
 
   const handlePing = (peer: PeerInfo) => {
     sendPing(peer.callsign);
+    setUpdateTick(t => t + 1);
   };
 
   const handleCopyCallsign = () => {

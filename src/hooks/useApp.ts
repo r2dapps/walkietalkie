@@ -152,10 +152,10 @@ export function useApp() {
         // Only add if not from us (prevent duplicate from P2P)
         if (msg.sender !== callsignVal) {
           setChatMessages(prev => {
-            // Deduplicate by id (if present) or by sender+timestamp composite
+            // Deduplicate by id (if present) or by sender+text within 2 seconds
             const isDupe = msg.id
               ? prev.some(m => m.id === msg.id)
-              : prev.some(m => m.sender === msg.sender && m.timestamp === msg.timestamp);
+              : prev.some(m => m.sender === msg.sender && m.text === msg.text && Math.abs(new Date(m.timestamp).getTime() - new Date(msg.timestamp).getTime()) < 2000);
             if (!isDupe) return [...prev, msg];
             return prev;
           });

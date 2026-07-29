@@ -34,6 +34,7 @@ export default function SquadView() {
 
   const handlePing = (targetCallsign: string) => {
     sendPing(targetCallsign);
+    setTick(t => t + 1);
   };
 
   const handleRemove = (callsign: string) => {
@@ -76,17 +77,32 @@ export default function SquadView() {
           </div>
         ) : (
           <div className="space-y-3">
-            {friends.map(friend => (
-              <div key={friend.callsign} className="bg-[var(--panel)] border border-white/10 rounded-xl p-3 flex items-center justify-between shadow-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center text-slate-400">
-                    <i className="fa-solid fa-user-ninja"></i>
+            {friends.map(friend => {
+              // Check if they are currently online
+              const activePeer = Object.values(state.peers).find(p => p.callsign === friend.callsign);
+              const isOnline = !!activePeer;
+              
+              return (
+                <div key={friend.callsign} className="bg-[var(--panel)] border border-white/10 rounded-xl p-3 flex items-center justify-between shadow-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-12 h-12 rounded-full border flex items-center justify-center ${isOnline ? (activePeer.isTransmitting ? 'border-emerald-500 text-emerald-400 bg-black/30' : 'border-white/10 text-[var(--accent)] bg-black/30') : 'border-slate-700 text-slate-500 bg-slate-800'}`}>
+                      <i className={`fa-solid fa-${isOnline && activePeer.avatar ? activePeer.avatar : 'user-ninja'} text-xl`}></i>
+                    </div>
+                    <div>
+                      <div className={`font-bold tracking-wide ${isOnline ? 'text-white' : 'text-slate-500'}`}>
+                        {isOnline ? (activePeer.displayName || activePeer.callsign) : friend.callsign}
+                      </div>
+                      <div className={`text-[10px] font-mono mt-0.5 ${isOnline ? 'text-[var(--accent)]' : 'text-slate-600'}`}>
+                        {isOnline ? `#{state.currentRoom} • ${activePeer.callsign}` : 'Offline'}
+                      </div>
+                      {isOnline && (
+                        <div className="text-[9px] text-slate-500 font-mono mt-0.5">
+                          <i className="fa-solid fa-signal mr-1"></i> 
+                          {activePeer.pingMs > 0 ? `${activePeer.pingMs}ms` : 'Connected'}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-bold text-white font-orbitron">{friend.callsign}</div>
-                    <div className="text-[10px] text-slate-400 font-mono">Offline / Unknown</div>
-                  </div>
-                </div>
                 
                 <div className="flex items-center space-x-2">
                   <button 
@@ -112,7 +128,8 @@ export default function SquadView() {
                   </button>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
