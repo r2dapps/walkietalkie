@@ -6,7 +6,7 @@
   "background_color": "#090d16",
   "display": "standalone",
   "orientation": "portrait",
-  "start_url": "/",
+  "start_url": "/walkietalkie/",
   "icons": [
     {
       "src": "./icon.svg",
