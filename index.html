@@ -710,6 +710,13 @@
                     <div class="text-slate-500 text-[11px]">No blocked operators.</div>
                 </div>
             </div>
+
+            <!-- Force Update & Clear Cache -->
+            <div class="pt-3 border-t border-slate-800">
+                <button onclick="if(window.pwaManager) window.pwaManager.forceCachePurge()" class="w-full py-2.5 bg-cyan-950 hover:bg-cyan-900 text-cyan-300 font-bold text-xs rounded-xl border border-cyan-800 transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-arrows-rotate"></i> Check For Latest App Updates (Clear Cache)
+                </button>
+            </div>
         </div>
     </section>
 

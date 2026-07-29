@@ -41,6 +41,10 @@ class PWAManager {
     }
   }
 
+  forceCachePurge() {
+    this.forceUpdateApp();
+  }
+
   // Force Update / Hard Refresh App for Mobile
   async forceUpdateApp() {
     if (window.uiController && window.uiController.showToast) {
