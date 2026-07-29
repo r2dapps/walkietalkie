@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext } from '../../context/AppContext';
+import { PeerInfo } from '../../types';
 
 const NATO_ALPHABET: Record<string, string> = {
   A: 'Alpha', B: 'Bravo', C: 'Charlie', D: 'Delta', E: 'Echo', F: 'Foxtrot', G: 'Golf', H: 'Hotel',
@@ -70,7 +71,7 @@ export default function ChatModal() {
           </div>
         ) : (
           state.chatMessages.map((msg, i) => {
-            const peerInfo = Object.values(state.peers).find(p => p.callsign === msg.sender);
+            const peerInfo = (Object.values(state.peers) as PeerInfo[]).find(p => p.callsign === msg.sender);
             const displayName = msg.isMine ? (state.profile.displayName || state.myCallsign) : (peerInfo?.displayName || msg.sender);
             const displayStr = displayName !== msg.sender && !msg.isMine ? `${displayName} (${msg.sender})` : displayName;
 

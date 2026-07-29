@@ -79,7 +79,7 @@ export default function SquadView() {
           <div className="space-y-3">
             {friends.map(friend => {
               // Check if they are currently online
-              const activePeer = Object.values(state.peers).find(p => p.callsign === friend.callsign);
+              const activePeer = (Object.values(state.peers) as any[]).find(p => p.callsign === friend.callsign);
               const isOnline = !!activePeer;
               
               return (
