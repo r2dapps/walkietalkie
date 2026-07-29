@@ -1,35 +1,12 @@
 # AetherTalk Bug Report & Issues Audit
 **Date:** July 29, 2026  
-**Status:** Flashlight Feature Implemented - Other Issues Documented
+**Status:** Code Audit - Bug Documentation
 
 ---
 
 ## 🔴 CRITICAL ISSUES
 
-### 1. **Flashlight Button Uses UI Overlay Instead of Device Torch** ✅ IMPLEMENTED
-**File:** [src/components/RadioView.tsx](src/components/RadioView.tsx#L26-L35)  
-**Severity:** CRITICAL  
-**Status:** ✅ FIXED - Mobile Torch API now implemented
-**Issue:**  
-- ~~Flashlight button currently shows a white UI overlay (fake light)~~
-- ~~Should activate the device's actual camera flashlight/torch light~~
-- When used, incorrectly requests **camera permissions** (confusing UX)
-- ~~The UI overlay is just a screen brightness increase, not actual flashlight~~
-
-**Implementation Complete:**
-- ✅ Now uses Mobile Torch API (MediaStreamTrack.torch) for actual device flashlight
-- ✅ Requests camera permission only when flashlight is activated (on demand)
-- ✅ Auto-detects torch support via capabilities - shows friendly message if unsupported
-- ✅ Minimal status indicator replaces full-screen overlay (no UX disruption)
-- ✅ Proper error handling for permission denied, device not found, torch unavailable
-- ✅ Auto-cleanup of video stream on component unmount
-- ✅ Toast notifications for user feedback (ON/OFF/errors)
-
----
-
-## 🟠 HIGH PRIORITY ISSUES
-
-### 2. **Firebase IP Ban Check - Missing Error Handling & Network Failure**
+### 1. **Firebase IP Ban Check - Missing Error Handling & Network Failure**
 **File:** [src/services/firebaseSignaling.ts](src/services/firebaseSignaling.ts#L85-L95)  
 **Severity:** MEDIUM-HIGH  
 **Issue:**
@@ -56,7 +33,9 @@ fetch('https://api.ipify.org?format=json')
 
 ---
 
-### 3. **Notification Service - BASE_URL Dependency Issues**
+## 🟠 HIGH PRIORITY ISSUES
+
+### 2. **Notification Service - BASE_URL Dependency Issues**
 **File:** [src/services/notificationService.ts](src/services/notificationService.ts#L10-L25)  
 **Severity:** MEDIUM-HIGH  
 **Issue:**
@@ -73,7 +52,7 @@ icon: import.meta.env.BASE_URL + 'icon.svg',
 
 ---
 
-### 4. **LocalStorage Error Handling - Silent Failures**
+### 3. **LocalStorage Error Handling - Silent Failures**
 **File:** [src/services/storageService.ts](src/services/storageService.ts#L1-L20)  
 **Severity:** MEDIUM  
 **Issue:**
@@ -98,7 +77,7 @@ function set<T>(key: string, value: T): void {
 
 ## 🟡 MEDIUM PRIORITY ISSUES
 
-### 5. **Audio Visualizer - Event Listener Not Cleaned Up Properly**
+### 4. **Audio Visualizer - Event Listener Not Cleaned Up Properly**
 **File:** [src/components/AudioVisualizer.tsx](src/components/AudioVisualizer.tsx#L16-L25)  
 **Severity:** MEDIUM  
 **Issue:**
@@ -121,20 +100,19 @@ useEffect(() => {
 
 ---
 
-### 6. **VOX Monitoring - Race Condition Risk**
+### 5. **VOX Monitoring - Race Condition Risk**
 **File:** [src/hooks/useApp.ts](src/hooks/useApp.ts#L115-L132)  
 **Severity:** MEDIUM  
 **Issue:**
 - VOX monitoring starts/stops based on multiple state conditions
-- If `radioState` changes rapidly, could have race conditions between stop/
-
+- If `radioState` changes rapidly, could have race conditions between stop/start
 - `stopVoxMonitoring()` might be called twice, or monitoring might continue when it shouldn't
 
 **Risk:** VOX could trigger unexpectedly or not stop when receiving starts
 
 ---
 
-### 7. **Peer Connection Cleanup - Potential Ghost Connections**
+### 6. **Peer Connection Cleanup - Potential Ghost Connections**
 **File:** [src/services/peerManager.ts](src/services/peerManager.ts#L1-L50)  
 **Severity:** MEDIUM  
 **Issue:**
@@ -144,7 +122,7 @@ useEffect(() => {
 
 ---
 
-### 8. **Firebase Listener Unsubscribe - Ping Listener**
+### 7. **Firebase Listener Unsubscribe - Ping Listener**
 **File:** [src/hooks/useApp.ts](src/hooks/useApp.ts#L50-L66)  
 **Severity:** MEDIUM  
 **Issue:**
@@ -154,7 +132,7 @@ useEffect(() => {
 
 ---
 
-### 9. **Package.json - Incorrect Project Name**
+### 8. **Package.json - Incorrect Project Name**
 **File:** [package.json](package.json#L1)  
 **Severity:** LOW  
 **Issue:**
@@ -175,9 +153,10 @@ useEffect(() => {
 
 ## 📋 AUDIT SUMMARY
 
+## 📋 AUDIT SUMMARY
+
 | Issue | Severity | Type | Impact | Status |
 |-------|----------|------|--------|--------|
-| Flashlight uses UI overlay instead of device torch | 🔴 CRITICAL | Feature Bug | Button doesn't control actual flashlight | ✅ FIXED |
 | Firebase fetch error handling | 🟠 HIGH | Error Handling | Could block user on connection | 🚧 Open |
 | Notification BASE_URL issues | 🟠 HIGH | Configuration | Icons may fail in production | 🚧 Open |
 | localStorage silent failures | 🟡 MEDIUM | Data Persistence | Settings lost without warning | 🚧 Open |
@@ -191,14 +170,14 @@ useEffect(() => {
 
 ## 🛠️ RECOMMENDATIONS FOR FIXES
 
-1. ✅ **DONE:** Implement Mobile Torch API for actual device flashlight control
-2. **PRIORITY 1:** Add error handling to Firebase IP check
-3. **PRIORITY 2:** Add .catch() handlers to all fetch() calls
-4. **PRIORITY 3:** Add user feedback for storage failures
-5. **PRIORITY 4:** Clean up all event listeners properly
-6. **PRIORITY 5:** Review peer connection cleanup on frequency leave
-7. **PRIORITY 6:** Update package.json metadata
+1. **PRIORITY 1:** Add error handling to Firebase IP check
+2. **PRIORITY 2:** Add .catch() handlers to all fetch() calls
+3. **PRIORITY 3:** Add user feedback for storage failures
+4. **PRIORITY 4:** Clean up all event listeners properly
+5. **PRIORITY 5:** Review peer connection cleanup on frequency leave
+6. **PRIORITY 6:** Review VOX race condition handling
+7. **PRIORITY 7:** Update package.json metadata
 
 ---
 
-**Note:** Flashlight feature has been implemented using Mobile Torch API. Bug #1 now uses device camera torch instead of UI overlay. Camera permissions are now requested only on demand (when flashlight button is pressed) with proper error handling and device compatibility detection.
+**Note:** This audit documents bugs found in the AetherTalk codebase. All bugs are open for future implementation.
