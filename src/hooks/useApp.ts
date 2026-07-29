@@ -6,6 +6,7 @@ import { audioEngine } from '../services/audioEngine';
 import { parseUrlHash } from '../services/shareService';
 import { notificationService } from '../services/notificationService';
 import { useStorage } from './useStorage';
+import { showToast } from '../components/ui/ToastManager';
 
 export function useApp() {
   const storage = useStorage();
@@ -26,6 +27,8 @@ export function useApp() {
   const [pttLocked, setPttLocked] = useState(false);
   
   const localStreamRef = useRef<MediaStream | null>(null);
+  const unsubPeersRef = useRef<(() => void) | null>(null);
+  const unsubChatRef = useRef<(() => void) | null>(null);
   
   // Audio Preferences auto-apply
   useEffect(() => {
@@ -51,10 +54,11 @@ export function useApp() {
   useEffect(() => {
     if (storage.profile.callsign) {
       const unsub = firebaseSignaling.listenForInvitePings(storage.profile.callsign, (ping) => {
+        const senderName = ping.fromCallsign || ping.sender || 'Someone';
         notificationService.notify('Squad Ping', {
-          body: `${ping.sender} is requesting you to join frequency #${ping.room}`
+          body: `${senderName} is requesting you to join frequency #${ping.room}`
         });
-        // We could also show a toast here via a global event or context, but notification is good.
+        showToast(`${senderName} pinged you to join #${ping.room}`, 'info');
       });
       return unsub;
     }
@@ -97,6 +101,9 @@ export function useApp() {
 
   const joinFrequency = async (roomVal: string, callsignVal: string, passcodeVal: string) => {
     try {
+      // Ensure we leave any active room before joining a new one to prevent ghost connections
+      leaveFrequency(true);
+
       const stream = await audioEngine.getMicrophoneStream();
       localStreamRef.current = stream;
       
@@ -116,12 +123,12 @@ export function useApp() {
       );
 
       // Listen for Peers
-      firebaseSignaling.listenForPeers(roomVal, passcodeVal, (fbPeers) => {
+      unsubPeersRef.current = firebaseSignaling.listenForPeers(roomVal, passcodeVal, (fbPeers) => {
         peerManager.updatePeersFromFirebase(fbPeers);
       });
 
       // Listen for Chat
-      firebaseSignaling.listenForRoomChat(roomVal, passcodeVal, (msg) => {
+      unsubChatRef.current = firebaseSignaling.listenForRoomChat(roomVal, passcodeVal, (msg) => {
         // Only add if not from us (prevent duplicate from P2P)
         if (msg.sender !== callsignVal) {
           setChatMessages(prev => {
@@ -158,22 +165,35 @@ export function useApp() {
       // Channel busy
       return false;
     }
-    peerManager.startTransmission(storage.audioPrefs.totTimeout);
+    await peerManager.startTransmission(storage.audioPrefs.totTimeout);
     return true;
   };
 
-  const stopPTT = () => {
+  const stopPTT = async () => {
     if (!isJoined) return;
     firebaseSignaling.releasePttLock(currentRoom, passcode, myCallsign);
-    peerManager.stopTransmission();
+    await peerManager.stopTransmission();
   };
 
-  const leaveFrequency = () => {
+  const leaveFrequency = (isSwitching: boolean = false) => {
     peerManager.disconnect();
     firebaseSignaling.leaveRoom();
-    setIsJoined(false);
+    
+    if (unsubPeersRef.current) {
+      unsubPeersRef.current();
+      unsubPeersRef.current = null;
+    }
+    if (unsubChatRef.current) {
+      unsubChatRef.current();
+      unsubChatRef.current = null;
+    }
+    
+    if (!isSwitching) {
+      setIsJoined(false);
+      setRadioState('standby');
+    }
+    
     setPeers({});
-    setRadioState('standby');
     setActiveSpeaker(null);
   };
 

@@ -1,6 +1,7 @@
 {
   "name": "AetherTalk Walkie Talkie",
   "short_name": "AetherTalk",
+  "author": "Razel Tech",
   "theme_color": "#06b6d4",
   "background_color": "#090d16",
   "display": "standalone",
@@ -8,7 +9,7 @@
   "start_url": "/",
   "icons": [
     {
-      "src": "/icon.svg",
+      "src": "./icon.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     }

@@ -9,6 +9,7 @@ import PeersModal from './components/modals/PeersModal';
 import SettingsModal from './components/modals/SettingsModal';
 import SquadView from './components/SquadView';
 import AppLockModal from './components/modals/AppLockModal';
+import ToastManager from './components/ui/ToastManager';
 
 export default function App() {
   const { state, banned } = useAppContext();
@@ -43,6 +44,7 @@ export default function App() {
       <>
         <SetupView />
         <AppLockModal />
+        <ToastManager />
       </>
     );
   }
@@ -78,6 +80,7 @@ export default function App() {
         <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
       <AppLockModal />
+      <ToastManager />
     </>
   );
 }

@@ -4,9 +4,10 @@ import SignalStrengthIcon from './SignalStrengthIcon';
 import FrequencyScanner from './FrequencyScanner';
 import TuningKnob from './TuningKnob';
 import { EqPreset } from '../types';
+import { showToast } from './ui/ToastManager';
 
 export default function LcdScreen() {
-  const { state, storage, joinFrequency } = useAppContext();
+  const { state, storage, joinFrequency, firebase } = useAppContext();
   const { currentRoom, radioState, activeSpeaker, audioPrefs, peers, myCallsign, passcode } = state;
   
   const isTx = radioState === 'transmitting';
@@ -52,6 +53,18 @@ export default function LcdScreen() {
     if (targetRoom !== currentRoom) {
       joinFrequency(targetRoom, myCallsign, passcode);
     }
+  };
+
+  const handleBroadcastInvite = () => {
+    const friends = Object.values(storage.getFriends() as Record<string, any>);
+    if (friends.length === 0) {
+      showToast('No squad members to invite', 'warning');
+      return;
+    }
+    friends.forEach(f => {
+      firebase.sendInvitePing(f.callsign, state.currentRoom, state.myCallsign, state.passcode);
+    });
+    showToast(`Broadcasted invite to ${friends.length} squad members`, 'success');
   };
 
   return (
@@ -103,6 +116,17 @@ export default function LcdScreen() {
               title="Click to cycle EQ Filter preset"
             >
               EQ: {currentEqObj.label}
+            </button>
+
+            <span className="text-slate-500">•</span>
+            
+            {/* Broadcast Invite Button */}
+            <button 
+              onClick={handleBroadcastInvite}
+              className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 px-2 py-0.5 rounded border border-purple-500/40 text-[8px] font-bold cursor-pointer transition-all active:scale-95"
+              title="Broadcast Invite to Squad"
+            >
+              <i className="fa-solid fa-share-nodes"></i>
             </button>
 
             <span className="text-slate-500">•</span>

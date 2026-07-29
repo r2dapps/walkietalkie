@@ -4,8 +4,17 @@ import { useAppContext } from '../context/AppContext';
 export default function SquadView() {
   const { state, storage, firebase } = useAppContext();
   const [newFriendCallsign, setNewFriendCallsign] = useState('');
+  const [pingCooldowns, setPingCooldowns] = useState<Record<string, number>>({});
   
   const friends = Object.values(storage.getFriends() as Record<string, any>);
+
+  // Re-render every second to update cooldown UI
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setPingCooldowns(prev => ({ ...prev }));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleAddFriend = () => {
     if (!newFriendCallsign.trim()) return;
@@ -24,8 +33,15 @@ export default function SquadView() {
   };
 
   const handlePing = (targetCallsign: string) => {
+    const now = Date.now();
+    const lastPing = pingCooldowns[targetCallsign] || 0;
+    if (now - lastPing < 60000) { // 60 second cooldown
+      return;
+    }
+
     firebase.sendInvitePing(targetCallsign, state.currentRoom, state.myCallsign, state.passcode);
-    alert(`Ping sent to ${targetCallsign}!`);
+    setPingCooldowns(prev => ({ ...prev, [targetCallsign]: now }));
+    // Toast notification will be handled globally
   };
 
   const handleRemove = (callsign: string) => {
@@ -83,10 +99,17 @@ export default function SquadView() {
                 <div className="flex items-center space-x-2">
                   <button 
                     onClick={() => handlePing(friend.callsign)}
+                    disabled={Date.now() - (pingCooldowns[friend.callsign] || 0) < 60000}
                     title="Send Join Ping"
-                    className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30 hover:bg-emerald-500/40 transition-colors"
+                    className="w-10 h-10 rounded-full flex items-center justify-center border transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/40 relative overflow-hidden"
                   >
-                    <i className="fa-solid fa-tower-broadcast text-xs"></i>
+                    {Date.now() - (pingCooldowns[friend.callsign] || 0) < 60000 ? (
+                      <span className="text-[10px] font-bold font-mono">
+                        {Math.ceil((60000 - (Date.now() - pingCooldowns[friend.callsign])) / 1000)}s
+                      </span>
+                    ) : (
+                      <i className="fa-solid fa-tower-broadcast text-xs"></i>
+                    )}
                   </button>
                   <button 
                     onClick={() => handleRemove(friend.callsign)}

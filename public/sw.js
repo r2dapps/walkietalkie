@@ -4,10 +4,10 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll([
-        '/',
-        '/index.html',
-        '/icon.svg',
-        '/manifest.json'
+        './',
+        './index.html',
+        './icon.svg',
+        './manifest.json'
       ]);
     })
   );
@@ -64,7 +64,7 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title || 'AetherTalk', {
       body: data.body || 'New message on frequency',
-      icon: '/icon.svg',
+      icon: './icon.svg',
       data: data
     })
   );

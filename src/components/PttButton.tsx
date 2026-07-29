@@ -10,6 +10,8 @@ export default function PttButton() {
   const holdMode = audioPrefs.pttMode === 'hold';
   const isHoldingRef = useRef(false);
   const [isBusy, setIsBusy] = useState(false);
+  
+  const isBlocked = pttLocked || isReceiving;
 
   const triggerHaptic = (type: 'press' | 'release') => {
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
@@ -27,7 +29,7 @@ export default function PttButton() {
   
   const handlePointerDown = async (e: React.PointerEvent) => {
     e.preventDefault();
-    if (pttLocked) {
+    if (isBlocked) {
       triggerHaptic('press'); // Just a tiny bump
       return;
     }
@@ -149,11 +151,11 @@ export default function PttButton() {
         <div className="p-2.5 rounded-full bg-radial from-[#151d24] to-[#090d10] border border-black/80 shadow-[inset_0_4px_10px_rgba(0,0,0,0.9)]">
           
           <div 
-            className={`w-36 h-36 rounded-full flex flex-col items-center justify-center transition-all duration-300 shadow-2xl z-10 select-none touch-none ${!isJoined ? 'bg-slate-800 border-4 border-slate-700 cursor-not-allowed opacity-50' : pttLocked ? 'bg-slate-800 border-4 border-slate-700 cursor-not-allowed' : isTransmitting ? 'bg-rose-600 border-4 border-rose-400 scale-[0.98] shadow-[0_0_50px_rgba(225,29,72,0.8)] cursor-pointer' : isReceiving ? 'bg-emerald-600 border-4 border-emerald-400 cursor-pointer shadow-[0_0_30px_rgba(16,185,129,0.5)]' : 'bg-slate-800 border-4 border-slate-600 hover:border-slate-500 cursor-pointer hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]'}`}
-            onPointerDown={(isJoined && !pttLocked) ? handlePointerDown : undefined}
-            onPointerUp={(isJoined && !pttLocked) ? handlePointerUp : undefined}
-            onPointerCancel={(isJoined && !pttLocked) ? handlePointerCancel : undefined}
-            onPointerLeave={(isJoined && !pttLocked) ? handlePointerCancel : undefined}
+            className={`w-36 h-36 rounded-full flex flex-col items-center justify-center transition-all duration-300 shadow-2xl z-10 select-none touch-none ${!isJoined ? 'bg-slate-800 border-4 border-slate-700 cursor-not-allowed opacity-50' : isBlocked ? 'bg-slate-800 border-4 border-slate-700 cursor-not-allowed shadow-[0_0_20px_rgba(16,185,129,0.3)]' : isTransmitting ? 'bg-rose-600 border-4 border-rose-400 scale-[0.98] shadow-[0_0_50px_rgba(225,29,72,0.8)] cursor-pointer' : 'bg-slate-800 border-4 border-slate-600 hover:border-slate-500 cursor-pointer hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]'}`}
+            onPointerDown={(isJoined && !isBlocked) ? handlePointerDown : undefined}
+            onPointerUp={(isJoined && !isBlocked) ? handlePointerUp : undefined}
+            onPointerCancel={(isJoined && !isBlocked) ? handlePointerCancel : undefined}
+            onPointerLeave={(isJoined && !isBlocked) ? handlePointerCancel : undefined}
             style={{ touchAction: 'none' }}
           >
             {/* Tactile Rubber Grip Texture Lines */}
@@ -161,17 +163,17 @@ export default function PttButton() {
 
             {/* Inner ring & icon */}
             <div className="absolute inset-2 rounded-full border border-white/10 flex flex-col items-center justify-center pointer-events-none">
-              {pttLocked ? (
-                <i className="fa-solid fa-lock text-5xl text-slate-500 mb-2 drop-shadow-md"></i>
+              {isBlocked ? (
+                <i className="fa-solid fa-lock text-5xl text-emerald-500 mb-2 drop-shadow-[0_0_8px_rgba(16,185,129,0.6)]"></i>
               ) : isBusy ? (
                 <i className="fa-solid fa-spinner fa-spin text-5xl text-white/50 mb-2"></i>
               ) : isTransmitting ? (
                 <i className="fa-solid fa-microphone-lines text-5xl text-white mb-2 drop-shadow-md animate-pulse"></i>
               ) : (
-                <i className={`fa-solid fa-microphone text-5xl mb-2 drop-shadow-md ${isReceiving ? 'text-white' : 'text-slate-400'}`}></i>
+                <i className={`fa-solid fa-microphone text-5xl mb-2 drop-shadow-md text-slate-400`}></i>
               )}
-              <span className={`text-[10px] font-bold tracking-widest font-mono uppercase ${isTransmitting || isReceiving ? 'text-white' : 'text-slate-500'}`}>
-                {pttLocked ? 'PTT LOCKED' : !isJoined ? 'OFFLINE' : isTransmitting ? 'TRANSMITTING' : isReceiving ? 'RECEIVING' : holdMode ? 'HOLD TO TALK' : 'TAP TO TOGGLE'}
+              <span className={`text-[10px] font-bold tracking-widest font-mono uppercase ${isTransmitting ? 'text-white' : isBlocked ? 'text-emerald-500' : 'text-slate-500'}`}>
+                {!isJoined ? 'OFFLINE' : isBlocked ? 'CHANNEL BUSY' : isTransmitting ? 'TRANSMITTING' : holdMode ? 'HOLD TO TALK' : 'TAP TO TOGGLE'}
               </span>
             </div>
           </div>

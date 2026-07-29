@@ -11,40 +11,8 @@ export default function RadioView() {
   const { state, leaveFrequency, totSecondsLeft, pttLocked, setPttLocked } = useAppContext();
   const [flashlightOn, setFlashlightOn] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
-  const videoTrackRef = useRef<MediaStreamTrack | null>(null);
-
-  const toggleFlashlight = async () => {
-    if (flashlightOn) {
-      if (videoTrackRef.current) {
-        try {
-          // @ts-ignore
-          await videoTrackRef.current.applyConstraints({ advanced: [{ torch: false }] });
-          videoTrackRef.current.stop();
-        } catch (e) {
-          console.log('Torch turn off error', e);
-        }
-        videoTrackRef.current = null;
-      }
-      setFlashlightOn(false);
-    } else {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' }
-        });
-        const track = stream.getVideoTracks()[0];
-        if (track) {
-          videoTrackRef.current = track;
-          // @ts-ignore
-          if ('torch' in track.getCapabilities()) {
-            // @ts-ignore
-            await track.applyConstraints({ advanced: [{ torch: true }] });
-          }
-        }
-      } catch (e) {
-        console.log('Camera torch hardware not available, falling back to screen beacon', e);
-      }
-      setFlashlightOn(true);
-    }
+  const toggleFlashlight = () => {
+    setFlashlightOn(!flashlightOn);
   };
 
   return (
@@ -122,7 +90,7 @@ export default function RadioView() {
 
           {/* Disconnect Button */}
           <button 
-            onClick={leaveFrequency}
+            onClick={() => leaveFrequency(false)}
             className="w-8 h-8 flex items-center justify-center rounded-lg bg-rose-500/20 border border-rose-500/30 text-rose-400 hover:bg-rose-500/30 transition-all"
             title="Leave Channel"
           >
