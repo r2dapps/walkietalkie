@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { radioApi, RadioStation } from '../services/radioApi';
+import FMEqualizer from './FMEqualizer';
 
 export default function FMRadioView() {
   const { setAppMode } = useAppContext();
@@ -182,6 +183,11 @@ export default function FMRadioView() {
                   <span key={tag} className="text-[10px] bg-black/40 border border-amber-900/50 text-amber-200/80 px-2 py-0.5 rounded font-mono uppercase tracking-wider">{tag}</span>
                 ))}
               </div>
+            </div>
+
+            {/* HUD Telemetry Equalizer */}
+            <div className="w-full max-w-md px-4 mb-4">
+              <FMEqualizer audioElement={audioRef.current} isPlaying={isPlaying} />
             </div>
 
             {/* Retro Analog Controls */}
