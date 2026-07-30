@@ -270,6 +270,35 @@ class AudioEngine {
     noise.start();
   }
 
+  playTuningStatic(): void {
+    if (!this.ctx) return;
+    // Generate brief white noise for channel tuning
+    const bufferSize = this.ctx.sampleRate * 0.4; // 400ms burst
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+    
+    // Bandpass to sound like radio static
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 2500;
+    
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.38);
+    
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.ctx.destination);
+    
+    noise.start();
+  }
+
   playPttClickSound(): void {
     if (!this.ctx) return;
     const osc = this.ctx.createOscillator();

@@ -190,6 +190,11 @@ export function useApp() {
     try {
       // Ensure we leave any active room before joining a new one to prevent ghost connections
       leaveFrequency(true);
+      
+      // Play a realistic radio tuning static burst
+      if (storage.audioPrefs.sfxEnabled) {
+        audioEngine.playTuningStatic();
+      }
 
       const stream = await audioEngine.getMicrophoneStream();
       localStreamRef.current = stream;
