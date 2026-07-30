@@ -273,7 +273,8 @@ class AudioEngine {
   playTuningStatic(): void {
     if (!this.ctx) return;
     // Generate brief white noise for channel tuning
-    const bufferSize = this.ctx.sampleRate * 0.4; // 400ms burst
+    const duration = 0.5; // 500ms blend
+    const bufferSize = this.ctx.sampleRate * duration;
     const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i++) {
@@ -289,14 +290,19 @@ class AudioEngine {
     filter.frequency.value = 2500;
     
     const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.38);
+    const now = this.ctx.currentTime;
+    gain.gain.setValueAtTime(0.001, now);
+    // Smooth fade in
+    gain.gain.exponentialRampToValueAtTime(0.06, now + 0.1);
+    // Smooth fade out
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration - 0.05);
     
     noise.connect(filter);
     filter.connect(gain);
     gain.connect(this.ctx.destination);
     
-    noise.start();
+    noise.start(now);
+    noise.stop(now + duration);
   }
 
   playPttClickSound(): void {

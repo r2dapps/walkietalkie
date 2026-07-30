@@ -37,7 +37,7 @@ export default function App() {
           '🔄 App update available! Tap to refresh.',
           'info',
           8000,
-          () => window.location.reload()
+          () => pwaService.forceUpdateApp()
         );
       } else if (event.data?.type === 'NAVIGATE' && event.data?.view) {
         setActiveTab(event.data.view);
