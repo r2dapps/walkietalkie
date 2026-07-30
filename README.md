@@ -172,4 +172,5 @@ We use Git tags to mark stable releases and major architecture shifts.
 | Tag | Description |
 |---|---|
 | `v1.0.0` | Initial stable release. Features global rooms, P2P audio, themes, and basic config. Saved before migrating to the Multi-Channel Squad architecture. |
+| `v1.1.0` | Tactical Radio UI Polish update. Added FM Radio filters (Language & Genre), custom background blending for light themes, and Notification-click routing to Chat. |
 
