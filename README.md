@@ -162,3 +162,14 @@ src/
 - **iOS Safari Background:** Push notifications do not wake the device when the app is fully closed on iOS (browser limitation). A native wrapper (Capacitor/Cordova) would be required for full OS-level notifications on iOS.
 - **Offline-First LAN:** True offline LAN support requires a local STUN/TURN relay and Firebase emulator.
 - **Admin Portal Auth:** The admin portal currently relies on a secret key — consider moving to Firebase Auth for production.
+
+---
+
+## 🏷️ Version History & Tags
+
+We use Git tags to mark stable releases and major architecture shifts.
+
+| Tag | Description |
+|---|---|
+| `v1.0.0` | Initial stable release. Features global rooms, P2P audio, themes, and basic config. Saved before migrating to the Multi-Channel Squad architecture. |
+
