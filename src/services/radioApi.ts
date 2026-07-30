@@ -11,12 +11,16 @@ export class RadioApi {
   // We use de1.api.radio-browser.info as one of the many community endpoints
   private baseUrl = 'https://de1.api.radio-browser.info/json';
 
-  async getIndianStations(limit: number = 30): Promise<RadioStation[]> {
+  async searchStations(options: { language?: string; tag?: string; name?: string; limit?: number } = {}): Promise<RadioStation[]> {
     try {
-      // Prioritize Telugu stations for the user's region
-      const response = await fetch(
-        `${this.baseUrl}/stations/search?language=telugu&limit=${limit}&hidebroken=true&order=clickcount&reverse=true`
-      );
+      const { language = 'telugu', tag = '', name = '', limit = 30 } = options;
+      
+      let url = `${this.baseUrl}/stations/search?limit=${limit}&hidebroken=true&order=clickcount&reverse=true`;
+      if (language !== 'all') url += `&language=${encodeURIComponent(language)}`;
+      if (tag) url += `&tag=${encodeURIComponent(tag)}`;
+      if (name) url += `&name=${encodeURIComponent(name)}`;
+      
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch radio stations');
       }

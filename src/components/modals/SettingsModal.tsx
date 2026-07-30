@@ -125,7 +125,7 @@ export default function SettingsModal() {
           </div>
 
           {/* Profile Header Card Display */}
-          <div className="flex items-center space-x-4 bg-black/30 p-3 rounded-lg border border-white/5">
+          <div className="flex items-center space-x-4 bg-white/5 p-3 rounded-lg border border-white/5">
             <div className="w-16 h-16 rounded-full bg-[var(--accent)]/20 border-2 border-[var(--accent)] flex items-center justify-center text-2xl text-[var(--accent)] shrink-0 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
               <i className={`fa-solid fa-${profile.avatar || 'radio'}`}></i>
             </div>
@@ -156,7 +156,7 @@ export default function SettingsModal() {
                 onChange={e => setLocalDisplayName(e.target.value)}
                 onBlur={() => storage.updateProfile({ displayName: localDisplayName })}
                 placeholder="e.g. Captain Alex Vance"
-                className="w-full bg-black/40 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-[var(--accent)] font-sans"
+                className="w-full bg-white/10 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-[var(--accent)] font-sans"
               />
             </div>
 
@@ -170,7 +170,7 @@ export default function SettingsModal() {
                 onChange={e => setLocalCallsign(e.target.value.replace(/[^a-zA-Z0-9_-]/g, ''))}
                 onBlur={() => storage.updateProfile({ callsign: localCallsign || 'Operator-1' })}
                 placeholder="e.g. Operator-1"
-                className="w-full bg-black/40 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-[var(--accent)] font-mono"
+                className="w-full bg-white/10 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-[var(--accent)] font-mono"
               />
             </div>
           </div>
@@ -186,7 +186,7 @@ export default function SettingsModal() {
                   className={`aspect-square rounded-lg flex items-center justify-center text-lg transition-all border ${
                     profile.avatar === icon 
                       ? 'bg-[var(--accent)] text-[var(--bg)] border-[var(--accent)] shadow-[0_0_10px_rgba(6,182,212,0.5)] scale-105' 
-                      : 'bg-black/30 text-slate-400 border-white/10 hover:border-white/30 hover:text-white'
+                      : 'bg-white/5 text-slate-400 border-white/10 hover:border-white/30 hover:text-white'
                   }`}
                 >
                   <i className={`fa-solid fa-${icon}`}></i>
@@ -201,7 +201,7 @@ export default function SettingsModal() {
               type="text"
               value={profile.status || ''}
               onChange={e => storage.updateProfile({ status: e.target.value })}
-              className="w-full bg-black/40 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-[var(--accent)]"
+              className="w-full bg-white/10 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-[var(--accent)]"
               placeholder="e.g. Monitoring frequency"
             />
           </div>
@@ -363,7 +363,7 @@ export default function SettingsModal() {
           
           <div className="space-y-2">
             {presets.map(p => (
-              <div key={p.id} className="flex items-center justify-between bg-black/40 border border-white/10 rounded px-3 py-2">
+              <div key={p.id} className="flex items-center justify-between bg-white/10 border border-white/10 rounded px-3 py-2">
                 <div className="flex flex-col">
                   <span className="text-sm font-bold text-white">{p.label} <span className="text-emerald-400 text-xs">({p.freq} MHz)</span></span>
                   <span className="text-[10px] text-slate-400 font-mono">Room: #{p.room}</span>
@@ -392,14 +392,14 @@ export default function SettingsModal() {
                 placeholder="Label (e.g. SQUAD-1)"
                 value={newPresetLabel}
                 onChange={e => setNewPresetLabel(e.target.value)}
-                className="bg-black/40 border border-white/10 rounded py-1.5 px-2 text-xs text-white"
+                className="bg-white/10 border border-white/10 rounded py-1.5 px-2 text-xs text-white"
               />
               <input 
                 type="text"
                 placeholder="Freq (e.g. 145.200)"
                 value={newPresetFreq}
                 onChange={e => setNewPresetFreq(e.target.value)}
-                className="bg-black/40 border border-white/10 rounded py-1.5 px-2 text-xs text-white"
+                className="bg-white/10 border border-white/10 rounded py-1.5 px-2 text-xs text-white"
               />
             </div>
             <div className="flex space-x-2">
@@ -408,7 +408,7 @@ export default function SettingsModal() {
                 placeholder="Room Name (secret key)"
                 value={newPresetRoom}
                 onChange={e => setNewPresetRoom(e.target.value.replace(/[^a-zA-Z0-9-]/g, ''))}
-                className="flex-1 bg-black/40 border border-white/10 rounded py-1.5 px-2 text-xs text-white"
+                className="flex-1 bg-white/10 border border-white/10 rounded py-1.5 px-2 text-xs text-white"
               />
               <button 
                 onClick={() => {
@@ -446,7 +446,7 @@ export default function SettingsModal() {
               maxLength={4}
               value={currentPinInput}
               onChange={e => setCurrentPinInput(e.target.value.replace(/\D/g, ''))}
-              className="w-full bg-black/40 border border-white/10 rounded-lg py-2 px-3 text-sm text-white tracking-widest font-mono"
+              className="w-full bg-white/10 border border-white/10 rounded-lg py-2 px-3 text-sm text-white tracking-widest font-mono"
             />
             <div className="flex space-x-2">
               <input 

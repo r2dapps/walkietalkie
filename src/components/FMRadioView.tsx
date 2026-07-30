@@ -11,14 +11,19 @@ export default function FMRadioView() {
   const [volume, setVolume] = useState(1);
   const audioRef = useRef<HTMLAudioElement>(null);
   
+  const [language, setLanguage] = useState('telugu');
+  const [genre, setGenre] = useState('');
+
   useEffect(() => {
     const fetchStations = async () => {
-      const data = await radioApi.getIndianStations(25);
+      setLoading(true);
+      const data = await radioApi.searchStations({ language, tag: genre, limit: 30 });
       setStations(data.filter(s => s.url)); // ensure URL exists
+      setCurrentIndex(0);
       setLoading(false);
     };
     fetchStations();
-  }, []);
+  }, [language, genre]);
 
   const currentStation = stations[currentIndex];
 
@@ -80,7 +85,7 @@ export default function FMRadioView() {
 
   return (
     <div className="flex flex-col h-full bg-[var(--bg)] relative pb-safe">
-      <div className="absolute top-4 left-4 z-10">
+      <div className="absolute top-4 left-4 right-4 z-10 flex space-x-2">
         <button 
           onClick={() => {
             if (audioRef.current) audioRef.current.pause();
@@ -89,8 +94,36 @@ export default function FMRadioView() {
           className="px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-xs text-white hover:bg-white/10 flex items-center space-x-1.5 font-mono shadow-lg backdrop-blur-md"
         >
           <i className="fa-solid fa-arrow-left"></i>
-          <span>Exit Radio</span>
+          <span className="hidden sm:inline">Exit</span>
         </button>
+        
+        <select 
+          value={language} 
+          onChange={e => setLanguage(e.target.value)}
+          className="bg-black/40 border border-white/10 text-white text-xs px-2 py-1.5 rounded-lg font-mono outline-none focus:border-[var(--accent)] backdrop-blur-md flex-1 max-w-[120px]"
+        >
+          <option value="telugu">Telugu</option>
+          <option value="hindi">Hindi</option>
+          <option value="english">English</option>
+          <option value="tamil">Tamil</option>
+          <option value="malayalam">Malayalam</option>
+          <option value="kannada">Kannada</option>
+          <option value="all">Global</option>
+        </select>
+        
+        <select 
+          value={genre} 
+          onChange={e => setGenre(e.target.value)}
+          className="bg-black/40 border border-white/10 text-white text-xs px-2 py-1.5 rounded-lg font-mono outline-none focus:border-[var(--accent)] backdrop-blur-md flex-1 max-w-[120px]"
+        >
+          <option value="">All Genres</option>
+          <option value="music">Music</option>
+          <option value="news">News</option>
+          <option value="talk">Talk</option>
+          <option value="devotional">Devotional</option>
+          <option value="classical">Classical</option>
+          <option value="pop">Pop</option>
+        </select>
       </div>
 
       {loading ? (
