@@ -174,3 +174,47 @@ We use Git tags to mark stable releases and major architecture shifts.
 | `v1.0.0` | Initial stable release. Features global rooms, P2P audio, themes, and basic config. Saved before migrating to the Multi-Channel Squad architecture. |
 | `v1.1.0` | Tactical Radio UI Polish update. Added FM Radio filters (Language & Genre), custom background blending for light themes, and Notification-click routing to Chat. |
 
+---
+
+## 📖 Complete Beginner's Guide: How to Create a FREE Firebase Database (Pin-to-Pin)
+
+If you have **never used Firebase before**, follow these exact step-by-step instructions. It takes less than 2 minutes, is 100% free forever, and requires no credit card!
+
+### Step 1: Open Firebase Console
+1. Open your web browser and go to [https://console.firebase.google.com/](https://console.firebase.google.com/).
+2. Log in with any standard Google (Gmail) account.
+
+### Step 2: Create a New Project
+1. Click the big **"+ Add project"** button (or "Create a project").
+2. Type a name for your project (e.g., `walkietalkie-app`).
+3. Click **Continue**.
+4. Disable **Google Analytics** (toggle switch off) to keep it simple, then click **Create project**.
+5. Wait 10 seconds for Google to set up your project, then click **Continue**.
+
+### Step 3: Create a Realtime Database Instance
+1. In the left-hand sidebar, click **Build** -> then select **Realtime Database**.
+2. Click the blue **"Create Database"** button in the center of the page.
+3. **Database Location**: Choose `Asia South (Mumbai)` or `United States` (closest to you), then click **Next**.
+4. **Security Rules**: Select **Start in test mode**, then click **Enable**.
+
+### Step 4: Copy Your Realtime Database Credentials
+1. You will now see your database dashboard.
+2. At the top of the page, copy the URL string that looks like this:
+   `https://your-project-name-default-rtdb.asia-southeast1.firebasedatabase.app` (or ending in `.firebaseio.com`).
+3. Put this URL in your `.env` file under `VITE_FIREBASE_DATABASE_URL`!
+
+### Step 5: Make Database Rules Permanent (So It Never Expires)
+1. Click on the **Rules** tab at the top of your Realtime Database dashboard.
+2. Replace the text in the code editor with this exact JSON block:
+   ```json
+   {
+     "rules": {
+       ".read": true,
+       ".write": true
+     }
+   }
+   ```
+3. Click **Publish** at the top right. 
+4. Done! Your AetherTalk tactical channels are now active 24/7/365 with zero cost!
+
+
