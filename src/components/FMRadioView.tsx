@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { radioApi, RadioStation } from '../services/radioApi';
-import FMEqualizer from './FMEqualizer';
 
 export default function FMRadioView() {
   const { setAppMode } = useAppContext();
@@ -84,15 +83,25 @@ export default function FMRadioView() {
     setIsPlaying(!isPlaying);
   };
 
+  // Calculate needle position based on current station index (88 MHz to 108 MHz mapping conceptually)
+  const needlePosition = stations.length > 1 
+    ? (currentIndex / (stations.length - 1)) * 100 
+    : 50;
+
   return (
-    <div className="flex flex-col h-full bg-[var(--bg)] relative pb-safe">
+    <div className="flex flex-col h-full bg-[#1a0f0c] relative pb-safe overflow-hidden font-serif">
+      {/* Overriding the global background with a pure vintage woodgrain/bakelite look */}
+      <div className="absolute inset-0 pointer-events-none opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 50% 0%, #5d4037 0%, transparent 70%)' }}></div>
+      <div className="absolute inset-0 pointer-events-none opacity-10" style={{ background: 'repeating-linear-gradient(45deg, transparent, transparent 2px, #000 2px, #000 4px)' }}></div>
+      
+      {/* Top Navbar */}
       <div className="absolute top-4 left-4 right-4 z-10 flex space-x-2">
         <button 
           onClick={() => {
             if (audioRef.current) audioRef.current.pause();
             setAppMode('home');
           }}
-          className="px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-xs text-white hover:bg-white/10 flex items-center space-x-1.5 font-mono shadow-lg backdrop-blur-md"
+          className="px-3 py-1.5 rounded bg-black/60 border border-amber-900/50 text-xs text-amber-500 hover:bg-black/80 flex items-center space-x-1.5 shadow-[inset_0_1px_2px_rgba(255,255,255,0.1)] transition-colors"
         >
           <i className="fa-solid fa-arrow-left"></i>
           <span className="hidden sm:inline">Exit</span>
@@ -101,7 +110,7 @@ export default function FMRadioView() {
         <select 
           value={language} 
           onChange={e => setLanguage(e.target.value)}
-          className="bg-black/40 border border-white/10 text-white text-xs px-2 py-1.5 rounded-lg font-mono outline-none focus:border-[var(--accent)] backdrop-blur-md flex-1 max-w-[120px]"
+          className="bg-black/60 border border-amber-900/50 text-amber-500 text-xs px-2 py-1.5 rounded outline-none focus:border-amber-600 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] flex-1 max-w-[120px] font-sans"
         >
           <option value="telugu">Telugu</option>
           <option value="hindi">Hindi</option>
@@ -115,7 +124,7 @@ export default function FMRadioView() {
         <select 
           value={genre} 
           onChange={e => setGenre(e.target.value)}
-          className="bg-black/40 border border-white/10 text-white text-xs px-2 py-1.5 rounded-lg font-mono outline-none focus:border-[var(--accent)] backdrop-blur-md flex-1 max-w-[120px]"
+          className="bg-black/60 border border-amber-900/50 text-amber-500 text-xs px-2 py-1.5 rounded outline-none focus:border-amber-600 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] flex-1 max-w-[120px] font-sans"
         >
           <option value="">All Genres</option>
           <option value="music">Music</option>
@@ -129,89 +138,90 @@ export default function FMRadioView() {
 
       {loading ? (
         <div className="flex-1 flex flex-col items-center justify-center space-y-4">
-          <i className="fa-solid fa-tower-broadcast animate-ping text-3xl text-[var(--accent)]"></i>
-          <p className="font-mono text-slate-400 text-sm tracking-widest uppercase">Scanning FM Frequencies...</p>
+          <i className="fa-solid fa-compass animate-spin text-4xl text-amber-600/50"></i>
+          <p className="font-mono text-amber-600/70 text-sm tracking-widest uppercase">Tuning Receiver...</p>
         </div>
       ) : stations.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center space-y-4">
-          <i className="fa-solid fa-triangle-exclamation text-3xl text-amber-500"></i>
-          <p className="font-mono text-slate-400 text-sm">Failed to locate radio streams.</p>
+          <i className="fa-solid fa-plug text-4xl text-red-900/50"></i>
+          <p className="font-mono text-red-900/70 text-sm">Static. No signal found.</p>
         </div>
       ) : (
         <>
-          {/* Top Half: Player UI (Retro Analog Radio Style) */}
-          <div className="flex-1 flex flex-col items-center justify-center pt-16 pb-8 px-6 bg-gradient-to-b from-[#5d4037] to-[#271005] border-b-[12px] border-[#3e2723] shadow-[inset_0_0_50px_rgba(0,0,0,0.8)]">
+          {/* Top Half: Radio Body (Vintage Analog) */}
+          <div className="flex-1 flex flex-col items-center justify-center pt-16 pb-6 px-6 z-0">
             
-            {/* Retro Speaker Grill / Screen */}
-            <div className="w-40 h-40 rounded-full bg-[#1c1a17] border-[6px] border-[#8d6e63] shadow-[0_0_30px_rgba(0,0,0,0.9),inset_0_0_20px_rgba(0,0,0,1)] flex items-center justify-center overflow-hidden mb-8 relative">
-              <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#fff 2px, transparent 2px)', backgroundSize: '8px 8px' }}></div>
+            {/* Station Branding & Dial */}
+            <div className="w-full max-w-md bg-[#251511] p-4 rounded-lg shadow-[0_10px_20px_rgba(0,0,0,0.8),inset_0_2px_3px_rgba(255,255,255,0.05)] border border-[#3e2723]">
               
-              {currentStation?.favicon ? (
-                <img src={currentStation.favicon} alt="Station" className="w-24 h-24 object-contain rounded-full bg-amber-100/10 p-2 z-10" onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23333"/><text x="50" y="55" font-family="sans-serif" font-size="20" fill="white" text-anchor="middle">FM</text></svg>';
-                }} />
-              ) : (
-                <i className="fa-solid fa-radio text-6xl text-[#d7ccc8] z-10"></i>
-              )}
-              {isPlaying && (
-                <div className="absolute inset-0 ring-8 ring-amber-500/30 animate-pulse rounded-full pointer-events-none z-20"></div>
-              )}
-            </div>
-
-            <div className="text-center w-full max-w-sm mb-10 flex flex-col items-center">
-              <div className="flex items-center justify-center space-x-3 mb-2">
-                {isPlaying && (
-                  <div className="flex space-x-1 h-6 items-end">
-                    <div className="w-1.5 bg-amber-400 animate-[bounce_1s_infinite] h-full" style={{ animationDuration: '0.7s' }}></div>
-                    <div className="w-1.5 bg-amber-500 animate-[bounce_1s_infinite] h-full" style={{ animationDuration: '1.2s' }}></div>
-                    <div className="w-1.5 bg-amber-600 animate-[bounce_1s_infinite] h-full" style={{ animationDuration: '0.9s' }}></div>
-                  </div>
-                )}
-                <h2 className="text-3xl font-black text-amber-100 font-serif tracking-wide truncate max-w-[200px] drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
-                  {currentStation?.name || 'Analog Tuner'}
+              {/* Station Info */}
+              <div className="flex flex-col items-center justify-center mb-6 h-24">
+                <h2 className="text-3xl font-black text-amber-50 text-center tracking-wide line-clamp-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                  {currentStation?.name || 'Tuner'}
                 </h2>
-                {isPlaying && (
-                  <div className="flex space-x-1 h-6 items-end">
-                    <div className="w-1.5 bg-amber-600 animate-[bounce_1s_infinite] h-full" style={{ animationDuration: '0.8s' }}></div>
-                    <div className="w-1.5 bg-amber-500 animate-[bounce_1s_infinite] h-full" style={{ animationDuration: '1.1s' }}></div>
-                    <div className="w-1.5 bg-amber-400 animate-[bounce_1s_infinite] h-full" style={{ animationDuration: '0.6s' }}></div>
-                  </div>
-                )}
+                <div className="flex justify-center flex-wrap gap-2 mt-2 h-5 overflow-hidden">
+                  {currentStation?.tags.map(tag => (
+                    <span key={tag} className="text-[9px] bg-black/60 border border-amber-900/40 text-amber-600 px-2 py-0.5 rounded-sm font-sans uppercase tracking-widest shadow-[inset_0_1px_1px_rgba(0,0,0,1)]">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <div className="flex justify-center flex-wrap gap-2 px-2 h-6 overflow-hidden">
-                {currentStation?.tags.map(tag => (
-                  <span key={tag} className="text-[10px] bg-black/40 border border-amber-900/50 text-amber-200/80 px-2 py-0.5 rounded font-mono uppercase tracking-wider">{tag}</span>
-                ))}
+
+              {/* Classic Analog Tuning Dial */}
+              <div className="w-full h-16 bg-[#110a08] rounded shadow-[inset_0_5px_15px_rgba(0,0,0,1)] border-b border-white/5 relative overflow-hidden px-2 mb-2">
+                <div className="absolute inset-0 opacity-10 bg-amber-500 blur-md pointer-events-none"></div>
+                
+                {/* Scale markings */}
+                <div className="absolute top-0 bottom-0 left-4 right-4 flex justify-between items-center opacity-40">
+                  <div className="h-full flex flex-col justify-between py-1"><span className="text-[10px] text-amber-500">88</span><div className="h-2 w-px bg-amber-500"></div></div>
+                  <div className="h-full flex flex-col justify-end py-1"><div className="h-1 w-px bg-amber-500"></div></div>
+                  <div className="h-full flex flex-col justify-between py-1"><span className="text-[10px] text-amber-500">92</span><div className="h-2 w-px bg-amber-500"></div></div>
+                  <div className="h-full flex flex-col justify-end py-1"><div className="h-1 w-px bg-amber-500"></div></div>
+                  <div className="h-full flex flex-col justify-between py-1"><span className="text-[10px] text-amber-500">96</span><div className="h-2 w-px bg-amber-500"></div></div>
+                  <div className="h-full flex flex-col justify-end py-1"><div className="h-1 w-px bg-amber-500"></div></div>
+                  <div className="h-full flex flex-col justify-between py-1"><span className="text-[10px] text-amber-500">100</span><div className="h-2 w-px bg-amber-500"></div></div>
+                  <div className="h-full flex flex-col justify-end py-1"><div className="h-1 w-px bg-amber-500"></div></div>
+                  <div className="h-full flex flex-col justify-between py-1"><span className="text-[10px] text-amber-500">104</span><div className="h-2 w-px bg-amber-500"></div></div>
+                  <div className="h-full flex flex-col justify-end py-1"><div className="h-1 w-px bg-amber-500"></div></div>
+                  <div className="h-full flex flex-col justify-between py-1"><span className="text-[10px] text-amber-500">108</span><div className="h-2 w-px bg-amber-500"></div></div>
+                </div>
+
+                {/* Moving Needle */}
+                <div 
+                  className="absolute top-0 bottom-0 w-[2px] bg-red-500 shadow-[0_0_10px_rgba(239,68,68,1)] transition-all duration-700 ease-in-out z-10"
+                  style={{ left: `calc(1rem + ${needlePosition}% * 0.9)` }} // 0.9 to pad the edges
+                >
+                  <div className="absolute -top-1 -left-1 w-2.5 h-2.5 rounded-full bg-red-600 shadow-[0_0_5px_rgba(239,68,68,1)]"></div>
+                </div>
               </div>
             </div>
 
-            {/* HUD Telemetry Equalizer */}
-            <div className="w-full max-w-md px-4 mb-4">
-              <FMEqualizer audioElement={audioRef.current} isPlaying={isPlaying} />
-            </div>
-
-            {/* Retro Analog Controls */}
-            <div className="flex flex-col items-center justify-center space-y-8 mt-4">
-              <div className="flex items-center justify-center space-x-10">
-                <button onClick={tunePrev} className="w-14 h-14 rounded-full bg-gradient-to-br from-[#d7ccc8] to-[#8d6e63] text-black flex items-center justify-center transition-all active:scale-95 shadow-[0_5px_15px_rgba(0,0,0,0.6),inset_0_2px_2px_rgba(255,255,255,0.8)] border border-[#3e2723]">
-                  <i className="fa-solid fa-backward text-xl drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]"></i>
+            {/* Tactile Controls */}
+            <div className="flex flex-col items-center justify-center mt-10 space-y-8">
+              <div className="flex items-center justify-center space-x-8">
+                {/* Prev Button */}
+                <button onClick={tunePrev} className="w-16 h-16 rounded-full bg-[#1e1310] text-[#8d6e63] flex items-center justify-center active:scale-95 transition-transform shadow-[0_8px_15px_rgba(0,0,0,0.8),inset_0_2px_4px_rgba(255,255,255,0.05)] border-2 border-[#110a08]">
+                  <i className="fa-solid fa-backward-step text-xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]"></i>
                 </button>
 
+                {/* Play/Pause Button */}
                 <button 
                   onClick={togglePlay} 
-                  className={`w-24 h-24 rounded-full flex items-center justify-center transition-all active:scale-95 border border-[#3e2723] ${isPlaying ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-black shadow-[0_5px_25px_rgba(245,158,11,0.6),inset_0_2px_2px_rgba(255,255,255,0.5)]' : 'bg-gradient-to-br from-[#d7ccc8] to-[#8d6e63] text-black shadow-[0_5px_15px_rgba(0,0,0,0.6),inset_0_2px_2px_rgba(255,255,255,0.8)]'}`}
+                  className={`w-24 h-24 rounded-full flex items-center justify-center active:scale-95 transition-all border-4 border-[#110a08] ${isPlaying ? 'bg-[#3e2723] text-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.2),inset_0_2px_8px_rgba(0,0,0,1)]' : 'bg-[#1e1310] text-[#d7ccc8] shadow-[0_10px_20px_rgba(0,0,0,0.8),inset_0_2px_4px_rgba(255,255,255,0.05)]'}`}
                 >
-                  <i className={`fa-solid ${isPlaying ? 'fa-pause' : 'fa-power-off'} text-4xl drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]`}></i>
+                  <i className={`fa-solid ${isPlaying ? 'fa-pause' : 'fa-power-off'} text-3xl drop-shadow-[0_2px_2px_rgba(0,0,0,1)] ${isPlaying ? 'animate-pulse' : ''}`}></i>
                 </button>
 
-                <button onClick={tuneNext} className="w-14 h-14 rounded-full bg-gradient-to-br from-[#d7ccc8] to-[#8d6e63] text-black flex items-center justify-center transition-all active:scale-95 shadow-[0_5px_15px_rgba(0,0,0,0.6),inset_0_2px_2px_rgba(255,255,255,0.8)] border border-[#3e2723]">
-                  <i className="fa-solid fa-forward text-xl drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]"></i>
+                {/* Next Button */}
+                <button onClick={tuneNext} className="w-16 h-16 rounded-full bg-[#1e1310] text-[#8d6e63] flex items-center justify-center active:scale-95 transition-transform shadow-[0_8px_15px_rgba(0,0,0,0.8),inset_0_2px_4px_rgba(255,255,255,0.05)] border-2 border-[#110a08]">
+                  <i className="fa-solid fa-forward-step text-xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]"></i>
                 </button>
               </div>
 
               {/* Volume Slider */}
-              <div className="flex items-center space-x-3 w-full max-w-[200px] bg-black/40 px-4 py-2 rounded-full border border-amber-900/50">
-                <i className="fa-solid fa-volume-low text-amber-200/50 text-xs"></i>
+              <div className="flex items-center space-x-4 w-full max-w-[220px] bg-[#110a08] px-4 py-3 rounded shadow-[inset_0_2px_5px_rgba(0,0,0,1)] border-b border-white/5">
+                <i className="fa-solid fa-volume-off text-amber-900 text-sm"></i>
                 <input 
                   type="range" 
                   min="0" 
@@ -219,17 +229,21 @@ export default function FMRadioView() {
                   step="0.01" 
                   value={volume}
                   onChange={(e) => setVolume(parseFloat(e.target.value))}
-                  className="w-full h-1 bg-amber-900/50 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                  className="w-full h-1.5 bg-black rounded-full appearance-none cursor-pointer accent-amber-600 shadow-[inset_0_1px_2px_rgba(0,0,0,1)]"
                 />
-                <i className="fa-solid fa-volume-high text-amber-200/80 text-xs"></i>
+                <i className="fa-solid fa-volume-high text-amber-700 text-sm"></i>
               </div>
             </div>
           </div>
 
-          {/* Bottom Half: Station List */}
-          <div className="h-64 bg-[var(--panel)] border-t border-white/5 overflow-y-auto px-4 py-2 shrink-0">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 mt-2 px-2">Top FM Frequencies</h3>
-            <div className="space-y-1 pb-4">
+          {/* Bottom Half: Station List (Perforated Speaker Mesh Aesthetic) */}
+          <div className="h-64 bg-[#0a0605] border-t-4 border-[#3e2723] overflow-y-auto px-4 py-3 shrink-0 relative shadow-[inset_0_10px_20px_rgba(0,0,0,1)] z-0">
+            {/* Speaker mesh texture overlay */}
+            <div className="absolute inset-0 pointer-events-none opacity-20" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '4px 4px' }}></div>
+            
+            <h3 className="text-xs font-bold text-amber-900/80 uppercase tracking-[0.2em] mb-4 mt-2 px-2 font-sans relative z-10 text-center">Available Frequencies</h3>
+            
+            <div className="space-y-2 pb-4 relative z-10">
               {stations.map((station, index) => (
                 <button
                   key={station.id}
@@ -238,24 +252,26 @@ export default function FMRadioView() {
                     setCurrentIndex(index);
                     setIsPlaying(true);
                   }}
-                  className={`w-full text-left px-3 py-3 rounded-lg flex items-center space-x-3 transition-colors ${index === currentIndex ? 'bg-[var(--accent)]/10 border border-[var(--accent)]/30' : 'hover:bg-white/5 border border-transparent'}`}
+                  className={`w-full text-left px-4 py-3 rounded flex items-center space-x-4 transition-all ${index === currentIndex ? 'bg-[#251511] border border-amber-900/50 shadow-[0_2px_10px_rgba(0,0,0,0.8),inset_0_1px_2px_rgba(255,255,255,0.05)]' : 'bg-[#110a08] border border-transparent hover:bg-[#1a0f0c] shadow-[inset_0_2px_5px_rgba(0,0,0,0.8)]'}`}
                 >
-                  <div className="w-8 h-8 rounded bg-black/40 flex items-center justify-center overflow-hidden shrink-0">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden shrink-0 border-2 ${index === currentIndex ? 'border-amber-600 bg-amber-900/20' : 'border-amber-900/30 bg-black/50'}`}>
                     {station.favicon ? (
-                      <img src={station.favicon} className="w-full h-full object-cover bg-white" onError={(e) => { (e.target as any).style.display = 'none'; }} />
+                      <img src={station.favicon} className="w-full h-full object-cover p-1.5" onError={(e) => { (e.target as any).style.display = 'none'; }} />
                     ) : (
-                      <i className="fa-solid fa-music text-[10px] text-slate-500"></i>
+                      <i className={`fa-solid fa-music text-xs ${index === currentIndex ? 'text-amber-500' : 'text-amber-900/50'}`}></i>
                     )}
                   </div>
                   <div className="flex-1 overflow-hidden">
-                    <div className={`font-bold text-sm truncate ${index === currentIndex ? 'text-[var(--accent)]' : 'text-white'}`}>{station.name}</div>
-                    <div className="text-[10px] text-slate-500 font-mono truncate uppercase">{station.tags.join(' • ') || 'FM Radio'}</div>
+                    <div className={`font-bold text-base truncate ${index === currentIndex ? 'text-amber-500 drop-shadow-[0_0_5px_rgba(245,158,11,0.5)]' : 'text-amber-900'}`}>
+                      {station.name}
+                    </div>
+                    <div className="text-[10px] text-amber-900/60 font-sans truncate uppercase tracking-wider">{station.tags.join(' • ') || 'FM Radio'}</div>
                   </div>
                   {index === currentIndex && isPlaying && (
-                    <div className="flex space-x-0.5 shrink-0">
-                      <div className="w-1 h-3 bg-[var(--accent)] animate-[bounce_1s_infinite]"></div>
-                      <div className="w-1 h-3 bg-[var(--accent)] animate-[bounce_1s_infinite_0.2s]"></div>
-                      <div className="w-1 h-3 bg-[var(--accent)] animate-[bounce_1s_infinite_0.4s]"></div>
+                    <div className="flex space-x-1 shrink-0">
+                      <div className="w-1.5 h-4 bg-amber-600 rounded-sm animate-[pulse_1s_infinite]"></div>
+                      <div className="w-1.5 h-4 bg-amber-600 rounded-sm animate-[pulse_1s_infinite_0.3s]"></div>
+                      <div className="w-1.5 h-4 bg-amber-600 rounded-sm animate-[pulse_1s_infinite_0.6s]"></div>
                     </div>
                   )}
                 </button>
