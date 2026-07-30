@@ -17,14 +17,14 @@ export default function FrequencyScanner({ embedded = false }: FrequencyScannerP
 
   const hashStr = (str: string) => {
     let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    const lowerStr = str.toLowerCase();
+    for (let i = 0; i < lowerStr.length; i++) {
+      hash = ((hash << 5) - hash) + lowerStr.charCodeAt(i);
       hash |= 0; 
     }
     return Math.abs(hash);
   };
   
-  const hashStr = (s: string) => s.toLowerCase().split('').reduce((a, c) => a + c.charCodeAt(0), 0);
   const freqNum = hashStr(currentRoom);
   const mhzBase = 144 + (freqNum % 4);
   const khzPartStr = ((freqNum * 125) % 995).toString().padStart(3, '0');
