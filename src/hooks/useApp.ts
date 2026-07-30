@@ -93,7 +93,8 @@ export function useApp() {
         audioEngine.playPingSiren();
         
         notificationService.notify('Squad Ping', {
-          body: `${senderName} is requesting you to join frequency #${ping.room}`
+          body: `${senderName} is requesting you to join frequency #${ping.room}`,
+          data: { view: 'chat' }
         });
         showToast(`${senderName} pinged you to join #${ping.room}`, 'info');
       });
@@ -119,7 +120,10 @@ export function useApp() {
           return [...prev, { id, sender, text, timestamp, isMine: false }];
         });
         setUnreadCount(c => c + 1);
-        notificationService.notify('New Message', { body: `${sender}: ${text}` });
+        notificationService.notify('New Message', { 
+          body: `${sender}: ${text}`,
+          data: { view: 'chat' }
+        });
       },
       onChannelBusy: (speakerName) => {
         // toast channel busy

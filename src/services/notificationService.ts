@@ -32,10 +32,14 @@ export class NotificationService {
             });
           });
         } else {
-          new Notification(title, {
+          const n = new Notification(title, {
             icon: import.meta.env.BASE_URL + 'icon.svg',
             ...options
           });
+          n.onclick = () => {
+            window.focus();
+            window.dispatchEvent(new CustomEvent('notification-clicked', { detail: options }));
+          };
         }
       } catch (e) {}
     }

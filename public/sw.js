@@ -95,5 +95,24 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  event.waitUntil(self.clients.openWindow('/walkietalkie/'));
+  const urlToOpen = new URL('/walkietalkie/?view=chat', self.location.origin).href;
+  
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      let matchingClient = null;
+      for (let i = 0; i < windowClients.length; i++) {
+        const windowClient = windowClients[i];
+        if (windowClient.url.includes('/walkietalkie/')) {
+          matchingClient = windowClient;
+          break;
+        }
+      }
+      if (matchingClient) {
+        matchingClient.postMessage({ type: 'NAVIGATE', view: 'chat' });
+        return matchingClient.focus();
+      } else {
+        return self.clients.openWindow(urlToOpen);
+      }
+    })
+  );
 });

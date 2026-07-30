@@ -39,9 +39,26 @@ export default function App() {
           8000,
           () => window.location.reload()
         );
+      } else if (event.data?.type === 'NAVIGATE' && event.data?.view) {
+        setActiveTab(event.data.view);
       }
     };
     navigator.serviceWorker?.addEventListener('message', handleSwMessage);
+
+    // Listen for custom event from local notification
+    const handleLocalNav = (e: any) => {
+      if (e.detail?.data?.view) {
+        setActiveTab(e.detail.data.view);
+      }
+    };
+    window.addEventListener('notification-clicked', handleLocalNav);
+
+    // Parse URL on load for direct navigation
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('view')) {
+      setActiveTab(params.get('view')!);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
 
     // Auto-lock when app is hidden or closed (only if a PIN has been set)
     const autoLock = () => {
@@ -59,6 +76,7 @@ export default function App() {
     return () => {
       window.removeEventListener('hashchange', handleHash);
       navigator.serviceWorker?.removeEventListener('message', handleSwMessage);
+      window.removeEventListener('notification-clicked', handleLocalNav);
       document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('beforeunload', autoLock);
       window.removeEventListener('pagehide', autoLock);
