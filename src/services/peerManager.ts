@@ -74,6 +74,33 @@ export class PeerManager {
     }, 3000);
   }
 
+  private localBroadcastChannel: any = null;
+
+  public initLocalHotspotMode(room: string, callsign: string) {
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        this.localBroadcastChannel = new BroadcastChannel('aethertalk_hotspot_channel');
+        this.localBroadcastChannel.onmessage = (evt: any) => {
+          const data = evt.data;
+          if (data && data.type === 'HOTSPOT_ANNOUNCE' && data.room === sanitizeRoom(room) && data.peerId !== this.myPeerId) {
+            this.connectToPeer(data.peerId);
+          }
+        };
+
+        setInterval(() => {
+          if (this.localBroadcastChannel && this.myPeerId) {
+            this.localBroadcastChannel.postMessage({
+              type: 'HOTSPOT_ANNOUNCE',
+              room: sanitizeRoom(room),
+              callsign: sanitizeCallsign(callsign),
+              peerId: this.myPeerId
+            });
+          }
+        }, 3000);
+      }
+    } catch(e) {}
+  }
+
   public initPeer(room: string, callsign: string, stream: MediaStream): Promise<string> {
     return new Promise((resolve, reject) => {
       this.localStream = stream;
@@ -81,6 +108,8 @@ export class PeerManager {
       const sCall = sanitizeCallsign(callsign);
       const rand5 = Math.random().toString(36).substring(2, 7);
       this.myPeerId = `wt-${sRoom}-${sCall}-${rand5}`;
+
+      this.initLocalHotspotMode(room, callsign);
 
       if (typeof Peer === 'undefined') {
         reject(new Error("PeerJS not loaded from CDN"));
