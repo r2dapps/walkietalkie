@@ -3,123 +3,86 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>VR Telemedicine Consultation Portal</title>
+  <title>Doctor VR Consultation Portal</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Firebase App & Database SDKs for Real P2P WebRTC Signaling -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
-  <!-- Navigation Bar -->
-  <nav class="navbar">
-    <div class="brand">
-      <div class="brand-icon">
+  <!-- Screen 1: Room Start Screen -->
+  <div id="startScreen" class="screen-container">
+    <div class="card start-card">
+      <div class="brand-logo">
         <i class="fa-solid fa-user-md"></i>
       </div>
-      <div>
-        <div class="brand-title">AetherCare Portal</div>
-        <div style="font-size: 0.7rem; color: var(--text-secondary);">Telemedicine Gateway</div>
-      </div>
-    </div>
-    
-    <div class="status-badge" id="sessionStatus">
-      <div class="pulse-dot"></div>
-      <span id="statusText">Ready</span>
-    </div>
-  </nav>
+      <h2>Doctor VR Consultation</h2>
+      <p class="subtitle">Real-time WebRTC Video Gateway for Meta Quest 3 & Unity</p>
 
-  <!-- Control Panel -->
-  <div class="control-panel">
-    
-    <!-- Mode Switcher -->
-    <div class="mode-toggle">
-      <button class="mode-btn active" id="modeCase1">Case 1: Doctor Web App ↔ Meta Quest 3 VR</button>
-      <button class="mode-btn" id="modeCase2">Case 2: VR ↔ VR / PC</button>
-    </div>
-
-    <!-- Doctor Room Key & Expiration Info -->
-    <div class="room-key-box">
-      <div>
-        <div style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase;">Doctor Room Key</div>
-        <div class="room-key-display" id="roomKeyDisplay">DOC-8921</div>
-      </div>
-      
-      <div class="expiry-tag">
-        <i class="fa-solid fa-clock"></i> Expires: <span id="expiryTime">12:00 AM IST</span>
+      <div class="form-group">
+        <label for="roomInput"><i class="fa-solid fa-key"></i> Doctor Room Key</label>
+        <div class="input-with-btn">
+          <input type="text" id="roomInput" value="DOC-8921" placeholder="Enter Room Key">
+          <button id="btnGenerateKey" class="btn-icon" title="Generate New Key"><i class="fa-solid fa-rotate"></i></button>
+        </div>
+        <div class="expiry-info">
+          <i class="fa-solid fa-clock"></i> Valid until <span id="expiryTimeText">12:00 AM IST</span>
+        </div>
       </div>
 
-      <button class="btn btn-secondary" id="btnGenKey" style="margin-left: auto; min-width: auto; padding: 0.4rem 0.8rem; font-size: 0.75rem;">
-        <i class="fa-solid fa-rotate"></i> New Key
-      </button>
-    </div>
+      <div class="form-group">
+        <label for="firebaseUrlInput"><i class="fa-solid fa-database"></i> Firebase DB URL (Signaling)</label>
+        <input type="text" id="firebaseUrlInput" value="https://aethertalk-default-rtdb.firebaseio.com" placeholder="https://your-app.firebaseio.com">
+      </div>
 
-    <!-- Doctor Session Controllers -->
-    <div class="action-buttons">
-      <button class="btn btn-primary" id="btnStartCamera">
-        <i class="fa-solid fa-camera"></i> Enable Camera
-      </button>
-
-      <button class="btn btn-success" id="btnStartConsultation">
-        <i class="fa-solid fa-play"></i> Start Consultation
-      </button>
-
-      <button class="btn btn-danger" id="btnEndConsultation">
-        <i class="fa-solid fa-stop"></i> End & Next Patient
+      <button id="btnJoinRoom" class="btn btn-primary btn-block">
+        <i class="fa-solid fa-circle-play"></i> Start Doctor Session
       </button>
     </div>
   </div>
 
-  <!-- Main Video Grid -->
-  <main class="main-container">
+  <!-- Screen 2: Active Video Call Screen (Full Screen Mobile Layout) -->
+  <div id="callScreen" class="screen-container" style="display: none;">
     
-    <!-- Doctor Local Video Feed -->
-    <div class="video-card">
-      <div class="card-header">
-        <div class="card-title">
-          <i class="fa-solid fa-user-doctor" style="color: var(--accent-cyan);"></i>
-          <span id="leftCardTitle">Doctor Camera Stream (1080p)</span>
-        </div>
-        <span style="font-size: 0.7rem; color: var(--accent-emerald);" id="doctorLiveBadge">OFFLINE</span>
+    <!-- Full Screen Background: Incoming VR Stream from Unity/Quest 3 -->
+    <div class="vr-stream-container">
+      <video id="remoteVrVideo" autoplay playsinline class="vr-video-full"></video>
+      
+      <!-- Placeholder when VR is not yet connected -->
+      <div id="vrConnectingOverlay" class="vr-overlay font-sans">
+        <div class="spinner"></div>
+        <h3>Waiting for Unity VR Connection...</h3>
+        <p>Open Unity on Laptop/Quest 3 and connect using Key: <strong id="displayRoomKey">DOC-8921</strong></p>
       </div>
 
-      <div class="video-viewport">
-        <div class="placeholder-text" id="doctorPlaceholder">
-          <i class="fa-solid fa-video-slash" style="font-size: 2rem; opacity: 0.4;"></i>
-          <span>Click "Enable Camera" above to start streaming</span>
+      <!-- Top Overlay Bar -->
+      <div class="top-overlay">
+        <div class="room-pill">
+          <span class="pulse-dot"></span>
+          <span id="activeRoomTag">DOC-8921</span>
         </div>
-        <video id="doctorVideo" autoplay playsinline muted style="display: none;"></video>
+
+        <button id="btnCopyLink" class="pill-btn"><i class="fa-solid fa-copy"></i> Copy Key</button>
       </div>
 
-      <div class="card-footer">
-        <span>Format: WebRTC / H.264</span>
-        <span>Resolution: 1920x1080 @ 30fps</span>
+      <!-- Floating Picture-in-Picture: Doctor Local Camera Stream -->
+      <div class="floating-pip" id="doctorPip">
+        <video id="localDoctorVideo" autoplay playsinline muted></video>
+        <div class="pip-label">Doctor (You)</div>
+      </div>
+
+      <!-- Floating Controls Bar (Bottom) -->
+      <div class="bottom-controls">
+        <button id="btnToggleMic" class="control-btn"><i class="fa-solid fa-microphone"></i></button>
+        <button id="btnToggleCam" class="control-btn"><i class="fa-solid fa-video"></i></button>
+        <button id="btnFlipCam" class="control-btn"><i class="fa-solid fa-camera-rotate"></i></button>
+        <button id="btnEndSession" class="control-btn btn-end"><i class="fa-solid fa-phone-slash"></i></button>
       </div>
     </div>
 
-    <!-- Patient Meta Quest 3 Stream -->
-    <div class="video-card">
-      <div class="card-header">
-        <div class="card-title">
-          <i class="fa-solid fa-vr-cardboard" style="color: var(--accent-emerald);"></i>
-          <span id="rightCardTitle">Patient Meta Quest 3 VR View</span>
-        </div>
-        <span style="font-size: 0.7rem; color: var(--text-secondary);" id="vrStatusBadge">Idle</span>
-      </div>
-
-      <div class="video-viewport">
-        <div class="placeholder-text" id="vrPlaceholder">
-          <i class="fa-solid fa-headset" style="font-size: 2rem; opacity: 0.4;"></i>
-          <span>Waiting for Meta Quest 3 connection with Key <strong id="waitRoomKey" style="color: var(--accent-cyan);">DOC-8921</strong></span>
-        </div>
-        <canvas id="vrCanvas" style="display: none;"></canvas>
-      </div>
-
-      <div class="card-footer">
-        <span>Latency: <strong id="latencyText" style="color: var(--accent-emerald);">22 ms</strong></span>
-        <span>Target: Quest 3 / Quest 3S</span>
-      </div>
-    </div>
-
-  </main>
+  </div>
 
   <script src="app.js"></script>
 </body>

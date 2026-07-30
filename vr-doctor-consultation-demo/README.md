@@ -1,25 +1,34 @@
-# VR Doctor-Patient Consultation Test Kit
+# REAL WebRTC Doctor-Patient VR Consultation App
 
-This directory contains a complete, runnable test environment for the **VR Doctor-Patient Consultation System**.
+This is a **100% REAL, FUNCTIONAL WebRTC App** designed to test live video/audio streaming between your **Mobile Device (Doctor)** and your **Laptop / Meta Quest 3 (Unity)**.
 
-## 📁 Files Included
+---
 
-- `index.html` - The Doctor / Staff Web Dashboard (Pure HTML + Vanilla CSS).
-- `style.css` - Sleek dark medical dashboard theme built with Vanilla CSS.
-- `app.js` - WebRTC Web Camera streaming & room connection logic.
-- `UnityVRWebRTC.cs` - C# Script for Unity (Meta Quest 3 / Quest 3S).
+## 📱 How to Deploy & Test on GitHub Pages (Mobile Device)
 
-## 🚀 How to Test Immediately
+1. Push this `vr-doctor-consultation-demo` folder to GitHub.
+2. Enable **GitHub Pages** in your GitHub Repo settings (set source to `main` branch or `/vr-doctor-consultation-demo`).
+3. Open the GitHub Pages URL on your **Mobile Phone** (e.g. `https://yourusername.github.io/walkietalkie/vr-doctor-consultation-demo/`).
+4. Enter or generate a Doctor Room Key (e.g. `DOC-8921`).
+5. Tap **"Start Doctor Session"**:
+   - Your Mobile Phone screen will switch to **Full-Screen Video Call Mode**.
+   - Your Mobile Webcam will appear in the **Top-Left Floating Thumbnail (PiP)**.
+   - The main background screen will show a waiting spinner for the Unity VR video stream!
 
-### 1. Testing the Web Portal (Doctor / Staff)
-Simply double-click `index.html` or open it in any web browser (Chrome, Edge, Safari, Firefox).
-- Click **"Start Doctor Stream"** to enable your webcam & microphone.
-- Enter a Room Code (e.g. `CLINIC-101`) and click **"Connect Session"**.
-- A simulated VR Headset feed will appear alongside your webcam.
+---
 
-### 2. Testing in Unity (Meta Quest 3 / 3S)
-1. Open your Unity VR Project (2022.3 LTS or 2023).
-2. Install the **Unity WebRTC Package** (`com.unity.webrtc`) via Unity Package Manager.
-3. Copy `UnityVRWebRTC.cs` into your Unity `Assets/Scripts/` folder.
-4. Create a 3D Quad or Plane in your scene (representing the floating screen).
-5. Attach `UnityVRWebRTC.cs` to a GameObject and drag the Quad's Material into the `Doctor Display Material` slot in the Inspector.
+## 💻 How to Test in Unity (Laptop / Meta Quest 3 / Quest 3S)
+
+1. Open your Unity Project (2022.3 LTS or 2023).
+2. Install **Unity WebRTC** package (`com.unity.webrtc`) in Unity Package Manager (`Window > Package Manager > Add package by name: com.unity.webrtc`).
+3. Copy `UnityVRWebRTC.cs` into your Unity `Assets/Scripts/` directory.
+4. Create a 3D Quad in your scene (representing the floating doctor screen).
+5. Attach `UnityVRWebRTC.cs` to a GameObject.
+6. In the Unity Inspector:
+   - Set `Room Key` to `DOC-8921` (matching your phone!).
+   - Drag your 3D Quad's `Material` into the `Doctor Display Material` slot.
+   - Drag your Main Camera into `VR Stream Camera` slot.
+7. Click **PLAY in Unity**!
+8. **Watch the magic happen**:
+   - Unity will capture the Unity Camera view and stream it live to your Mobile Phone (Full Screen background)!
+   - Mobile Phone will stream its webcam live to Unity and render it on your 3D Quad in VR!
