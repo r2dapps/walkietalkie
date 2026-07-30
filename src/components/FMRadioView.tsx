@@ -30,7 +30,7 @@ export default function FMRadioView() {
   const playStatic = () => {
     // Generate brief white noise
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const bufferSize = ctx.sampleRate * 0.3; // 300ms
+    const bufferSize = ctx.sampleRate * 0.6; // 600ms
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i++) {
@@ -39,14 +39,14 @@ export default function FMRadioView() {
     const noise = ctx.createBufferSource();
     noise.buffer = buffer;
     
-    // Lowpass filter
+    // Lowpass filter to make it sound like thick analog static
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
-    filter.frequency.value = 2000;
+    filter.frequency.value = 3500;
     
     const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.1, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.4, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
     
     noise.connect(filter);
     filter.connect(gain);
