@@ -192,7 +192,7 @@ export function useApp() {
       leaveFrequency(true);
       
       // Play a realistic radio tuning static burst
-      if (storage.audioPrefs.sfxEnabled) {
+      if (storage.audioPrefs.squelch) {
         audioEngine.playTuningStatic();
       }
 

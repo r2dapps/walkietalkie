@@ -47,9 +47,10 @@ export default function FMRadioView() {
     
     const gain = ctx.createGain();
     const now = ctx.currentTime;
-    gain.gain.setValueAtTime(0.001, now);
-    gain.gain.exponentialRampToValueAtTime(0.12, now + 0.1);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + duration - 0.05);
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.15, now + 0.1);
+    gain.gain.setValueAtTime(0.15, now + duration - 0.1);
+    gain.gain.linearRampToValueAtTime(0, now + duration);
     
     noise.connect(filter);
     filter.connect(gain);

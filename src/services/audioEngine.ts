@@ -291,11 +291,12 @@ class AudioEngine {
     
     const gain = this.ctx.createGain();
     const now = this.ctx.currentTime;
-    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.setValueAtTime(0, now);
     // Smooth fade in
-    gain.gain.exponentialRampToValueAtTime(0.06, now + 0.1);
+    gain.gain.linearRampToValueAtTime(0.08, now + 0.1);
     // Smooth fade out
-    gain.gain.exponentialRampToValueAtTime(0.001, now + duration - 0.05);
+    gain.gain.setValueAtTime(0.08, now + duration - 0.1);
+    gain.gain.linearRampToValueAtTime(0, now + duration);
     
     noise.connect(filter);
     filter.connect(gain);
