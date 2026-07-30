@@ -9,7 +9,7 @@ const ICE_SERVERS = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  // DOM Elements
+  // DOM Elements with safe lookups
   const startScreen = document.getElementById('startScreen');
   const callScreen = document.getElementById('callScreen');
   const roomInput = document.getElementById('roomInput');
@@ -39,8 +39,14 @@ document.addEventListener('DOMContentLoaded', () => {
   let isVideoOff = false;
   let facingMode = 'user'; // 'user' or 'environment'
 
+  // Warn if running on file:/// protocol
+  if (window.location.protocol === 'file:') {
+    console.warn("⚠️ Warning: Running on file:/// protocol. WebRTC Camera & Firebase require HTTP/HTTPS (e.g. GitHub Pages) to function properly.");
+  }
+
   // 1. Expiry Time Calculation (12:00 AM IST)
   function updateExpiryDisplay() {
+    if (!expiryTimeText) return;
     const now = new Date();
     const istOffset = 5.5 * 60 * 60 * 1000;
     const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
@@ -55,48 +61,56 @@ document.addEventListener('DOMContentLoaded', () => {
   updateExpiryDisplay();
 
   // 2. Generate Random Room Key
-  btnGenerateKey.addEventListener('click', () => {
-    const rand = Math.floor(1000 + Math.random() * 9000);
-    roomInput.value = `DOC-${rand}`;
-  });
+  if (btnGenerateKey && roomInput) {
+    btnGenerateKey.addEventListener('click', () => {
+      const rand = Math.floor(1000 + Math.random() * 9000);
+      roomInput.value = `DOC-${rand}`;
+    });
+  }
 
   // 3. Copy Room Key
-  btnCopyLink.addEventListener('click', () => {
-    navigator.clipboard.writeText(currentRoomId);
-    btnCopyLink.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
-    setTimeout(() => btnCopyLink.innerHTML = '<i class="fa-solid fa-copy"></i> Copy Key', 2000);
-  });
+  if (btnCopyLink) {
+    btnCopyLink.addEventListener('click', () => {
+      navigator.clipboard.writeText(currentRoomId);
+      btnCopyLink.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+      setTimeout(() => btnCopyLink.innerHTML = '<i class="fa-solid fa-copy"></i> Copy Key', 2000);
+    });
+  }
 
   // 4. Start Doctor Session & WebRTC Setup
-  btnJoinRoom.addEventListener('click', async () => {
-    currentRoomId = roomInput.value.trim().toUpperCase() || 'DOC-8921';
-    const firebaseUrl = firebaseUrlInput.value.trim();
+  if (btnJoinRoom) {
+    btnJoinRoom.addEventListener('click', async () => {
+      currentRoomId = (roomInput ? roomInput.value.trim().toUpperCase() : '') || 'DOC-8921';
+      const firebaseUrl = firebaseUrlInput ? firebaseUrlInput.value.trim() : '';
 
-    if (!firebaseUrl) {
-      alert('Please provide a Firebase Database URL!');
-      return;
-    }
-
-    displayRoomKey.textContent = currentRoomId;
-    activeRoomTag.textContent = currentRoomId;
-
-    // Initialize Firebase
-    try {
-      if (!firebase.apps.length) {
-        firebase.initializeApp({ databaseURL: firebaseUrl });
+      if (!firebaseUrl) {
+        alert('Please provide a Firebase Database URL!');
+        return;
       }
-      firebaseDb = firebase.database();
-    } catch (e) {
-      console.warn("Firebase Init fallback:", e);
-    }
 
-    // Switch to Full Screen Call UI
-    startScreen.style.display = 'none';
-    callScreen.style.display = 'flex';
+      if (displayRoomKey) displayRoomKey.textContent = currentRoomId;
+      if (activeRoomTag) activeRoomTag.textContent = currentRoomId;
 
-    // Start WebRTC Connection
-    await initWebRTC();
-  });
+      // Initialize Firebase
+      try {
+        if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+          firebase.initializeApp({ databaseURL: firebaseUrl });
+        }
+        if (typeof firebase !== 'undefined') {
+          firebaseDb = firebase.database();
+        }
+      } catch (e) {
+        console.warn("Firebase Init fallback:", e);
+      }
+
+      // Switch to Full Screen Call UI
+      if (startScreen) startScreen.style.display = 'none';
+      if (callScreen) callScreen.style.display = 'flex';
+
+      // Start WebRTC Connection
+      await initWebRTC();
+    });
+  }
 
   async function initWebRTC() {
     pc = new RTCPeerConnection(ICE_SERVERS);
@@ -107,23 +121,29 @@ document.addEventListener('DOMContentLoaded', () => {
         video: { facingMode: facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
         audio: true
       });
-      localDoctorVideo.srcObject = localStream;
+      if (localDoctorVideo) localDoctorVideo.srcObject = localStream;
       
       // Add local tracks to WebRTC
       localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
     } catch (err) {
       console.error("Camera access failed", err);
-      alert("Could not access camera/mic: " + err.message);
+      if (window.location.protocol === 'file:') {
+        alert("Camera permission blocked on file:// protocol. Please host on GitHub Pages or HTTPS!");
+      } else {
+        alert("Could not access camera/mic: " + err.message);
+      }
     }
 
     // Listen for Incoming VR Stream from Unity/Quest 3
     pc.ontrack = (event) => {
       console.log("Remote VR Video Track Received!", event.streams);
-      if (event.streams && event.streams[0]) {
+      if (event.streams && event.streams[0] && remoteVrVideo) {
         remoteVrVideo.srcObject = event.streams[0];
-        vrConnectingOverlay.style.display = 'none'; // Hide waiting spinner
+        if (vrConnectingOverlay) vrConnectingOverlay.style.display = 'none'; // Hide waiting spinner
       }
     };
+
+    if (!firebaseDb) return;
 
     // Firebase Signaling Setup
     const roomRef = firebaseDb.ref(`telemedicine_rooms/${currentRoomId}`);
@@ -174,33 +194,41 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 5. Controls Logic
-  btnToggleMic.addEventListener('click', () => {
-    if (!localStream) return;
-    isAudioMuted = !isAudioMuted;
-    localStream.getAudioTracks().forEach(t => t.enabled = !isAudioMuted);
-    btnToggleMic.classList.toggle('off', isAudioMuted);
-    btnToggleMic.innerHTML = `<i class="fa-solid ${isAudioMuted ? 'fa-microphone-slash' : 'fa-microphone'}"></i>`;
-  });
+  if (btnToggleMic) {
+    btnToggleMic.addEventListener('click', () => {
+      if (!localStream) return;
+      isAudioMuted = !isAudioMuted;
+      localStream.getAudioTracks().forEach(t => t.enabled = !isAudioMuted);
+      btnToggleMic.classList.toggle('off', isAudioMuted);
+      btnToggleMic.innerHTML = `<i class="fa-solid ${isAudioMuted ? 'fa-microphone-slash' : 'fa-microphone'}"></i>`;
+    });
+  }
 
-  btnToggleCam.addEventListener('click', () => {
-    if (!localStream) return;
-    isVideoOff = !isVideoOff;
-    localStream.getVideoTracks().forEach(t => t.enabled = !isVideoOff);
-    btnToggleCam.classList.toggle('off', isVideoOff);
-    btnToggleCam.innerHTML = `<i class="fa-solid ${isVideoOff ? 'fa-video-slash' : 'fa-video'}"></i>`;
-  });
+  if (btnToggleCam) {
+    btnToggleCam.addEventListener('click', () => {
+      if (!localStream) return;
+      isVideoOff = !isVideoOff;
+      localStream.getVideoTracks().forEach(t => t.enabled = !isVideoOff);
+      btnToggleCam.classList.toggle('off', isVideoOff);
+      btnToggleCam.innerHTML = `<i class="fa-solid ${isVideoOff ? 'fa-video-slash' : 'fa-video'}"></i>`;
+    });
+  }
 
-  btnFlipCam.addEventListener('click', async () => {
-    facingMode = facingMode === 'user' ? 'environment' : 'user';
-    if (localStream) {
-      localStream.getTracks().forEach(t => t.stop());
-    }
-    await initWebRTC();
-  });
+  if (btnFlipCam) {
+    btnFlipCam.addEventListener('click', async () => {
+      facingMode = facingMode === 'user' ? 'environment' : 'user';
+      if (localStream) {
+        localStream.getTracks().forEach(t => t.stop());
+      }
+      await initWebRTC();
+    });
+  }
 
-  btnEndSession.addEventListener('click', () => {
-    if (pc) pc.close();
-    if (localStream) localStream.getTracks().forEach(t => t.stop());
-    location.reload();
-  });
+  if (btnEndSession) {
+    btnEndSession.addEventListener('click', () => {
+      if (pc) pc.close();
+      if (localStream) localStream.getTracks().forEach(t => t.stop());
+      location.reload();
+    });
+  }
 });
