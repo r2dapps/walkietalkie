@@ -1,7 +1,9 @@
 # AetherTalk — Tactical Walkie-Talkie
 
-> **A high-fidelity, real-time Push-to-Talk voice communication platform for the web.** Built with a military-grade tactical aesthetic, AetherTalk works across the internet, on LAN networks, and installs as a standalone PWA on any device.
+> **© 2026 Razel Tech. All Rights Reserved.**
+> This repository and its contents are proprietary and confidential. Unauthorized copying, distribution, or commercial use is strictly prohibited.
 
+> **A high-fidelity, real-time Push-to-Talk voice communication platform for the web.** Built with a military-grade tactical aesthetic, AetherTalk works across the internet, on LAN networks, and installs as a standalone PWA on any device.
 ---
 
 ## ✨ Feature Overview
