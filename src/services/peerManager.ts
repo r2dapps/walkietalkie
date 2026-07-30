@@ -1,6 +1,7 @@
 import { PeerInfo } from '../types';
 import { getProfile } from './storageService';
 import { audioEngine } from './audioEngine';
+import { LocalWebRTCEngine } from './localWebRTCEngine';
 
 declare var Peer: any;
 
@@ -109,6 +110,26 @@ export class PeerManager {
     } catch(e) {}
   }
 
+  private setupPeerEvents(resolve: (id: string) => void) {
+    this.peer.on('open', (id: string) => {
+      this.startPingLoop();
+      resolve(id);
+    });
+
+    this.peer.on('call', (call: any) => {
+      call.answer(this.localStream);
+      this.handleCall(call);
+    });
+
+    this.peer.on('connection', (conn: any) => {
+      this.handleDataConnection(conn);
+    });
+
+    this.peer.on('error', (err: any) => {
+      console.error('Peer error:', err);
+    });
+  }
+
   public initPeer(room: string, callsign: string, stream: MediaStream): Promise<string> {
     return new Promise((resolve, reject) => {
       this.localStream = stream;
@@ -119,33 +140,33 @@ export class PeerManager {
 
       this.initLocalHotspotMode(room, callsign);
 
-      if (typeof Peer === 'undefined') {
-        reject(new Error("PeerJS not loaded from CDN"));
-        return;
+      if (!navigator.onLine) {
+        console.log("[AetherTalk] No internet detected. Booting True Zero-Internet LocalWebRTCEngine...");
+        this.peer = new LocalWebRTCEngine(this.myPeerId, this.localStream);
+        this.setupPeerEvents(resolve);
+      } else {
+        if (typeof Peer === 'undefined') {
+          reject(new Error("PeerJS not loaded from CDN"));
+          return;
+        }
+
+        this.peer = new Peer(this.myPeerId, {
+          config: { iceServers: ICE_SERVERS },
+          debug: 1
+        });
+
+        this.setupPeerEvents(resolve);
+
+        // Fallback if cloud PeerJS fails to connect within 5s (e.g. dummy wifi router with no internet)
+        setTimeout(() => {
+          if (!this.peer || this.peer.disconnected) {
+            console.log("[AetherTalk] PeerJS cloud unreachable. Switching to True Zero-Internet LocalWebRTCEngine...");
+            if (this.peer) this.peer.destroy();
+            this.peer = new LocalWebRTCEngine(this.myPeerId, this.localStream);
+            this.setupPeerEvents(resolve);
+          }
+        }, 5000);
       }
-
-      this.peer = new Peer(this.myPeerId, {
-        config: { iceServers: ICE_SERVERS },
-        debug: 1
-      });
-
-      this.peer.on('open', (id: string) => {
-        this.startPingLoop();
-        resolve(id);
-      });
-
-      this.peer.on('call', (call: any) => {
-        call.answer(this.localStream);
-        this.handleCall(call);
-      });
-
-      this.peer.on('connection', (conn: any) => {
-        this.handleDataConnection(conn);
-      });
-
-      this.peer.on('error', (err: any) => {
-        console.error('Peer error:', err);
-      });
     });
   }
 
