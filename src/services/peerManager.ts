@@ -75,10 +75,18 @@ export class PeerManager {
   }
 
   private localBroadcastChannel: any = null;
+  private hotspotInterval: number | null = null;
 
   public initLocalHotspotMode(room: string, callsign: string) {
     try {
       if (typeof BroadcastChannel !== 'undefined') {
+        if (this.localBroadcastChannel) {
+          this.localBroadcastChannel.close();
+        }
+        if (this.hotspotInterval) {
+          window.clearInterval(this.hotspotInterval);
+        }
+
         this.localBroadcastChannel = new BroadcastChannel('aethertalk_hotspot_channel');
         this.localBroadcastChannel.onmessage = (evt: any) => {
           const data = evt.data;
@@ -87,7 +95,7 @@ export class PeerManager {
           }
         };
 
-        setInterval(() => {
+        this.hotspotInterval = window.setInterval(() => {
           if (this.localBroadcastChannel && this.myPeerId) {
             this.localBroadcastChannel.postMessage({
               type: 'HOTSPOT_ANNOUNCE',
@@ -360,6 +368,14 @@ export class PeerManager {
     if (this.pingInterval) {
       window.clearInterval(this.pingInterval);
       this.pingInterval = null;
+    }
+    if (this.hotspotInterval) {
+      window.clearInterval(this.hotspotInterval);
+      this.hotspotInterval = null;
+    }
+    if (this.localBroadcastChannel) {
+      this.localBroadcastChannel.close();
+      this.localBroadcastChannel = null;
     }
     if (this.isTransmitting) this.stopTransmission();
     Object.keys(this.activeCalls).forEach(id => this.cleanupPeer(id));
