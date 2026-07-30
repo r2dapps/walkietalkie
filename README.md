@@ -90,7 +90,10 @@
 ### Does it work on LAN?
 **Yes.** If all devices are on the same WiFi/LAN network, WebRTC will establish a **direct local connection** (usually < 5ms latency). No internet is required for the P2P audio stream itself.
 
-> **Note:** Firebase (used for signaling/room discovery) requires internet to sync operator presence. For true offline LAN-only use, you would need to run a local STUN/TURN server and self-host a Firebase emulator.
+### True Zero-Internet Hotspot Mode
+**New Feature:** AetherTalk now features a custom **True Zero-Internet Local WebRTC Engine**. 
+If you have **0 internet access** (e.g. mobile data is turned off, or you are connected to a dummy Wi-Fi router in the woods), AetherTalk automatically bypasses both Firebase and PeerJS cloud servers. 
+It uses HTML5 `BroadcastChannel` to blast WebRTC handshakes directly across the local network to discover and connect with other operators. **100% offline, grid-down capability.**
 
 ### Does it work across the internet?
 **Yes.** WebRTC will use STUN/TURN servers to punch through NAT firewalls. This works between operators on completely different networks, cities, or countries.
