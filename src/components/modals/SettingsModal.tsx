@@ -315,27 +315,40 @@ export default function SettingsModal() {
             <i className="fa-solid fa-palette"></i>
             <span>Theme & Visual Styling</span>
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-4 sm:grid-cols-5 gap-3 mt-4">
             {[
-              { id: 'tactical-dark', label: 'Tactical Dark' },
-              { id: 'techtalkie-oled', label: 'TechTalkie OLED' },
-              { id: 'cyber-neon', label: 'Cyber Neon' },
-              { id: 'glassmorphism', label: 'Glassmorphism Blue' },
-              { id: 'creamy-vanilla', label: 'Creamy Vanilla' },
-              { id: 'desert-camo', label: 'Desert Camo' },
-              { id: 'stealth-black', label: 'Stealth Black' }
+              { id: 'tactical-dark', label: 'Tactical', color: '#06b6d4', bg: '#090d16' },
+              { id: 'techtalkie-oled', label: 'OLED', color: '#3b82f6', bg: '#050811' },
+              { id: 'cyber-neon', label: 'Neon', color: '#a855f7', bg: '#090614' },
+              { id: 'glassmorphism', label: 'Glass', color: '#3a86ff', bg: '#0b132b' },
+              { id: 'creamy-vanilla', label: 'Vanilla', color: '#d97706', bg: '#f7f3e9' },
+              { id: 'desert-camo', label: 'Desert', color: '#f59e0b', bg: '#1a1208' },
+              { id: 'stealth-black', label: 'Stealth', color: '#64748b', bg: '#000000' },
+              { id: 'bubblegum-pink', label: 'Bubblegum', color: '#ec4899', bg: '#fdf2f8' },
+              { id: 'unicorn-magic', label: 'Unicorn', color: '#8b5cf6', bg: '#f5f3ff' }
             ].map(t => (
               <button
                 key={t.id}
                 onClick={() => storage.updateTheme(t.id as ThemeName)}
-                className={`py-2.5 px-3 rounded-lg text-xs font-bold font-mono border text-left transition-all ${
-                  theme === t.id 
-                    ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/15 shadow-[0_0_10px_rgba(6,182,212,0.3)]' 
-                    : 'border-white/10 text-slate-300 bg-black/20 hover:bg-white/5'
-                }`}
+                title={t.label}
+                className="flex flex-col items-center gap-1.5 transition-all group"
               >
-                <i className="fa-solid fa-circle-dot mr-2 text-[10px]"></i>
-                {t.label}
+                <div 
+                  className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all ${
+                    theme === t.id 
+                      ? 'scale-110 shadow-[0_0_15px_var(--accent)]' 
+                      : 'border-white/10 group-hover:border-white/30 group-hover:scale-105'
+                  }`}
+                  style={{ 
+                    backgroundColor: t.bg,
+                    borderColor: theme === t.id ? t.color : undefined
+                  }}
+                >
+                  <div className="w-4 h-4 rounded-full" style={{ backgroundColor: t.color }}></div>
+                </div>
+                <span className={`text-[9px] font-mono font-bold uppercase tracking-wider ${theme === t.id ? 'text-[var(--accent)]' : 'text-slate-400'}`}>
+                  {t.label}
+                </span>
               </button>
             ))}
           </div>

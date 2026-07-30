@@ -290,6 +290,35 @@ class AudioEngine {
     osc.stop(now + 0.03);
   }
 
+  playPingSiren(): void {
+    if (!this.ctx) {
+      this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 48000 });
+    }
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    
+    osc.type = 'square';
+    const now = this.ctx.currentTime;
+    
+    // Siren effect: rapid high-low modulation
+    for (let i = 0; i < 4; i++) {
+      osc.frequency.setValueAtTime(800, now + i * 0.2);
+      osc.frequency.setValueAtTime(1200, now + i * 0.2 + 0.1);
+    }
+    
+    // Low volume
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.03, now + 0.01);
+    gain.gain.setValueAtTime(0.03, now + 0.75);
+    gain.gain.linearRampToValueAtTime(0, now + 0.8);
+    
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    
+    osc.start(now);
+    osc.stop(now + 0.8);
+  }
+
   playPeerJoinChime(): void {
     if (!this.ctx) return;
     this.playChimes([440, 660, 880]);

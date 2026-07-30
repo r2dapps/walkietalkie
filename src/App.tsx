@@ -8,6 +8,8 @@ import ChatModal from './components/modals/ChatModal';
 import PeersModal from './components/modals/PeersModal';
 import SettingsModal from './components/modals/SettingsModal';
 import SquadView from './components/SquadView';
+import HomeView from './components/HomeView';
+import FMRadioView from './components/FMRadioView';
 import AppLockModal from './components/modals/AppLockModal';
 import ToastManager from './components/ui/ToastManager';
 import { pwaService } from './services/pwaService';
@@ -77,7 +79,31 @@ export default function App() {
     );
   }
 
-  // If not joined, always show SetupView regardless of tab
+  if (state.appMode === 'home') {
+    return (
+      <>
+        <HomeView />
+        <AppLockModal />
+        <ToastManager />
+      </>
+    );
+  }
+
+  if (state.appMode === 'fm') {
+    return (
+      <>
+        <div className="flex flex-col h-full w-full bg-[var(--bg)] overflow-hidden">
+          <div className="flex-1 overflow-hidden relative">
+            <FMRadioView />
+          </div>
+        </div>
+        <AppLockModal />
+        <ToastManager />
+      </>
+    );
+  }
+
+  // If Walkie-Talkie Mode but not joined, show SetupView
   if (!state.isJoined) {
     return (
       <>

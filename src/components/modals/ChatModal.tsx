@@ -75,15 +75,26 @@ export default function ChatModal() {
             const displayName = msg.isMine ? (state.profile.displayName || state.myCallsign) : (peerInfo?.displayName || msg.sender);
             const displayStr = displayName !== msg.sender && !msg.isMine ? `${displayName} (${msg.sender})` : displayName;
 
+            if (msg.sender === 'SYSTEM') {
+              return (
+                <div key={msg.id || i} className="flex justify-center my-2">
+                  <div className="bg-white/5 border border-white/10 text-slate-400 text-[10px] font-mono tracking-widest uppercase px-3 py-1 rounded-full flex items-center space-x-1.5">
+                    <i className="fa-solid fa-tower-broadcast"></i>
+                    <span>{msg.text}</span>
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <div key={msg.id || i} className={`flex flex-col ${msg.isMine ? 'items-end' : 'items-start'}`}>
                 <div className="text-[10px] text-slate-500 mb-1 ml-1 font-mono uppercase">
                   {displayStr} • {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
                 <div className={`px-4 py-2 rounded-xl max-w-[85%] text-sm ${msg.isMine ? 'bg-[var(--accent)] text-[var(--bg)] rounded-tr-sm font-medium' : 'bg-[var(--panel)] border border-white/10 text-white rounded-tl-sm'}`}>
-                {msg.text}
+                  {msg.text}
+                </div>
               </div>
-            </div>
             );
           })
         )}

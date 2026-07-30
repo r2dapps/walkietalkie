@@ -55,6 +55,95 @@
     --accent: #d97706;
   }
 
+  body[data-theme="bubblegum-pink"] {
+    --bg: #fdf2f8;
+    --panel: #fce7f3;
+    --accent: #ec4899;
+  }
+
+  body[data-theme="unicorn-magic"] {
+    --bg: #f5f3ff;
+    --panel: #ede9fe;
+    --accent: #8b5cf6;
+  }
+
+  /* Light Theme Overrides (Creamy Vanilla) */
+  body[data-theme="creamy-vanilla"] .text-white {
+    color: #111827 !important;
+  }
+  body[data-theme="creamy-vanilla"] .text-slate-400,
+  body[data-theme="creamy-vanilla"] .text-slate-500,
+  body[data-theme="creamy-vanilla"] .text-slate-300 {
+    color: #4b5563 !important;
+  }
+  body[data-theme="creamy-vanilla"] .border-white\/10,
+  body[data-theme="creamy-vanilla"] .border-white\/5 {
+    border-color: rgba(0, 0, 0, 0.1) !important;
+  }
+  body[data-theme="creamy-vanilla"] .bg-white\/5,
+  body[data-theme="creamy-vanilla"] .bg-white\/10 {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+  }
+  body[data-theme="creamy-vanilla"] .bg-black\/40 {
+    background-color: rgba(255, 255, 255, 0.5) !important;
+    color: #111827 !important;
+  }
+  body[data-theme="creamy-vanilla"] .bg-black {
+    background-color: #ffffff !important;
+  }
+  body[data-theme="creamy-vanilla"] .bg-slate-800 {
+    background-color: #f3f4f6 !important;
+  }
+  body[data-theme="creamy-vanilla"] .border-slate-700,
+  body[data-theme="creamy-vanilla"] .border-slate-600 {
+    border-color: #d1d5db !important;
+  }
+
+  /* Light Theme Overrides (Bubblegum & Unicorn) */
+  body[data-theme="bubblegum-pink"] .text-white,
+  body[data-theme="unicorn-magic"] .text-white {
+    color: #111827 !important;
+  }
+  body[data-theme="bubblegum-pink"] .text-slate-400,
+  body[data-theme="bubblegum-pink"] .text-slate-500,
+  body[data-theme="bubblegum-pink"] .text-slate-300,
+  body[data-theme="unicorn-magic"] .text-slate-400,
+  body[data-theme="unicorn-magic"] .text-slate-500,
+  body[data-theme="unicorn-magic"] .text-slate-300 {
+    color: #4b5563 !important;
+  }
+  body[data-theme="bubblegum-pink"] .border-white\/10,
+  body[data-theme="bubblegum-pink"] .border-white\/5,
+  body[data-theme="unicorn-magic"] .border-white\/10,
+  body[data-theme="unicorn-magic"] .border-white\/5 {
+    border-color: rgba(0, 0, 0, 0.1) !important;
+  }
+  body[data-theme="bubblegum-pink"] .bg-white\/5,
+  body[data-theme="bubblegum-pink"] .bg-white\/10,
+  body[data-theme="unicorn-magic"] .bg-white\/5,
+  body[data-theme="unicorn-magic"] .bg-white\/10 {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+  }
+  body[data-theme="bubblegum-pink"] .bg-black\/40,
+  body[data-theme="unicorn-magic"] .bg-black\/40 {
+    background-color: rgba(255, 255, 255, 0.5) !important;
+    color: #111827 !important;
+  }
+  body[data-theme="bubblegum-pink"] .bg-black,
+  body[data-theme="unicorn-magic"] .bg-black {
+    background-color: #ffffff !important;
+  }
+  body[data-theme="bubblegum-pink"] .bg-slate-800,
+  body[data-theme="unicorn-magic"] .bg-slate-800 {
+    background-color: #f3f4f6 !important;
+  }
+  body[data-theme="bubblegum-pink"] .border-slate-700,
+  body[data-theme="bubblegum-pink"] .border-slate-600,
+  body[data-theme="unicorn-magic"] .border-slate-700,
+  body[data-theme="unicorn-magic"] .border-slate-600 {
+    border-color: #d1d5db !important;
+  }
+
   /* Custom scrollbar for chat/lists */
   ::-webkit-scrollbar {
     width: 6px;

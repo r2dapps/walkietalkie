@@ -12,13 +12,16 @@ export default function TuningKnob() {
   const startAngle = useRef(0);
   const currentAngleRef = useRef(0);
 
+  // Extract squad code from current room
+  const parts = currentRoom.split('-');
+  const squadCode = parts.length > 1 ? parts.slice(0, -1).join('-') : currentRoom;
+
   const presets = [
-    { label: 'α-1 (146.520)', room: 'alpha1', freq: '146.520' },
-    { label: 'β-2 (147.120)', room: 'bravo2', freq: '147.120' },
-    { label: 'CH-03 (147.450)', room: 'ch3', freq: '147.450' },
-    { label: 'CH-04 (147.800)', room: 'ch4', freq: '147.800' },
-    { label: 'TAC-9 (147.960)', room: 'tactical9', freq: '147.960' },
-    { label: 'FAM-1 (148.125)', room: 'family1', freq: '148.125' },
+    { label: 'ALPHA (146.520)', room: `${squadCode}-alpha`, freq: '146.520' },
+    { label: 'BRAVO (147.120)', room: `${squadCode}-bravo`, freq: '147.120' },
+    { label: 'CHARLIE (147.450)', room: `${squadCode}-charlie`, freq: '147.450' },
+    { label: 'DELTA (147.800)', room: `${squadCode}-delta`, freq: '147.800' },
+    { label: 'ECHO (147.960)', room: `${squadCode}-echo`, freq: '147.960' }
   ];
 
   const currentIndex = Math.max(0, presets.findIndex(p => p.room === currentRoom));

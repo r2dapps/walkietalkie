@@ -2,7 +2,6 @@ import React from 'react';
 import { useAppContext } from '../context/AppContext';
 import SignalStrengthIcon from './SignalStrengthIcon';
 import FrequencyScanner from './FrequencyScanner';
-import TuningKnob from './TuningKnob';
 import { EqPreset, VisualizerMode } from '../types';
 import { showToast } from './ui/ToastManager';
 
@@ -19,6 +18,11 @@ export default function LcdScreen() {
   const mhzBase = 144 + (freqNum % 4);
   const khzPart = ((freqNum * 125) % 995).toString().padStart(3, '0');
   const freqDisplay = `${mhzBase}.${khzPart}`;
+  
+  // Extract Squad Code and NATO Channel
+  const parts = currentRoom.split('-');
+  const squadCode = parts.length > 1 ? parts.slice(0, -1).join('-') : currentRoom;
+  const natoChannel = parts.length > 1 ? parts[parts.length - 1] : 'alpha';
 
   // CTCSS Sub-audible tone calculation derived from channel
   const plTones = ['88.5 Hz', '100.0 Hz', '103.5 Hz', '110.9 Hz', '123.0 Hz', '141.3 Hz'];
@@ -50,23 +54,6 @@ export default function LcdScreen() {
     storage.updateAudioPrefs({ visualizerMode: modes[nextIndex] });
   };
 
-  // Quick Preset Tune Handler
-  const channelPresets = [
-    { label: 'α-1', room: 'alpha1' },
-    { label: 'β-2', room: 'bravo2' },
-    { label: 'TAC-9', room: 'tactical9' },
-    { label: 'FAM-1', room: 'family1' }
-  ];
-
-  const handleQuickTune = (targetRoom: string) => {
-    if (pttLocked) {
-      showToast('Radio is locked. Unlock to change frequency.', 'warning');
-      return;
-    }
-    if (targetRoom !== currentRoom) {
-      joinFrequency(targetRoom, myCallsign, passcode);
-    }
-  };
 
   const handleBroadcastInvite = () => {
     const friends = Object.values(storage.getFriends() as Record<string, any>);
@@ -82,8 +69,8 @@ export default function LcdScreen() {
 
   return (
     <div 
-      className="relative bg-[#0d161a] border-4 border-[#1e2d36] rounded-xl p-2 font-share-tech overflow-hidden select-none"
-      style={{ boxShadow: 'inset 0 0 30px color-mix(in srgb, var(--accent) 20%, transparent), inset 0 0 15px rgba(0,0,0,0.8), 0 4px 15px rgba(0,0,0,0.5)' }}
+      className="relative bg-[#a4c214] border-8 border-slate-900 rounded-xl p-2 font-vt323 overflow-hidden select-none text-[#2a3311]"
+      style={{ boxShadow: 'inset 0 0 20px rgba(0,0,0,0.4), inset 0 0 10px rgba(120, 150, 20, 0.8), 0 4px 15px rgba(0,0,0,0.5)' }}
     >
       
       {/* Subtle Screen Scanline Backdrop Overlay */}
@@ -103,36 +90,36 @@ export default function LcdScreen() {
           <div className="flex items-center space-x-2">
 
             <div className="flex items-center space-x-1">
-              <div className={`w-2.5 h-2.5 rounded-full border border-black ${isTx ? 'bg-rose-500 shadow-[0_0_10px_#f43f5e] animate-pulse' : 'bg-rose-950/80'}`}></div>
-              <span className={isTx ? 'text-rose-400 font-bold text-[10px]' : 'text-slate-600 text-[10px]'}>TX</span>
+              <div className={`w-2.5 h-2.5 rounded-full border border-black ${isTx ? 'bg-rose-500 shadow-[0_0_10px_#f43f5e] animate-pulse' : 'bg-[#2a3311]/40'}`}></div>
+              <span className={isTx ? 'text-rose-600 font-bold text-[12px]' : 'text-[#2a3311]/70 text-[12px]'}>TX</span>
             </div>
 
             <div className="flex items-center space-x-1">
-              <div className={`w-2.5 h-2.5 rounded-full border border-black ${isRx ? 'bg-emerald-500 shadow-[0_0_10px_#10b981] animate-pulse' : 'bg-emerald-950/80'}`}></div>
-              <span className={isRx ? 'text-emerald-400 font-bold text-[10px]' : 'text-slate-600 text-[10px]'}>RX</span>
+              <div className={`w-2.5 h-2.5 rounded-full border border-black ${isRx ? 'bg-emerald-500 shadow-[0_0_10px_#10b981] animate-pulse' : 'bg-[#2a3311]/40'}`}></div>
+              <span className={isRx ? 'text-emerald-700 font-bold text-[12px]' : 'text-[#2a3311]/70 text-[12px]'}>RX</span>
             </div>
 
             {audioPrefs.voxEnabled && (
-              <span className="bg-amber-500/20 text-amber-400 px-1 rounded text-[8px] font-bold border border-amber-500/30">
+              <span className="bg-[#2a3311]/10 text-[#2a3311] px-1 rounded text-[10px] font-bold border border-[#2a3311]/30">
                 VOX
               </span>
             )}
           </div>
 
           {/* Integrated Signal Strength Icon (P2P Connectivity Telemetry) */}
-          <div className="scale-90 origin-center">
+          <div className="scale-90 origin-center opacity-80 text-[#2a3311]">
             <SignalStrengthIcon />
           </div>
 
           {/* Radio Parameters & Interactive EQ Filter Button */}
-          <div className="flex items-center space-x-1.5 text-[9px]">
-            <span className="text-emerald-400/80 font-bold">VHF</span>
-            <span className="text-slate-500">•</span>
+          <div className="flex items-center space-x-1.5 text-[11px] font-bold text-[#2a3311]">
+            <span>VHF</span>
+            <span className="opacity-50">•</span>
             
             {/* Broadcast Invite Button */}
             <button 
               onClick={handleBroadcastInvite}
-              className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 px-2 py-0.5 rounded border border-purple-500/40 text-[8px] font-bold cursor-pointer transition-all active:scale-95"
+              className="bg-[#2a3311]/10 hover:bg-[#2a3311]/20 text-[#2a3311] px-2 py-0.5 rounded border border-[#2a3311]/40 text-[10px] font-bold cursor-pointer transition-all active:scale-95"
               title="Broadcast Invite to Squad"
             >
               <i className="fa-solid fa-share-nodes"></i>
@@ -142,14 +129,14 @@ export default function LcdScreen() {
         </div>
 
         {/* Frequency & Channel Main Telemetry */}
-        <div className="pt-1 text-center flex flex-col items-center justify-center">
+        <div className="pt-1 text-center flex flex-col items-center justify-center text-[#2a3311]">
           
-          <div className="flex flex-col w-full text-xs text-[var(--accent)]/70 px-1 font-mono">
-            {/* Top Row: CH-01 | Frequency | PL Tone */}
+          <div className="flex flex-col w-full px-1 font-mono">
+            {/* Top Row: Channel Name | Frequency | PL Tone */}
             <div className="flex items-center justify-between w-full">
-              <span>CH-01</span>
-              <span className="tracking-widest font-bold text-[var(--accent)]">{freqDisplay} MHz</span>
-              <span className="text-[9px] text-emerald-400/80 font-bold">PL: {plToneDisplay}</span>
+              <span className="uppercase font-bold text-sm tracking-widest">CH-{natoChannel.substring(0,3)}</span>
+              <span className="tracking-widest font-black text-2xl drop-shadow-[0_0_2px_rgba(42,51,17,0.5)]">{freqDisplay} <span className="text-sm">MHz</span></span>
+              <span className="text-[11px] font-bold">PL: {plToneDisplay}</span>
             </div>
 
             {/* Second Row: EQ | Channel Title | OPR */}
@@ -159,33 +146,30 @@ export default function LcdScreen() {
               <div className="flex flex-col items-start w-1/3">
                 <button 
                   onClick={cycleEqPreset}
-                  className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 px-1.5 py-0.5 rounded border border-cyan-500/40 text-[7px] font-bold font-mono tracking-wider cursor-pointer transition-all active:scale-95 uppercase"
+                  className="bg-[#2a3311]/10 hover:bg-[#2a3311]/20 text-[#2a3311] px-2 py-0.5 rounded border border-[#2a3311]/40 text-[10px] font-bold font-mono tracking-wider cursor-pointer transition-all active:scale-95 uppercase"
                   title="Cycle EQ Filter preset"
                 >
                   EQ: {currentEqObj.label}
                 </button>
               </div>
 
-              {/* Center: #alpha1 */}
+              {/* Center: Squad Code */}
               <div className="w-1/3 text-center">
-                <div className="text-lg font-black font-orbitron tracking-widest text-[var(--accent)] drop-shadow-[0_0_8px_rgba(6,182,212,0.5)] uppercase truncate px-1">
-                  #{currentRoom}
+                <div className="text-xl font-black font-vt323 tracking-widest text-[#2a3311] drop-shadow-[0_0_4px_rgba(42,51,17,0.3)] uppercase truncate px-1">
+                  #{squadCode}
                 </div>
               </div>
 
               {/* Below PL: OPR count */}
               <div className="flex flex-col items-end w-1/3">
-                <span className="text-cyan-400 font-bold text-[9px]">
-                  <i className="fa-solid fa-users text-[8px] mr-0.5"></i>{activeCount} OPR
+                <span className="font-bold text-[11px] text-[#2a3311]">
+                  <i className="fa-solid fa-users text-[10px] mr-0.5"></i>{activeCount} OPR
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Rotatable Physical Tuning Dial Knob */}
-          <div className="w-full">
-            <TuningKnob />
-          </div>
+
 
           {/* Active Transmitting Operator Banner & VIS Toggle */}
           <div className="h-5 flex items-center justify-between w-full my-0.5 px-1">
@@ -193,18 +177,18 @@ export default function LcdScreen() {
             {/* Banner Side */}
             <div className="flex-1 flex items-center justify-start overflow-hidden">
               {isRx && activeSpeaker ? (
-                <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-2 py-0.5 rounded text-[9px] font-bold font-mono tracking-wider animate-pulse flex items-center space-x-1.5 truncate">
-                  <i className="fa-solid fa-volume-high text-[8px]"></i>
+                <div className="bg-[#2a3311] text-[#a4c214] px-2 py-0.5 rounded text-[11px] font-bold font-mono tracking-wider animate-pulse flex items-center space-x-1.5 truncate">
+                  <i className="fa-solid fa-volume-high text-[10px]"></i>
                   <span className="truncate">RX: {activeSpeaker}</span>
                 </div>
               ) : isTx ? (
-                <div className="bg-rose-500/20 border border-rose-500/40 text-rose-300 px-2 py-0.5 rounded text-[9px] font-bold font-mono tracking-wider animate-pulse flex items-center space-x-1.5 truncate">
-                  <i className="fa-solid fa-microphone text-[8px]"></i>
+                <div className="bg-[#2a3311] text-[#a4c214] px-2 py-0.5 rounded text-[11px] font-bold font-mono tracking-wider animate-pulse flex items-center space-x-1.5 truncate">
+                  <i className="fa-solid fa-microphone text-[10px]"></i>
                   <span className="truncate">BROADCASTING</span>
                 </div>
               ) : (
-                <div className="text-[9px] text-slate-500 font-mono tracking-widest uppercase flex items-center space-x-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/60 animate-ping mr-1 shrink-0"></span>
+                <div className="text-[11px] text-[#2a3311]/70 font-mono tracking-widest uppercase flex items-center space-x-1 font-bold">
+                  <span className="w-2 h-2 rounded-full bg-[#2a3311]/60 animate-ping mr-1 shrink-0"></span>
                   <span className="truncate">STANDBY — CLEAR</span>
                 </div>
               )}
@@ -213,7 +197,7 @@ export default function LcdScreen() {
             {/* VIS Toggle Side */}
             <button 
               onClick={cycleVisMode}
-              className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/40 text-[7px] font-bold font-mono tracking-wider cursor-pointer transition-all active:scale-95 uppercase shrink-0 ml-2"
+              className="bg-[#2a3311]/10 hover:bg-[#2a3311]/20 text-[#2a3311] px-2 py-0.5 rounded border border-[#2a3311]/40 text-[10px] font-bold font-mono tracking-wider cursor-pointer transition-all active:scale-95 uppercase shrink-0 ml-2"
               title="Cycle Visualizer Mode"
             >
               VIS: {audioPrefs.visualizerMode || 'WAVEFORM'}
@@ -223,13 +207,15 @@ export default function LcdScreen() {
         </div>
 
         {/* Embedded Canvas Real-time Spectrum Scanner */}
-        <FrequencyScanner embedded={true} />
+        <div className="opacity-80 mix-blend-color-burn">
+          <FrequencyScanner embedded={true} />
+        </div>
 
         {/* Bottom S-Meter (Signal Strength Bar) */}
-        <div className="pt-1 mt-0.5 border-t border-white/10 flex items-center justify-between text-[10px] font-mono">
+        <div className="pt-1 mt-0.5 border-t border-[#2a3311]/20 flex items-center justify-between text-[11px] font-mono font-bold text-[#2a3311]">
           
           <div className="flex items-center space-x-1">
-            <span className="text-slate-500 text-[9px] font-bold mr-1">S-METER</span>
+            <span className="text-[#2a3311]/70 mr-1">S-METER</span>
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((bar) => {
               const isActive = (isTx || isRx) ? bar <= 8 : bar <= 3;
               const isHigh = bar >= 7;
@@ -239,18 +225,18 @@ export default function LcdScreen() {
                   className={`w-1.5 rounded-xs transition-all ${
                     isActive
                       ? isHigh
-                        ? 'bg-rose-500 h-2.5 shadow-[0_0_5px_#f43f5e]'
-                        : 'bg-emerald-400 h-2 shadow-[0_0_5px_#10b981]'
-                      : 'bg-slate-800 h-1.5'
+                        ? 'bg-[#2a3311] h-2.5'
+                        : 'bg-[#2a3311] h-2'
+                      : 'bg-[#2a3311]/20 h-1.5'
                   }`}
                 />
               );
             })}
           </div>
 
-          <div className="flex items-center space-x-2 text-slate-400 text-[9px]">
-            <span>PWR: <strong className="text-emerald-400">5W</strong></span>
-            <span>BAT: <strong className="text-emerald-400"><i className="fa-solid fa-battery-full text-[9px]"></i> 98%</strong></span>
+          <div className="flex items-center space-x-2 text-[#2a3311]/80">
+            <span>PWR: <strong className="text-[#2a3311]">5W</strong></span>
+            <span>BAT: <strong className="text-[#2a3311]"><i className="fa-solid fa-battery-full text-[10px]"></i> 98%</strong></span>
           </div>
 
         </div>

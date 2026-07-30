@@ -3,8 +3,16 @@ import { useAppContext } from '../context/AppContext';
 import UserGuideModal from './modals/UserGuideModal';
 
 export default function SetupView() {
-  const { state, joinFrequency, storage } = useAppContext();
-  const [room, setRoom] = useState(storage.getLastChannel());
+  const { state, joinFrequency, storage, setAppMode } = useAppContext();
+  
+  // Parse last channel if it was in squad-channel format
+  const lastChannel = storage.getLastChannel();
+  const parts = lastChannel.split('-');
+  const initialSquad = parts.length > 1 ? parts.slice(0, -1).join('-') : lastChannel;
+  const initialNato = parts.length > 1 ? parts[parts.length - 1] : 'alpha';
+
+  const [squadCode, setSquadCode] = useState(initialSquad || '');
+  const [natoChannel, setNatoChannel] = useState(initialNato || 'alpha');
   const [callsign, setCallsign] = useState(storage.profile.callsign || '');
   const [displayName, setDisplayName] = useState(storage.profile.displayName || '');
   const [passcode, setPasscode] = useState('');
@@ -19,8 +27,8 @@ export default function SetupView() {
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!room || !callsign) {
-      setError('Frequency and Callsign are required.');
+    if (!callsign) {
+      setError('Callsign is required.');
       return;
     }
     
@@ -29,7 +37,9 @@ export default function SetupView() {
     
     try {
       storage.updateProfile({ displayName: displayName || callsign || 'Operator-1' });
-      await joinFrequency(room, callsign, passcode);
+      const actualSquad = squadCode.trim() || 'public';
+      const fullRoomName = `${actualSquad}-${natoChannel}`;
+      await joinFrequency(fullRoomName, callsign, passcode);
     } catch (err: any) {
       setError(err.message || 'Failed to establish connection.');
       setLoading(false);
@@ -39,14 +49,23 @@ export default function SetupView() {
   return (
     <div className="flex flex-col h-full overflow-y-auto p-6 items-center bg-[var(--bg)] relative">
       
-      {/* Top Field Guide Button */}
-      <button 
-        onClick={() => setGuideOpen(true)}
-        className="absolute top-4 right-4 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-slate-300 hover:text-white hover:bg-white/10 flex items-center space-x-1.5 font-mono"
-      >
-        <i className="fa-solid fa-book-bookmark text-[var(--accent)]"></i>
-        <span>User Guide</span>
-      </button>
+      {/* Top Field Guide & Back Buttons */}
+      <div className="absolute top-4 w-full px-4 flex justify-between">
+        <button 
+          onClick={() => setAppMode('home')}
+          className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-slate-300 hover:text-white hover:bg-white/10 flex items-center space-x-1.5 font-mono"
+        >
+          <i className="fa-solid fa-arrow-left"></i>
+          <span>Back</span>
+        </button>
+        <button 
+          onClick={() => setGuideOpen(true)}
+          className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-slate-300 hover:text-white hover:bg-white/10 flex items-center space-x-1.5 font-mono"
+        >
+          <i className="fa-solid fa-book-bookmark text-[var(--accent)]"></i>
+          <span>User Guide</span>
+        </button>
+      </div>
 
       <div className="mt-8 mb-8 flex flex-col items-center">
         <div className="w-24 h-24 bg-[var(--panel)] border-2 border-[var(--accent)] rounded-full flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(6,182,212,0.2)] text-4xl text-[var(--accent)]">
@@ -68,18 +87,34 @@ export default function SetupView() {
         )}
 
         <div>
-          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Target Frequency</label>
-          <div className="relative">
-            <i className="fa-solid fa-walkie-talkie absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
-            <input 
-              type="text" 
-              value={room} 
-              onChange={e => setRoom(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-              placeholder="e.g. alpha-1"
-              className="w-full bg-black/40 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:border-[var(--accent)] transition-colors uppercase font-mono"
-              maxLength={20}
-              required
-            />
+          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Squad Code <span className="text-slate-600">(Blank for public)</span></label>
+          <div className="relative flex space-x-2">
+            <div className="relative flex-1">
+              <i className="fa-solid fa-users absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
+              <input 
+                type="text" 
+                value={squadCode} 
+                onChange={e => setSquadCode(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                placeholder="e.g. smith-family"
+                className="w-full bg-black/40 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:border-[var(--accent)] transition-colors uppercase font-mono"
+                maxLength={20}
+              />
+            </div>
+            
+            <div className="relative w-1/3">
+              <select
+                value={natoChannel}
+                onChange={e => setNatoChannel(e.target.value)}
+                className="w-full bg-black/40 border border-white/10 rounded-lg py-3 pl-3 pr-8 text-white focus:outline-none focus:border-[var(--accent)] transition-colors uppercase font-mono appearance-none"
+              >
+                <option value="alpha">ALPHA</option>
+                <option value="bravo">BRAVO</option>
+                <option value="charlie">CHARLIE</option>
+                <option value="delta">DELTA</option>
+                <option value="echo">ECHO</option>
+              </select>
+              <i className="fa-solid fa-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"></i>
+            </div>
           </div>
         </div>
 
@@ -148,16 +183,25 @@ export default function SetupView() {
 
       {/* Quick Presets could go here */}
       <div className="w-full max-w-sm mt-8">
-        <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 text-center">Quick Frequencies</div>
+        <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 text-center">Quick Squads</div>
         <div className="grid grid-cols-2 gap-3">
           {Array.from(new Set([...storage.getFavorites(), ...storage.getCustomPresets().map(p => p.room)])).slice(0, 6).map(fav => {
             const preset = storage.getCustomPresets().find(p => p.room === fav);
-            const label = preset ? preset.label : `#${fav}`;
+            const label = preset ? preset.label : fav;
+            
+            // Extract squad from saved room if it follows squad-channel format
+            const parts = fav.split('-');
+            const displaySquad = parts.length > 1 ? parts.slice(0, -1).join('-') : fav;
+            const displayChannel = parts.length > 1 ? parts[parts.length - 1] : 'alpha';
+
             return (
               <button 
                 key={fav}
-                onClick={() => setRoom(fav)}
-                className={`py-2 px-3 rounded text-sm font-mono border ${room === fav ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/10' : 'border-white/10 text-slate-400 bg-[var(--panel)] hover:bg-white/5'}`}
+                onClick={() => {
+                  setSquadCode(displaySquad);
+                  setNatoChannel(displayChannel);
+                }}
+                className={`py-2 px-3 rounded text-sm font-mono border ${squadCode === displaySquad ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/10' : 'border-white/10 text-slate-400 bg-[var(--panel)] hover:bg-white/5'} overflow-hidden text-ellipsis whitespace-nowrap`}
               >
                 {label}
               </button>

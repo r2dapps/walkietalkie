@@ -50,11 +50,11 @@ export default function FrequencyScanner({ embedded = false }: FrequencyScannerP
 
     const render = () => {
       // Clear canvas with subtle trail
-      ctx.fillStyle = 'rgba(13, 22, 26, 0.4)';
+      ctx.fillStyle = 'rgba(164, 194, 20, 0.3)'; // Match yellow-green background
       ctx.fillRect(0, 0, width, height);
 
       // Draw faint grid lines
-      ctx.strokeStyle = 'rgba(16, 185, 129, 0.15)'; // Emerald tint grid
+      ctx.strokeStyle = 'rgba(42, 51, 17, 0.15)'; // Dark green grid
       ctx.lineWidth = 1;
       ctx.setLineDash([2, 2]);
 
@@ -89,8 +89,8 @@ export default function FrequencyScanner({ embedded = false }: FrequencyScannerP
         setPeakDb(-52);
       }
 
-      const glowColor = radioState === 'transmitting' ? '#f43f5e' : radioState === 'receiving' ? '#10b981' : '#34d399';
-      const lineColor = radioState === 'transmitting' ? '#fda4af' : radioState === 'receiving' ? '#6ee7b7' : '#059669';
+      const glowColor = radioState === 'transmitting' ? '#2a3311' : radioState === 'receiving' ? '#1d230b' : '#3d4a19';
+      const lineColor = radioState === 'transmitting' ? '#1d230b' : radioState === 'receiving' ? '#1d230b' : '#2a3311';
 
       if (visMode === 'spectrum') {
         // Equalizer spectrum bars
@@ -202,12 +202,12 @@ export default function FrequencyScanner({ embedded = false }: FrequencyScannerP
         <canvas ref={canvasRef} className="w-full h-[54px] block" />
       </div>
 
-      <div className="flex justify-between items-center text-[8px] font-mono text-emerald-500/80 px-4 mt-0.5">
+      <div className="flex justify-between items-center text-[8px] font-mono text-[#2a3311]/70 px-4 mt-0.5">
         <span>{mhzBase - 1}.5M</span>
         <span>{mhzBase}.0M</span>
-        <span className="text-emerald-300 font-bold">{mhzBase}.{khzPartStr} MHz</span>
+        <span className="text-[#2a3311] font-bold">{mhzBase}.{khzPartStr} MHz</span>
         <span>{mhzBase + 1}.0M</span>
-        <span className="text-emerald-400/90 font-bold">{peakDb} dBm</span>
+        <span className="text-[#2a3311] font-bold">{peakDb} dBm</span>
       </div>
     </div>
   );

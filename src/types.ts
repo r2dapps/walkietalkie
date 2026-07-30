@@ -64,6 +64,7 @@ export interface AppState {
   theme: ThemeName;
   appLocked: boolean;
   isOnline: boolean;
+  appMode: 'home' | 'walkie' | 'fm';
 }
 
 export type ThemeName = 'tactical-dark' | 'techtalkie-oled' | 'cyber-neon' | 'desert-camo' | 'stealth-black' | 'glassmorphism' | 'creamy-vanilla';

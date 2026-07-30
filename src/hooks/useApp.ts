@@ -23,6 +23,7 @@ export function useApp() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [appLocked, setAppLocked] = useState(true);
   const [isOnline, setIsOnline] = useState(typeof window !== 'undefined' ? navigator.onLine : true);
+  const [appMode, setAppMode] = useState<'home' | 'walkie' | 'fm'>('home');
 
   useEffect(() => {
     storage.saveIsLocked(true);
@@ -88,6 +89,9 @@ export function useApp() {
         processedPings.current.add(pingId);
         
         const senderName = ping.fromCallsign || ping.sender || 'Someone';
+        
+        audioEngine.playPingSiren();
+        
         notificationService.notify('Squad Ping', {
           body: `${senderName} is requesting you to join frequency #${ping.room}`
         });
@@ -125,6 +129,33 @@ export function useApp() {
       }
     };
   }, []);
+
+  // Transmission History Logger
+  const txStart = useRef<{ time: number; speaker: string } | null>(null);
+  useEffect(() => {
+    if (radioState === 'transmitting') {
+      txStart.current = { time: Date.now(), speaker: myCallsign };
+    } else if (radioState === 'receiving' && activeSpeaker) {
+      txStart.current = { time: Date.now(), speaker: activeSpeaker };
+    } else if (radioState === 'standby' && txStart.current) {
+      const duration = ((Date.now() - txStart.current.time) / 1000).toFixed(1);
+      if (Number(duration) >= 0.5) { // Only log transmissions >= 0.5s
+        const isMe = txStart.current.speaker === myCallsign;
+        const text = isMe ? `You broadcasted (${duration}s)` : `[TX] ${txStart.current.speaker} broadcasted (${duration}s)`;
+        
+        const newMsg: ChatMessage = {
+          id: `sys-${Date.now()}`,
+          sender: 'SYSTEM',
+          text,
+          timestamp: new Date().toISOString(),
+          isMine: false
+        };
+        
+        setChatMessages(prev => [...prev, newMsg]);
+      }
+      txStart.current = null;
+    }
+  }, [radioState, activeSpeaker, myCallsign]);
 
   // VOX monitoring
   const voxActiveRef = useRef(false);
@@ -328,7 +359,8 @@ export function useApp() {
     audioPrefs: storage.audioPrefs,
     theme: storage.theme,
     appLocked,
-    isOnline
+    isOnline,
+    appMode
   };
 
   return {
@@ -347,6 +379,7 @@ export function useApp() {
     sendChat,
     sendGpsLocation,
     setAppLocked,
+    setAppMode,
     clearUnread: () => setUnreadCount(0),
     sendPing
   };

@@ -3,6 +3,7 @@ import { useAppContext } from '../context/AppContext';
 import LcdScreen from './LcdScreen';
 import AudioVisualizer from './AudioVisualizer';
 import PttButton from './PttButton';
+import TuningKnob from './TuningKnob';
 import FrequencyScanner from './FrequencyScanner';
 import SignalStrengthIcon from './SignalStrengthIcon';
 import UserGuideModal from './modals/UserGuideModal';
@@ -130,8 +131,9 @@ export default function RadioView() {
       <div className="flex-1 flex flex-col px-3 pt-3 pb-2 overflow-y-auto space-y-2">
         
         {/* Unified LCD Display containing Telemetry, Connectivity, & Spectrum Scanner */}
-        <div className="shrink-0 w-full max-w-sm mx-auto">
+        <div className="shrink-0 w-full max-w-sm mx-auto space-y-2">
           <LcdScreen />
+          <TuningKnob />
         </div>
         
         {/* PTT Button Area */}
