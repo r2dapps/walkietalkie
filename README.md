@@ -1,7 +1,18 @@
 # AetherTalk — Tactical Walkie-Talkie
 
 > **© 2026 Razel Tech. All Rights Reserved.**
-> This repository and its contents are proprietary and confidential. Unauthorized copying, distribution, or commercial use is strictly prohibited.
+> 
+> **PROPRIETARY AND CONFIDENTIAL**
+> 
+> This repository, source code, design, architecture, and all accompanying materials (collectively, the "Software") are the exclusive property of **Razel Tech**. 
+> 
+> ⚠️ **STRICTLY PROHIBITED ACTIONS:**
+> 1. **No Commercial Use:** You may NOT use, monetize, or distribute this Software in any commercial capacity, paid services, or ad-supported platforms.
+> 2. **No Distribution:** You may NOT publish, distribute, or share this Software (or any derivative works) on any App Store, Play Store, or public repository.
+> 3. **No Modification or Forking:** You may NOT fork, modify, reverse-engineer, or create derivative works from this Software without explicit, written consent from Razel Tech.
+> 4. **No Sub-licensing:** You may NOT sell, rent, lease, or sub-license this Software.
+>
+> This Software is provided "AS IS", without warranty of any kind. By accessing this repository, you agree to be bound by these strict proprietary terms. Any unauthorized use will result in immediate legal action.
 
 > **A high-fidelity, real-time Push-to-Talk voice communication platform for the web.** Built with a military-grade tactical aesthetic, AetherTalk works across the internet, on LAN networks, and installs as a standalone PWA on any device.
 ---

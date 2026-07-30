@@ -132,6 +132,13 @@ export class PeerManager {
 
   public initPeer(room: string, callsign: string, stream: MediaStream): Promise<string> {
     return new Promise((resolve, reject) => {
+      // Check for absolute Zero-Network (Airplane mode, no Wi-Fi, no Cellular)
+      const nav = navigator as any;
+      if (nav.connection && nav.connection.type === 'none') {
+        reject(new Error("No network interface detected. Please turn on Wi-Fi or Mobile Hotspot to establish a radio node."));
+        return;
+      }
+
       this.localStream = stream;
       const sRoom = sanitizeRoom(room);
       const sCall = sanitizeCallsign(callsign);
