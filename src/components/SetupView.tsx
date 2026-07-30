@@ -164,20 +164,46 @@ export default function SetupView() {
           </div>
         </div>
 
-        <button 
-          type="submit" 
-          disabled={loading}
-          className="w-full mt-4 bg-[var(--accent)] text-[var(--bg)] font-bold uppercase tracking-widest py-3.5 rounded-lg hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:active:scale-100 flex justify-center items-center"
-        >
-          {loading ? (
-            <i className="fa-solid fa-circle-notch fa-spin text-lg"></i>
-          ) : (
-            <>
-              <span>Establish Link</span>
-              <i className="fa-solid fa-arrow-right ml-2"></i>
-            </>
-          )}
-        </button>
+        <div className="flex space-x-3 mt-4">
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="flex-1 bg-[var(--accent)] text-[var(--bg)] font-bold uppercase tracking-widest py-3.5 rounded-lg hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:active:scale-100 flex justify-center items-center"
+          >
+            {loading ? (
+              <i className="fa-solid fa-circle-notch fa-spin text-lg"></i>
+            ) : (
+              <>
+                <span>Establish Link</span>
+                <i className="fa-solid fa-arrow-right ml-2"></i>
+              </>
+            )}
+          </button>
+          
+          <button 
+            type="button"
+            title="Save as Quick Preset"
+            onClick={() => {
+              if (squadCode) {
+                 // @ts-ignore
+                 storage.saveCustomPreset({
+                   id: Date.now().toString(),
+                   label: `${squadCode.toUpperCase()} (${natoChannel.toUpperCase()})`,
+                   room: `${squadCode}-${natoChannel}`,
+                   key: passcode,
+                   freq: '144.000' // mock freq for settings view compatibility
+                 });
+                 // We don't have showToast imported here, so just use standard alert or rely on UI update
+                 alert('Preset Saved to Quick Squads!');
+              } else {
+                 alert('Enter a Squad Code to save.');
+              }
+            }}
+            className="w-14 bg-[var(--panel)] border-2 border-[var(--accent)] text-[var(--accent)] rounded-lg hover:bg-[var(--accent)]/10 active:scale-95 transition-all flex items-center justify-center"
+          >
+            <i className="fa-solid fa-bookmark text-lg"></i>
+          </button>
+        </div>
 
       </form>
 
@@ -200,6 +226,9 @@ export default function SetupView() {
                 onClick={() => {
                   setSquadCode(displaySquad);
                   setNatoChannel(displayChannel);
+                  if (preset && preset.key) {
+                    setPasscode(preset.key);
+                  }
                 }}
                 className={`py-2 px-3 rounded text-sm font-mono border ${squadCode === displaySquad ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/10' : 'border-white/10 text-slate-400 bg-[var(--panel)] hover:bg-white/5'} overflow-hidden text-ellipsis whitespace-nowrap`}
               >
