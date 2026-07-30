@@ -42,6 +42,11 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url);
   
+  // Do not intercept cross-origin requests (like radio streams or external APIs)
+  if (url.origin !== self.location.origin) {
+    return; // let the browser handle it natively
+  }
+  
   // Network-first for JS/HTML to get updates
   if (url.pathname.endsWith('.js') || url.pathname.endsWith('.html') || url.pathname.endsWith('/')) {
     event.respondWith(
