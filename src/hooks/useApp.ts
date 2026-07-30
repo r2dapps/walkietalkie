@@ -186,12 +186,10 @@ export function useApp() {
     return () => audioEngine.stopVoxMonitoring();
   }, [isJoined, storage.audioPrefs.voxEnabled, radioState]);
 
-  const joinFrequency = async (roomValRaw: string, callsignVal: string, passcodeVal: string) => {
+  const joinFrequency = async (roomVal: string, callsignVal: string, passcodeVal: string) => {
     try {
       // Ensure we leave any active room before joining a new one to prevent ghost connections
       leaveFrequency(true);
-
-      const roomVal = roomValRaw.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 20);
 
       const stream = await audioEngine.getMicrophoneStream();
       localStreamRef.current = stream;

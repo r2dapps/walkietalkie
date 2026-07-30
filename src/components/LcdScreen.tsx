@@ -14,7 +14,7 @@ export default function LcdScreen() {
   const activeCount = Object.keys(peers).length + 1;
 
   // Calculate realistic VHF/UHF radio frequency from channel name
-  const freqNum = currentRoom.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const freqNum = currentRoom.toLowerCase().split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const mhzBase = 144 + (freqNum % 4);
   const khzPart = ((freqNum * 125) % 995).toString().padStart(3, '0');
   const freqDisplay = `${mhzBase}.${khzPart}`;

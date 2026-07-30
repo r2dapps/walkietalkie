@@ -24,6 +24,7 @@ export default function FrequencyScanner({ embedded = false }: FrequencyScannerP
     return Math.abs(hash);
   };
   
+  const hashStr = (s: string) => s.toLowerCase().split('').reduce((a, c) => a + c.charCodeAt(0), 0);
   const freqNum = hashStr(currentRoom);
   const mhzBase = 144 + (freqNum % 4);
   const khzPartStr = ((freqNum * 125) % 995).toString().padStart(3, '0');
