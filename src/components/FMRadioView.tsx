@@ -124,10 +124,26 @@ export default function FMRadioView() {
               )}
             </div>
 
-            <div className="text-center w-full max-w-sm mb-10">
-              <h2 className="text-3xl font-black text-amber-100 mb-2 font-serif tracking-wide truncate px-4 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
-                {currentStation?.name || 'Analog Tuner'}
-              </h2>
+            <div className="text-center w-full max-w-sm mb-10 flex flex-col items-center">
+              <div className="flex items-center justify-center space-x-3 mb-2">
+                {isPlaying && (
+                  <div className="flex space-x-1 h-6 items-end">
+                    <div className="w-1.5 bg-amber-400 animate-[bounce_1s_infinite] h-full" style={{ animationDuration: '0.7s' }}></div>
+                    <div className="w-1.5 bg-amber-500 animate-[bounce_1s_infinite] h-full" style={{ animationDuration: '1.2s' }}></div>
+                    <div className="w-1.5 bg-amber-600 animate-[bounce_1s_infinite] h-full" style={{ animationDuration: '0.9s' }}></div>
+                  </div>
+                )}
+                <h2 className="text-3xl font-black text-amber-100 font-serif tracking-wide truncate max-w-[200px] drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
+                  {currentStation?.name || 'Analog Tuner'}
+                </h2>
+                {isPlaying && (
+                  <div className="flex space-x-1 h-6 items-end">
+                    <div className="w-1.5 bg-amber-600 animate-[bounce_1s_infinite] h-full" style={{ animationDuration: '0.8s' }}></div>
+                    <div className="w-1.5 bg-amber-500 animate-[bounce_1s_infinite] h-full" style={{ animationDuration: '1.1s' }}></div>
+                    <div className="w-1.5 bg-amber-400 animate-[bounce_1s_infinite] h-full" style={{ animationDuration: '0.6s' }}></div>
+                  </div>
+                )}
+              </div>
               <div className="flex justify-center flex-wrap gap-2 px-2 h-6 overflow-hidden">
                 {currentStation?.tags.map(tag => (
                   <span key={tag} className="text-[10px] bg-black/40 border border-amber-900/50 text-amber-200/80 px-2 py-0.5 rounded font-mono uppercase tracking-wider">{tag}</span>

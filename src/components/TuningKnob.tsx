@@ -111,7 +111,7 @@ export default function TuningKnob() {
       {/* Tune Down Button */}
       <button
         onClick={() => handleStep('prev')}
-        className="w-7 h-7 flex items-center justify-center rounded bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/15 active:scale-90 transition-all cursor-pointer"
+        className="w-7 h-7 flex items-center justify-center rounded bg-white/5 border border-white/10 text-slate-300 hover:text-[var(--accent)] hover:bg-white/15 hover:shadow-[0_0_10px_var(--accent)] active:scale-90 transition-all cursor-pointer"
         title="Previous Frequency Notch"
       >
         <i className="fa-solid fa-chevron-left text-xs"></i>
@@ -154,7 +154,7 @@ export default function TuningKnob() {
       {/* Tune Up Button */}
       <button
         onClick={() => handleStep('next')}
-        className="w-7 h-7 flex items-center justify-center rounded bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/15 active:scale-90 transition-all cursor-pointer"
+        className="w-7 h-7 flex items-center justify-center rounded bg-white/5 border border-white/10 text-slate-300 hover:text-[var(--accent)] hover:bg-white/15 hover:shadow-[0_0_10px_var(--accent)] active:scale-90 transition-all cursor-pointer"
         title="Next Frequency Notch"
       >
         <i className="fa-solid fa-chevron-right text-xs"></i>

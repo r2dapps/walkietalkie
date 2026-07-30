@@ -11,7 +11,7 @@ export default function HomeView() {
         <div className="w-32 h-32 bg-[var(--panel)] border-2 border-[var(--accent)] rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(6,182,212,0.3)] text-5xl text-[var(--accent)]">
           <i className="fa-solid fa-satellite-dish"></i>
         </div>
-        <h1 className="text-4xl font-bold tracking-widest uppercase text-white mb-2 font-orbitron">AetherTalk</h1>
+        <h1 className="text-4xl font-bold tracking-widest uppercase text-white mb-2 font-orbitron drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">AetherTalk</h1>
         <div className="text-[var(--accent)] text-sm tracking-widest font-mono uppercase">
           Tactical Comms & Radio
         </div>

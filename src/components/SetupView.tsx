@@ -19,6 +19,7 @@ export default function SetupView() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [guideOpen, setGuideOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   React.useEffect(() => {
     setCallsign(storage.profile.callsign || '');
@@ -71,7 +72,7 @@ export default function SetupView() {
         <div className="w-24 h-24 bg-[var(--panel)] border-2 border-[var(--accent)] rounded-full flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(6,182,212,0.2)] text-4xl text-[var(--accent)]">
           <i className={`fa-solid fa-${storage.profile.avatar || 'satellite-dish'}`}></i>
         </div>
-        <h1 className="text-3xl font-bold tracking-widest uppercase text-white mb-1 font-orbitron">AetherTalk</h1>
+        <h1 className="text-3xl font-bold tracking-widest uppercase text-white mb-1 font-orbitron drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">AetherTalk</h1>
         <div className="flex items-center space-x-2 text-[var(--accent)] text-sm tracking-widest font-mono">
           <span className={`w-2 h-2 rounded-full ${state.isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></span>
           <span>{state.isOnline ? (storage.profile.displayName || 'SYSTEM READY') : 'OFFLINE (NO NETWORK)'}</span>
@@ -193,8 +194,7 @@ export default function SetupView() {
                    key: passcode,
                    freq: '144.000' // mock freq for settings view compatibility
                  });
-                 // We don't have showToast imported here, so just use standard alert or rely on UI update
-                 alert('Preset Saved to Quick Squads!');
+                 setRefreshKey(k => k + 1); // Force re-render to show new preset
               } else {
                  alert('Enter a Squad Code to save.');
               }
