@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VR Telemedicine Doctor Portal Demo</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="brand">
+      <div class="brand-icon">
+        <i class="fa-solid fa-vr-cardboard"></i>
+      </div>
+      <div>
+        <div class="brand-title">AetherCare VR</div>
+        <div style="font-size: 0.75rem; color: var(--text-secondary);">Telemedicine Video Gateway</div>
+      </div>
+    </div>
+    
+    <div class="status-badge" id="sessionStatus">
+      <div class="pulse-dot"></div>
+      <span>System Ready (P2P Free)</span>
+    </div>
+  </nav>
+
+  <!-- Control Bar -->
+  <div class="control-bar">
+    <div class="input-group">
+      <i class="fa-solid fa-door-open" style="color: var(--text-secondary);"></i>
+      <input type="text" id="roomCode" value="CLINIC-HYD-01" placeholder="Enter Room Code">
+    </div>
+
+    <button class="btn btn-primary" id="btnStartCamera">
+      <i class="fa-solid fa-video"></i> Start Doctor Camera
+    </button>
+
+    <button class="btn btn-secondary" id="btnSimulateVR">
+      <i class="fa-solid fa-headset"></i> Connect VR Headset Test
+    </button>
+
+    <div style="margin-left: auto; font-size: 0.85rem; color: var(--text-secondary);">
+      Target VR: <strong style="color: var(--accent-cyan);">Meta Quest 3 / 3S</strong>
+    </div>
+  </div>
+
+  <!-- Main Grid View -->
+  <main class="main-container">
+    
+    <!-- Doctor Local Feed -->
+    <div class="video-card">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fa-solid fa-[#06b6d4] fa-user-doctor" style="color: var(--accent-cyan);"></i>
+          <span>Doctor Video Feed (1080p Stream)</span>
+        </div>
+        <span style="font-size: 0.75rem; color: var(--accent-emerald);">● LIVE</span>
+      </div>
+
+      <div class="video-viewport">
+        <div class="placeholder-text" id="doctorPlaceholder">
+          <i class="fa-solid fa-camera text-3xl" style="font-size: 2.5rem; opacity: 0.4;"></i>
+          <span>Click "Start Doctor Camera" above to enable stream</span>
+        </div>
+        <video id="doctorVideo" autoplay playsinline muted style="display: none;"></video>
+      </div>
+
+      <div class="card-footer">
+        <span>Encoding: H.264 / 30 FPS</span>
+        <span>Resolution: 1920x1080</span>
+      </div>
+    </div>
+
+    <!-- VR Patient Stream Receiver -->
+    <div class="video-card">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fa-solid fa-vr-cardboard" style="color: var(--accent-emerald);"></i>
+          <span>Patient Meta Quest 3 VR View</span>
+        </div>
+        <span style="font-size: 0.75rem; color: var(--text-secondary);" id="vrStatusText">Disconnected</span>
+      </div>
+
+      <div class="video-viewport">
+        <div class="placeholder-text" id="vrPlaceholder">
+          <i class="fa-solid fa-headset" style="font-size: 2.5rem; opacity: 0.4;"></i>
+          <span>Waiting for Meta Quest 3 / 3S Connection...</span>
+        </div>
+        <canvas id="vrCanvas" style="width: 100%; height: 100%; display: none;"></canvas>
+      </div>
+
+      <div class="card-footer">
+        <span>Latency: <strong id="latencyText" style="color: var(--accent-emerald);">24 ms (P2P)</strong></span>
+        <span>VR Battery: 94%</span>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
